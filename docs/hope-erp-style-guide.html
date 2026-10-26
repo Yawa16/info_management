@@ -1,0 +1,419 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hope, Inc. ERP — Visual Style Guide</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --color-primary-600: #397e68;
+      --color-primary-700: #2f6d58;
+      --color-primary-800: #245b4b;
+      --color-sidebar: #263d34;
+      --color-page: #faf9f5;
+      --color-surface: #fffefa;
+      --color-border: #8d9188;
+      --color-text-primary: #202c29;
+      --color-text-secondary: #58635d;
+      --color-text-disabled: #626b65;
+      --color-success-50: #e7f1e8;
+      --color-success-800: #285d3e;
+      --color-danger-50: #fbeae7;
+      --color-danger-700: #a63232;
+      --color-danger-800: #9f3029;
+      --color-danger-solid-hover: #842727;
+      --color-warning-50: #fff2d7;
+      --color-warning-800: #754900;
+      --color-info-50: #e6f0f7;
+      --color-info-800: #205b75;
+      --color-role-superadmin-bg: #efeafa;
+      --color-role-superadmin-fg: #55418b;
+      --color-role-admin-bg: #e7eef8;
+      --color-role-admin-fg: #315581;
+      --color-role-user-bg: #e8f1e9;
+      --color-role-user-fg: #315d3e;
+      --color-row-deleted: #f1f0ec;
+      --color-focus: #245b4b;
+      --space-1: 4px;
+      --space-2: 8px;
+      --space-3: 12px;
+      --space-4: 16px;
+      --space-6: 24px;
+      --radius-sm: 4px;
+      --radius-md: 6px;
+      --radius-lg: 10px;
+      --radius-pill: 999px;
+      --shadow-card: 0 2px 8px rgb(32 44 41 / 6%), 0 1px 2px rgb(32 44 41 / 5%);
+      --shadow-dialog: 0 20px 56px rgb(20 32 27 / 22%);
+      font-family: Inter, Arial, Helvetica, sans-serif;
+      color: var(--color-text-primary);
+      background: var(--color-page);
+      font-synthesis: none;
+      text-rendering: optimizeLegibility;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-size: 14px; line-height: 1.45; }
+    button, input, select { font: inherit; }
+    button { cursor: pointer; }
+    .sheet { width: min(1440px, 100%); margin: 0 auto; padding: 40px; }
+    .masthead { display: flex; align-items: end; justify-content: space-between; gap: 24px; padding-bottom: 24px; border-bottom: 1px solid #d7d8d0; }
+    .brand { display: flex; align-items: center; gap: 10px; color: var(--color-sidebar); font-size: 24px; font-weight: 700; letter-spacing: -1px; }
+    .brand-mark { display: flex; height: 26px; align-items: end; gap: 3px; transform: skew(-24deg); }
+    .brand-mark i { display: block; width: 6px; border-radius: 4px; background: #4a9279; }
+    .brand-mark i:nth-child(1) { height: 15px; }
+    .brand-mark i:nth-child(2) { height: 23px; }
+    .brand-mark i:nth-child(3) { height: 19px; }
+    .masthead p { margin: 4px 0 0; color: var(--color-text-secondary); }
+    .stamp { color: var(--color-text-secondary); font-size: 12px; }
+    h1 { margin: 0; font-size: 28px; line-height: 1.2; }
+    h2 { margin: 0 0 16px; font-size: 20px; line-height: 1.3; }
+    h3 { margin: 0; font-size: 14px; }
+    section { margin-top: 32px; }
+    .section-intro { margin: -8px 0 16px; color: var(--color-text-secondary); }
+    .grid { display: grid; gap: 16px; }
+    .grid-two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .grid-three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .panel { min-width: 0; padding: 20px; border: 1px solid var(--color-border); border-radius: var(--radius-lg); background: var(--color-surface); box-shadow: var(--shadow-card); }
+    .swatches { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+    .swatch { overflow: hidden; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface); }
+    .swatch-color { min-height: 52px; }
+    .swatch-meta { padding: 9px 10px; font-size: 12px; }
+    .swatch-meta strong, .swatch-meta code { display: block; }
+    .swatch-meta code { margin-top: 2px; color: var(--color-text-secondary); font: 12px ui-monospace, SFMono-Regular, Consolas, monospace; }
+    .type-sample { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; padding: 9px 0; border-bottom: 1px solid #e3e3dc; }
+    .type-sample:last-child { border: 0; }
+    .type-label { flex: 0 0 130px; color: var(--color-text-secondary); font-size: 12px; }
+    .type-page { font-size: 28px; font-weight: 600; line-height: 36px; }
+    .type-section { font-size: 20px; font-weight: 600; line-height: 28px; }
+    .type-header { font-size: 12px; font-weight: 600; line-height: 16px; }
+    .type-body { font-size: 14px; line-height: 20px; }
+    .type-caption { font-size: 12px; line-height: 16px; }
+    .type-button { font-size: 14px; font-weight: 600; line-height: 20px; }
+    .button-row, .control-row, .badge-row, .state-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+    .button {
+      display: inline-flex; min-height: 40px; align-items: center; justify-content: center; gap: 8px;
+      padding: 0 14px; border: 1px solid transparent; border-radius: var(--radius-md);
+      font-size: 14px; font-weight: 600; line-height: 20px;
+    }
+    .button-sm { min-height: 32px; padding-inline: 11px; }
+    .button-lg { min-height: 48px; padding-inline: 18px; }
+    .button-primary { color: #fff; background: var(--color-primary-600); }
+    .button-primary:hover { background: var(--color-primary-700); }
+    .button-primary:active, .button-primary.active { background: var(--color-primary-800); }
+    .button-secondary { border-color: var(--color-border); color: var(--color-primary-800); background: var(--color-surface); }
+    .button-secondary:hover { background: #f2f4ef; }
+    .button-danger { color: #fff; background: var(--color-danger-700); }
+    .button-danger:hover { background: var(--color-danger-solid-hover); }
+    .button-ghost { color: var(--color-text-primary); background: transparent; }
+    .button-ghost:hover { background: #efeee8; }
+    .button-icon { width: 40px; padding: 0; border-color: var(--color-border); color: var(--color-text-primary); background: var(--color-surface); }
+    .button:focus-visible, input:focus-visible, select:focus-visible, .nav-item:focus-visible, .tab:focus-visible, .quick-action:focus-visible, .dialog-close:focus-visible {
+      outline: 2px solid var(--color-focus); outline-offset: 2px;
+    }
+    .button:disabled { border-color: var(--color-border); color: var(--color-text-disabled); background: var(--color-row-deleted); cursor: not-allowed; }
+    .loading { color: #fff; background: var(--color-primary-600); cursor: progress; }
+    .spinner { width: 14px; height: 14px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; }
+    .label { display: block; margin-bottom: 6px; font-size: 12px; font-weight: 600; }
+    .field { width: 100%; min-height: 40px; padding: 8px 11px; border: 1px solid var(--color-border); border-radius: var(--radius-md); color: var(--color-text-primary); background: var(--color-surface); }
+    .field::placeholder { color: var(--color-text-secondary); opacity: 1; }
+    .field:disabled { color: var(--color-text-disabled); background: var(--color-row-deleted); }
+    .field-error { border-color: var(--color-danger-800); }
+    .hint, .error-text { margin: 5px 0 0; font-size: 12px; }
+    .hint { color: var(--color-text-secondary); }
+    .error-text { display: flex; align-items: start; gap: 5px; color: var(--color-danger-800); }
+    .input-wrap { position: relative; }
+    .input-wrap .field { padding-right: 76px; }
+    .show-password { position: absolute; top: 4px; right: 5px; min-height: 32px; padding: 0 8px; border: 0; border-radius: 4px; color: var(--color-primary-800); background: transparent; font-size: 12px; font-weight: 600; }
+    .select { appearance: none; padding-right: 34px; background: var(--color-surface); }
+    .check-line { display: flex; min-height: 28px; align-items: center; gap: 9px; }
+    .check-line input { width: 18px; height: 18px; accent-color: var(--color-primary-600); }
+    .check-line label { cursor: pointer; }
+    .mixed-check { position: relative; display: inline-block; width: 18px; height: 18px; border: 1px solid var(--color-primary-600); border-radius: 3px; background: var(--color-primary-600); }
+    .mixed-check::after { position: absolute; top: 7px; left: 3px; width: 10px; height: 2px; background: #fff; content: ""; }
+    .check-line.disabled { color: var(--color-text-disabled); }
+    .toggle-line { display: flex; align-items: center; gap: 10px; }
+    .toggle { position: relative; width: 40px; height: 24px; border: 1px solid var(--color-border); border-radius: var(--radius-pill); background: #f1f0ec; }
+    .toggle::after { position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%; background: var(--color-text-secondary); content: ""; }
+    .toggle.on { border-color: var(--color-primary-600); background: var(--color-primary-600); }
+    .toggle.on::after { left: 19px; background: #fff; }
+    .toggle.disabled { opacity: .7; }
+    .badge { display: inline-flex; min-height: 26px; align-items: center; gap: 6px; padding: 3px 9px; border-radius: var(--radius-pill); font-size: 12px; font-weight: 600; white-space: nowrap; }
+    .inline-icon { width: 13px; height: 13px; flex: 0 0 auto; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.8; }
+    .success { color: var(--color-success-800); background: var(--color-success-50); }
+    .danger { color: var(--color-danger-800); background: var(--color-danger-50); }
+    .warning { color: var(--color-warning-800); background: var(--color-warning-50); }
+    .info { color: var(--color-info-800); background: var(--color-info-50); }
+    .role-superadmin { color: var(--color-role-superadmin-fg); background: var(--color-role-superadmin-bg); }
+    .role-admin { color: var(--color-role-admin-fg); background: var(--color-role-admin-bg); }
+    .role-user { color: var(--color-role-user-fg); background: var(--color-role-user-bg); }
+    .toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+    .search { width: min(280px, 100%); }
+    .tabs { display: flex; flex-wrap: wrap; gap: 6px; }
+    .tab { min-height: 36px; padding: 0 12px; border: 1px solid transparent; border-radius: var(--radius-md); color: var(--color-text-secondary); background: transparent; font-size: 12px; font-weight: 600; }
+    .tab[aria-selected="true"] { border-color: var(--color-border); color: var(--color-text-primary); background: var(--color-surface); }
+    table { width: 100%; border-collapse: collapse; text-align: left; }
+    th { padding: 10px 12px; border-bottom: 1px solid var(--color-border); color: var(--color-text-secondary); font-size: 12px; font-weight: 600; }
+    td { padding: 12px; border-bottom: 1px solid var(--color-border); font-size: 14px; }
+    tbody tr:hover { background: #f4f5f0; }
+    tbody tr.selected { background: #edf4ef; }
+    tbody tr.deleted-row { color: var(--color-text-primary); background: var(--color-row-deleted); }
+    .secondary-text { color: var(--color-text-secondary); font-size: 12px; }
+    .empty { padding: 24px 12px; color: var(--color-text-secondary); text-align: center; }
+    .empty strong { display: block; margin-bottom: 4px; color: var(--color-text-primary); }
+    .shell-demo { display: grid; grid-template-columns: 210px minmax(0, 1fr); overflow: hidden; min-height: 250px; border: 1px solid var(--color-border); border-radius: var(--radius-lg); }
+    .sidebar { padding: 18px 12px; color: #fff; background: var(--color-sidebar); }
+    .sidebar-brand { margin: 0 10px 16px; color: #fff; font-size: 18px; font-weight: 700; }
+    .nav-item { display: flex; min-height: 40px; align-items: center; gap: 10px; margin: 3px 0; padding: 0 10px; border-radius: var(--radius-md); color: #d4ded7; text-decoration: none; }
+    .nav-item:hover { background: #344f43; }
+    .nav-item.active { color: #fff; background: #3a5b4b; box-shadow: inset 3px 0 #a9cfb1; }
+    .nav-item.disabled { color: #bbc8bf; cursor: not-allowed; }
+    .sidebar small { display: block; margin: 20px 10px 8px; color: #d4ded7; font-size: 12px; }
+    .main-demo { padding: 22px; background: var(--color-page); }
+    .quick-action { display: block; margin-top: 14px; padding: 14px; border: 1px solid var(--color-border); border-radius: var(--radius-md); color: var(--color-text-primary); background: var(--color-surface); text-decoration: none; }
+    .quick-action:hover { border-color: var(--color-primary-600); background: #f5f7f2; }
+    .quick-action strong, .quick-action span { display: block; }
+    .quick-action span { margin-top: 3px; color: var(--color-text-secondary); font-size: 12px; }
+    .dialog-demo { max-width: 430px; margin: 0 auto; overflow: hidden; border: 1px solid var(--color-border); border-radius: var(--radius-lg); background: var(--color-surface); box-shadow: var(--shadow-dialog); }
+    .dialog-body { padding: 22px; }
+    .dialog-body p { margin: 8px 0 0; color: var(--color-text-secondary); }
+    .dialog-footer { position: sticky; bottom: 0; display: flex; justify-content: end; gap: 8px; padding: 14px 22px; border-top: 1px solid var(--color-border); background: var(--color-surface); }
+    .dialog-close { float: right; width: 32px; height: 32px; border: 0; border-radius: 4px; color: var(--color-text-secondary); background: transparent; }
+    .alert { display: flex; align-items: start; gap: 10px; padding: 12px 14px; border-radius: var(--radius-md); }
+    .alert + .alert { margin-top: 8px; }
+    .alert strong { display: block; }
+    .alert p { margin: 2px 0 0; }
+    .toast { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 13px 15px; border: 1px solid var(--color-border); border-left: 4px solid var(--color-success-800); border-radius: var(--radius-md); background: var(--color-surface); box-shadow: var(--shadow-card); }
+    .toast.error-toast { border-left-color: var(--color-danger-800); }
+    .toast.info-toast { border-left-color: var(--color-info-800); }
+    .stamp-sample { padding: 13px; border-radius: var(--radius-md); background: var(--color-row-deleted); color: var(--color-text-secondary); font-size: 12px; }
+    .stamp-sample strong { color: var(--color-text-primary); letter-spacing: .04em; }
+    .icon-grid { display: flex; flex-wrap: wrap; gap: 12px; }
+    .icon-token { display: flex; min-width: 100px; align-items: center; gap: 8px; color: var(--color-text-secondary); font-size: 12px; }
+    .icon-token b { display: grid; width: 28px; height: 28px; place-items: center; border-radius: 6px; color: var(--color-primary-800); background: var(--color-success-50); font-size: 16px; }
+    .note { margin-top: 12px; color: var(--color-text-secondary); font-size: 12px; }
+    @media (max-width: 900px) {
+      .sheet { padding: 24px; }
+      .swatches { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .grid-three { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 620px) {
+      .sheet { padding: 18px 14px; }
+      .masthead { align-items: start; flex-direction: column; }
+      .grid-two, .grid-three { grid-template-columns: 1fr; }
+      .swatches { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .panel { padding: 16px; }
+      .shell-demo { grid-template-columns: 64px minmax(0, 1fr); }
+      .sidebar { padding-inline: 8px; }
+      .sidebar-brand { margin-inline: 5px; font-size: 12px; }
+      .nav-item { justify-content: center; padding: 0; font-size: 0; }
+      .sidebar small { font-size: 0; }
+      .main-demo { padding: 14px; }
+      .table-scroll { overflow-x: auto; }
+      table { min-width: 540px; }
+      .type-label { flex-basis: 94px; }
+    }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; } }
+  </style>
+</head>
+<body>
+  <main class="sheet">
+    <header class="masthead">
+      <div>
+        <div class="brand"><span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>hope<span style="color:#4a9279">.</span></div>
+        <p>ERP design system · visual style guide</p>
+      </div>
+      <div>
+        <h1>Business, in sync.</h1>
+        <div class="stamp">Warm cream · evergreen · botanical green</div>
+      </div>
+    </header>
+
+    <section aria-labelledby="color-title">
+      <h2 id="color-title">Color tokens</h2>
+      <p class="section-intro">Warm, low-glare surfaces with clear action and semantic contrast.</p>
+      <div class="swatches">
+        <div class="swatch"><div class="swatch-color" style="background:#397e68"></div><div class="swatch-meta"><strong>Primary 600</strong><code>#397E68 · 4.82:1 / white</code></div></div>
+        <div class="swatch"><div class="swatch-color" style="background:#2f6d58"></div><div class="swatch-meta"><strong>Primary hover</strong><code>#2F6D58 · 6.09:1 / white</code></div></div>
+        <div class="swatch"><div class="swatch-color" style="background:#245b4b"></div><div class="swatch-meta"><strong>Sidebar / pressed</strong><code>#245B4B · evergreen family</code></div></div>
+        <div class="swatch"><div class="swatch-color" style="background:#faf9f5"></div><div class="swatch-meta"><strong>Page cream</strong><code>#FAF9F5</code></div></div>
+        <div class="swatch"><div class="swatch-color" style="background:#fffefa"></div><div class="swatch-meta"><strong>Surface</strong><code>#FFFEFA</code></div></div>
+        <div class="swatch"><div class="swatch-color" style="background:#8d9188"></div><div class="swatch-meta"><strong>Control border</strong><code>#8D9188 · 3.05:1 / cream</code></div></div>
+        <div class="swatch"><div class="swatch-color" style="background:#263d34"></div><div class="swatch-meta"><strong>Sidebar dark</strong><code>#263D34 · white 11.67:1</code></div></div>
+        <div class="swatch"><div class="swatch-color" style="background:#f1f0ec"></div><div class="swatch-meta"><strong>Soft deleted</strong><code>#F1F0EC</code></div></div>
+      </div>
+    </section>
+
+    <section class="grid grid-two" aria-label="Typography and buttons">
+      <article class="panel">
+        <h2>Typography</h2>
+        <div class="type-sample"><span class="type-label">Page title · 28/36</span><span class="type-page">People</span></div>
+        <div class="type-sample"><span class="type-label">Section · 20/28</span><span class="type-section">Team members</span></div>
+        <div class="type-sample"><span class="type-label">Table header · 12/16</span><span class="type-header">EMPLOYEE NAME</span></div>
+        <div class="type-sample"><span class="type-label">Body · 14/20</span><span class="type-body">A clear, readable record value</span></div>
+        <div class="type-sample"><span class="type-label">Caption · 12/16</span><span class="type-caption">Updated 26 Oct 2026</span></div>
+        <div class="type-sample"><span class="type-label">Button · 14/20</span><span class="type-button">Save changes</span></div>
+      </article>
+      <article class="panel">
+        <h2>Buttons</h2>
+        <div class="button-row">
+          <button class="button button-primary">Primary</button>
+          <button class="button button-secondary">Secondary</button>
+          <button class="button button-danger">Delete</button>
+          <button class="button button-ghost">Ghost</button>
+          <button class="button button-icon" aria-label="More actions" title="More actions">⋯</button>
+        </div>
+        <p class="note">Sizes: <button class="button button-primary button-sm">Small</button> <button class="button button-primary">Medium</button> <button class="button button-primary button-lg">Large</button></p>
+        <p class="note">States: <button class="button button-primary active">Pressed</button> <button class="button button-primary" disabled>Disabled</button> <button class="button loading" aria-busy="true"><span class="spinner" aria-hidden="true"></span>Saving…</button></p>
+        <p class="note">Keyboard focus: <button class="button button-secondary" style="outline:2px solid #245b4b;outline-offset:2px">Focused</button></p>
+      </article>
+    </section>
+
+    <section class="grid grid-two" aria-label="Form controls and status">
+      <article class="panel">
+        <h2>Form controls</h2>
+        <div class="grid grid-two">
+          <div><label class="label" for="sample-name">Text input</label><input class="field" id="sample-name" value="Maya Chen"></div>
+          <div><label class="label" for="sample-password">Password input</label><div class="input-wrap"><input class="field" id="sample-password" type="password" value="hope-demo" aria-label="Password"><button class="show-password" type="button" aria-label="Show password">Show</button></div></div>
+          <div><label class="label" for="sample-select">Select</label><select class="field select" id="sample-select"><option>People team</option><option>Product team</option></select></div>
+          <div><label class="label" for="sample-disabled">Disabled input</label><input class="field" id="sample-disabled" value="Unavailable" disabled></div>
+          <div><label class="label" for="sample-error">Error state</label><input class="field field-error" id="sample-error" value="maya@" aria-describedby="sample-error-text"><p class="error-text" id="sample-error-text"><span aria-hidden="true">!</span> Enter a valid email address.</p></div>
+          <div>
+            <span class="label">Checkboxes</span>
+            <div class="check-line"><input id="check-on" type="checkbox" checked><label for="check-on">Email notifications</label></div>
+            <div class="check-line"><span class="mixed-check" role="img" aria-label="Checkbox, indeterminate"></span><span>Select all (mixed)</span></div>
+            <div class="check-line disabled"><input id="check-disabled" type="checkbox" disabled><label for="check-disabled">SMS (parent setting off)</label></div>
+          </div>
+        </div>
+        <div class="toggle-line" style="margin-top:16px"><span class="toggle on" role="img" aria-label="On"></span><span>Two-factor authentication <strong>On</strong></span><span class="toggle disabled" role="img" aria-label="Off, disabled"></span><span>Unavailable</span></div>
+      </article>
+      <article class="panel">
+        <h2>Status and role</h2>
+        <div class="badge-row">
+          <span class="badge success"><span aria-hidden="true">✓</span>Active</span>
+          <span class="badge danger"><span aria-hidden="true">−</span>Inactive</span>
+          <span class="badge danger"><svg class="inline-icon" viewBox="0 0 16 16" aria-hidden="true"><rect x="3" y="7" width="10" height="7" rx="1"></rect><path d="M5 7V5a3 3 0 0 1 6 0v2"></path></svg>Blocked</span>
+          <span class="badge warning"><span aria-hidden="true">!</span>Warning</span>
+          <span class="badge info"><span aria-hidden="true">i</span>Info</span>
+        </div>
+        <p class="note">Roles</p>
+        <div class="badge-row">
+          <span class="badge role-superadmin">◆ Superadmin</span>
+          <span class="badge role-admin">● Admin</span>
+          <span class="badge role-user">○ User</span>
+        </div>
+        <p class="note">Each state has a visible word label and icon; hue is never the only signal.</p>
+      </article>
+    </section>
+
+    <section aria-labelledby="table-title">
+      <h2 id="table-title">Data table</h2>
+      <div class="panel">
+        <div class="toolbar">
+          <div class="tabs" role="tablist" aria-label="Member status">
+            <button class="tab" role="tab" aria-selected="true">All <span>24</span></button>
+            <button class="tab" role="tab" aria-selected="false">Active <span>18</span></button>
+            <button class="tab" role="tab" aria-selected="false">Inactive <span>4</span></button>
+            <button class="tab" role="tab" aria-selected="false">Blocked <span>2</span></button>
+          </div>
+          <input class="field search" type="search" aria-label="Search members" placeholder="⌕  Search members">
+        </div>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th scope="col">Select</th><th scope="col">Name</th><th scope="col">Role</th><th scope="col">Status</th><th scope="col">Last updated</th></tr></thead>
+            <tbody>
+              <tr><td><input type="checkbox" aria-label="Select Maya Chen"></td><td><strong>Maya Chen</strong><div class="secondary-text">maya@hope.example</div></td><td><span class="badge role-admin">● Admin</span></td><td><span class="badge success">✓ Active</span></td><td>Today, 10:42</td></tr>
+              <tr class="selected"><td><input type="checkbox" checked aria-label="Select Jordan Lee"></td><td><strong>Jordan Lee</strong><div class="secondary-text">jordan@hope.example</div></td><td><span class="badge role-user">○ User</span></td><td><span class="badge danger">− Inactive</span></td><td>Yesterday</td></tr>
+              <tr class="deleted-row"><td><input type="checkbox" aria-label="Select deleted Alex Morgan"></td><td><strong>Alex Morgan</strong><div class="secondary-text">DELETED · Alex Morgan · 24 Oct 2026</div></td><td><span class="badge role-user">○ User</span></td><td><span class="badge danger">− Deleted</span></td><td><button class="button button-secondary button-sm">Restore</button></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="empty"><strong>Empty state example</strong>No blocked members. Try a different status filter.</div>
+      </div>
+    </section>
+
+    <section class="grid grid-two" aria-label="Application navigation and dialog">
+      <article class="panel">
+        <h2>Sidebar and Quick Action</h2>
+        <div class="shell-demo">
+          <nav class="sidebar" aria-label="Main navigation">
+            <div class="sidebar-brand">hope.</div>
+            <a class="nav-item" href="#table-title"><span aria-hidden="true">⌂</span>Overview</a>
+            <a class="nav-item active" href="#table-title" aria-current="page"><span aria-hidden="true">♙</span>People</a>
+            <a class="nav-item" href="#color-title"><span aria-hidden="true">▦</span>Products</a>
+            <span class="nav-item disabled" aria-disabled="true"><span aria-hidden="true">◇</span>Reports</span>
+            <small>QUICK ACTION</small>
+          </nav>
+          <div class="main-demo">
+            <h3>People</h3>
+            <a href="#table-title" class="quick-action"><strong>＋ Add team member</strong><span>Invite someone to Hope</span></a>
+          </div>
+        </div>
+      </article>
+      <article class="panel">
+        <h2>Dialog with sticky actions</h2>
+        <div class="dialog-demo" role="group" aria-label="Example edit dialog">
+          <div class="dialog-body">
+            <button class="dialog-close" aria-label="Close dialog">×</button>
+            <h3>Edit team member</h3>
+            <p>Update Maya's profile and access.</p>
+            <label class="label" for="dialog-role" style="margin-top:16px">Role</label>
+            <select class="field select" id="dialog-role"><option>Admin</option><option>User</option></select>
+          </div>
+          <div class="dialog-footer"><button class="button button-secondary">Cancel</button><button class="button button-primary">Save changes</button></div>
+        </div>
+      </article>
+    </section>
+
+    <section class="grid grid-two" aria-label="Feedback and confirmations">
+      <article class="panel">
+        <h2>Toast, alert, inline error</h2>
+        <div class="toast"><span><strong>✓ Saved successfully</strong><span class="secondary-text">Maya's profile was updated.</span></span><button class="dialog-close" aria-label="Dismiss notification">×</button></div>
+        <div class="toast error-toast" style="margin-top:8px"><span><strong>! Unable to save</strong><span class="secondary-text">Check your connection and try again.</span></span><button class="dialog-close" aria-label="Dismiss notification">×</button></div>
+        <div class="toast info-toast" style="margin-top:8px"><span><strong>i Invitation sent</strong><span class="secondary-text">Maya can join using the link in the email.</span></span></div>
+        <div class="alert warning" role="note" style="margin-top:12px"><span aria-hidden="true">!</span><div><strong>Action needed</strong><p>Review pending member invitations.</p></div></div>
+        <p class="error-text" style="margin-top:14px"><span aria-hidden="true">!</span> Inline form error: Enter a valid email address.</p>
+      </article>
+      <article class="panel">
+        <h2>Delete and Block confirmation</h2>
+        <div class="dialog-demo" role="group" aria-label="Example delete confirmation">
+          <div class="dialog-body">
+            <span class="badge danger">⌫ Delete</span>
+            <h3 style="margin-top:10px">Delete Alex Morgan?</h3>
+            <p>This member will be soft-deleted and can be restored by an administrator.</p>
+          </div>
+          <div class="dialog-footer"><button class="button button-secondary">Cancel</button><button class="button button-danger">Delete Alex</button></div>
+        </div>
+        <div class="dialog-demo" role="group" aria-label="Example block confirmation" style="margin-top:14px">
+          <div class="dialog-body">
+            <span class="badge danger"><svg class="inline-icon" viewBox="0 0 16 16" aria-hidden="true"><rect x="3" y="7" width="10" height="7" rx="1"></rect><path d="M5 7V5a3 3 0 0 1 6 0v2"></path></svg>Block</span>
+            <h3 style="margin-top:10px">Block Jordan Lee?</h3>
+            <p>Jordan will lose access until an administrator unblocks this account.</p>
+          </div>
+          <div class="dialog-footer"><button class="button button-secondary">Cancel</button><button class="button button-danger">Block Jordan</button></div>
+        </div>
+      </article>
+    </section>
+
+    <section class="grid grid-two" aria-label="Iconography and audit stamp">
+      <article class="panel">
+        <h2>Iconography</h2>
+        <div class="icon-grid">
+          <span class="icon-token"><b aria-hidden="true">✓</b>Active</span>
+          <span class="icon-token"><b aria-hidden="true">−</b>Inactive</span>
+          <span class="icon-token"><b aria-hidden="true">⌑</b>Blocked</span>
+          <span class="icon-token"><b aria-hidden="true">!</b>Warning</span>
+          <span class="icon-token"><b aria-hidden="true">i</b>Info</span>
+          <span class="icon-token"><b aria-hidden="true">⌫</b>Delete</span>
+        </div>
+        <p class="note">Use a consistent stroke-icon family at 16px (controls), 20px (navigation), and 24px (empty states). Icons supplement labels.</p>
+      </article>
+      <article class="panel">
+        <h2>Audit stamp</h2>
+        <div class="stamp-sample"><strong>EDITED</strong> · Maya Chen · 26 Oct 2026, 14:32</div>
+        <p class="note">Verb + user + localized date/time. Show CREATED, EDITED, and DELETED events in the same pattern.</p>
+      </article>
+    </section>
+  </main>
+</body>
+</html>
