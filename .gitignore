@@ -1,0 +1,13 @@
+# Local credentials and environment
+.env
+.env.*
+!.env.example
+
+# Dependencies and generated files
+node_modules/
+npm-debug.log*
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+.vscode/
