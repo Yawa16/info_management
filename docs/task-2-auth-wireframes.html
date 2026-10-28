@@ -79,6 +79,11 @@
     .viewport[data-size="mobile"] .canvas { min-height: 420px; padding: 8px; }
     .viewport[data-size="mobile"] .auth-card { padding: 14px 12px; }
     .viewport[data-size="mobile"] .input, .viewport[data-size="mobile"] .button, .viewport[data-size="mobile"] .input-action { min-height: 44px; }
+    .viewport[data-size="mobile"] .check-row { min-height: 44px; }
+    .viewport[data-size="mobile"] .checkbox { display: inline-flex; width: 44px; height: 44px; flex: 0 0 44px; align-items: center; justify-content: center; border: 0; background: transparent; }
+    .viewport[data-size="mobile"] .checkbox::before { width: 16px; height: 16px; border: 1px solid var(--color-border); border-radius: var(--radius-sm); background: var(--color-surface); content: ""; }
+    .viewport[data-size="mobile"] .checkbox.checked { border: 0; background: transparent; }
+    .viewport[data-size="mobile"] .checkbox.checked::before { border-color: var(--color-text-primary); background: var(--color-border); }
     .auth-card h3 { margin: 12px 0 3px; }
     .helper { margin-bottom: 12px; color: var(--color-text-secondary); font-size: 12px; line-height: 16px; }
     .message { margin: 0 0 10px; padding: 8px; border: 1px solid var(--color-border); border-radius: var(--radius-sm); color: var(--color-text-primary); background: var(--color-row-deleted); font-size: 12px; line-height: 16px; }
