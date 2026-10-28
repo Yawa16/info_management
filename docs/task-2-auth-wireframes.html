@@ -1,0 +1,490 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hope ERP — Task 2 Authentication Wireframes</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --color-primary-600: #397e68;
+      --color-primary-700: #2f6d58;
+      --color-primary-800: #245b4b;
+      --color-page: #faf9f5;
+      --color-surface: #fffefa;
+      --color-border: #8d9188;
+      --color-text-primary: #202c29;
+      --color-text-secondary: #58635d;
+      --color-text-disabled: #626b65;
+      --color-success-50: #e7f1e8;
+      --color-success-800: #285d3e;
+      --color-danger-50: #fbeae7;
+      --color-danger-800: #9f3029;
+      --color-row-deleted: #f1f0ec;
+      --color-focus: #245b4b;
+      --space-1: 4px;
+      --space-2: 8px;
+      --space-3: 12px;
+      --space-4: 16px;
+      --space-6: 24px;
+      --space-8: 32px;
+      --radius-sm: 4px;
+      --radius-md: 6px;
+      --radius-lg: 10px;
+      --shadow-card: 0 2px 8px rgb(32 44 41 / 6%), 0 1px 2px rgb(32 44 41 / 5%);
+      font-family: Inter, Arial, Helvetica, sans-serif;
+      color: var(--color-text-primary);
+      background: var(--color-page);
+      font-synthesis: none;
+      text-rendering: optimizeLegibility;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-size: 14px; line-height: 1.45; }
+    button, input { font: inherit; }
+    a { color: var(--color-primary-800); text-decoration: underline; text-underline-offset: 2px; }
+    .sheet { width: min(1440px, 100%); margin: 0 auto; padding: 32px; }
+    .masthead { display: flex; align-items: end; justify-content: space-between; gap: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--color-border); }
+    .logo { display: inline-flex; min-height: 32px; align-items: center; gap: 8px; padding: 0 8px; border: 1px dashed var(--color-border); border-radius: var(--radius-sm); color: var(--color-text-secondary); font-size: 12px; }
+    h1 { margin: 10px 0 4px; font-size: 28px; line-height: 36px; font-weight: 600; }
+    h2 { margin: 0 0 12px; font-size: 20px; line-height: 28px; font-weight: 600; }
+    h3 { margin: 0; font-size: 20px; line-height: 28px; font-weight: 600; }
+    p { margin: 0; }
+    .muted, .meta { color: var(--color-text-secondary); }
+    .meta { font-size: 12px; line-height: 16px; }
+    .masthead > p { max-width: 470px; color: var(--color-text-secondary); }
+    .section { margin-top: 28px; }
+    .panel { padding: 20px; border: 1px solid var(--color-border); border-radius: var(--radius-lg); background: var(--color-surface); box-shadow: var(--shadow-card); }
+    .assumptions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 24px; }
+    .assumptions p { color: var(--color-text-secondary); }
+    .flow { display: grid; gap: 8px; }
+    .flow-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+    .flow-node { padding: 8px 11px; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface); }
+    .arrow { color: var(--color-text-secondary); font-weight: 600; }
+    .screen { margin-top: 40px; scroll-margin-top: 16px; }
+    .screen-heading { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 20px; margin-bottom: 6px; }
+    .screen-intro { margin-bottom: 8px; color: var(--color-text-secondary); }
+    .screen-meta { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-bottom: 16px; padding: 10px 12px; border-left: 3px solid var(--color-border); background: var(--color-surface); font-size: 12px; line-height: 16px; }
+    .screen-meta strong { color: var(--color-text-primary); }
+    .screen-meta span { color: var(--color-text-secondary); }
+    .state { margin-top: 18px; padding: 16px; border: 1px solid var(--color-border); border-radius: var(--radius-lg); background: var(--color-surface); }
+    .state-title { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 12px; }
+    .state-title strong { font-size: 14px; }
+    .state-title span { color: var(--color-text-secondary); font-size: 12px; }
+    .views { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+    .viewport { min-width: 0; margin: 0; padding: 10px; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-page); }
+    .viewport-label { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 8px; font-size: 12px; font-weight: 600; }
+    .viewport-label span:last-child { color: var(--color-text-secondary); font-weight: 400; }
+    .canvas { display: flex; min-height: 392px; align-items: center; justify-content: center; padding: 12px; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-page); }
+    .auth-card { width: 100%; max-width: 360px; padding: 18px; border: 1px solid var(--color-border); border-radius: var(--radius-lg); background: var(--color-surface); box-shadow: var(--shadow-card); }
+    .viewport[data-size="mobile"] .canvas { min-height: 420px; padding: 8px; }
+    .viewport[data-size="mobile"] .auth-card { padding: 14px 12px; }
+    .viewport[data-size="mobile"] .input, .viewport[data-size="mobile"] .button, .viewport[data-size="mobile"] .input-action { min-height: 44px; }
+    .viewport[data-size="mobile"] .check-row { min-height: 44px; }
+    .viewport[data-size="mobile"] .checkbox { display: inline-flex; width: 44px; height: 44px; flex: 0 0 44px; align-items: center; justify-content: center; border: 0; background: transparent; }
+    .viewport[data-size="mobile"] .checkbox::before { width: 16px; height: 16px; border: 1px solid var(--color-border); border-radius: var(--radius-sm); background: var(--color-surface); content: ""; }
+    .viewport[data-size="mobile"] .checkbox.checked { border: 0; background: transparent; }
+    .viewport[data-size="mobile"] .checkbox.checked::before { border-color: var(--color-text-primary); background: var(--color-border); }
+    .auth-card h3 { margin: 12px 0 3px; }
+    .helper { margin-bottom: 12px; color: var(--color-text-secondary); font-size: 12px; line-height: 16px; }
+    .message { margin: 0 0 10px; padding: 8px; border: 1px solid var(--color-border); border-radius: var(--radius-sm); color: var(--color-text-primary); background: var(--color-row-deleted); font-size: 12px; line-height: 16px; }
+    .message.error { border-color: var(--color-danger-800); color: var(--color-danger-800); background: var(--color-danger-50); }
+    .message.success { border-color: var(--color-success-800); color: var(--color-success-800); background: var(--color-success-50); }
+    .field { margin-top: 9px; }
+    .field label { display: block; margin-bottom: 4px; font-size: 12px; font-weight: 600; }
+    .input { display: flex; min-height: 40px; align-items: center; justify-content: space-between; gap: 6px; padding: 8px 9px; border: 1px solid var(--color-border); border-radius: var(--radius-md); color: var(--color-text-secondary); background: var(--color-surface); font-size: 14px; }
+    .input.focused { outline: 2px solid var(--color-focus); outline-offset: 1px; }
+    .input.error { border-color: var(--color-danger-800); }
+    .input.readonly { color: var(--color-text-disabled); background: var(--color-row-deleted); }
+    .input-action { display: inline-flex; min-width: 32px; min-height: 32px; align-items: center; justify-content: center; padding: 0 4px; border: 0; border-radius: var(--radius-sm); color: var(--color-text-primary); background: transparent; font-size: 12px; }
+    .field-error { margin-top: 4px; color: var(--color-danger-800); font-size: 12px; line-height: 16px; }
+    .check-row { display: flex; min-height: 28px; align-items: center; gap: 7px; margin-top: 8px; color: var(--color-text-primary); font-size: 12px; }
+    .checkbox { display: inline-block; width: 16px; height: 16px; flex: 0 0 auto; border: 1px solid var(--color-border); border-radius: var(--radius-sm); background: var(--color-surface); }
+    .checkbox.checked { border-color: var(--color-text-primary); background: var(--color-border); }
+    .note { margin: 8px 0; padding: 8px; border: 1px solid var(--color-border); border-radius: var(--radius-sm); color: var(--color-text-primary); background: var(--color-row-deleted); font-size: 12px; line-height: 16px; }
+    .rules { margin-top: 8px; padding: 8px; border: 1px solid var(--color-border); border-radius: var(--radius-md); font-size: 12px; line-height: 16px; }
+    .rules-title { display: flex; justify-content: space-between; font-weight: 600; }
+    .rules ul { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 3px 8px; margin: 6px 0 0; padding: 0; list-style: none; color: var(--color-text-secondary); }
+    .rules li.pass { color: var(--color-success-800); }
+    .strength { height: 5px; margin-top: 7px; border: 1px solid var(--color-border); border-radius: var(--radius-md); }
+    .strength span { display: block; height: 100%; border-radius: inherit; background: var(--color-border); }
+    .button { display: flex; width: 100%; min-height: 40px; align-items: center; justify-content: center; gap: 8px; margin-top: 10px; padding: 8px 12px; border: 1px solid var(--color-primary-600); border-radius: var(--radius-md); color: var(--color-surface); background: var(--color-primary-600); font-size: 14px; font-weight: 600; text-align: center; }
+    .button.loading { background: var(--color-primary-700); }
+    .button.secondary { border-color: var(--color-border); color: var(--color-text-primary); background: var(--color-surface); }
+    .button.disabled { border-color: var(--color-border); color: var(--color-text-disabled); background: var(--color-row-deleted); }
+    .spinner { width: 13px; height: 13px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; }
+    .links { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 12px; margin-top: 8px; font-size: 12px; }
+    .sample-links { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 12px; margin-top: 8px; font-size: 12px; }
+    .callouts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px 20px; margin: 12px 0 0; padding: 10px 10px 10px 30px; border-top: 1px solid var(--color-border); color: var(--color-text-secondary); font-size: 12px; line-height: 16px; }
+    .microcopy { width: 100%; border-collapse: collapse; text-align: left; }
+    .microcopy th, .microcopy td { padding: 8px 10px; border-bottom: 1px solid var(--color-border); vertical-align: top; }
+    .microcopy th { font-size: 12px; }
+    .microcopy td { font-size: 14px; }
+    .decision-list { margin: 0; padding-left: 20px; color: var(--color-text-secondary); }
+    .decision-list li + li { margin-top: 6px; }
+    .footer { margin-top: 28px; padding-top: 16px; border-top: 1px solid var(--color-border); color: var(--color-text-secondary); font-size: 12px; }
+    @media (max-width: 900px) { .sheet { padding: 24px; } .views { grid-template-columns: 1fr; } .canvas { min-height: 340px; } .auth-card { max-width: 440px; } }
+    @media (max-width: 600px) {
+      .sheet { padding: 16px; }
+      .masthead { align-items: start; flex-direction: column; }
+      .assumptions, .callouts { grid-template-columns: 1fr; }
+      .panel { padding: 16px; }
+      .screen { margin-top: 30px; }
+      .state { padding: 12px; }
+      .viewport { padding: 8px; }
+      .canvas, .viewport[data-size="mobile"] .canvas { min-height: 420px; padding: 8px; }
+      .auth-card, .viewport[data-size="mobile"] .auth-card { max-width: 100%; padding: 16px; }
+      .input, .button, .input-action { min-height: 44px; }
+      .sample-links a { display: inline-flex; min-height: 44px; align-items: center; }
+      .microcopy-wrap { overflow-x: auto; }
+      .microcopy { min-width: 560px; }
+    }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; } }
+  </style>
+</head>
+<body>
+  <main class="sheet">
+    <header class="masthead">
+      <div>
+        <div class="logo">LOGO PLACEHOLDER</div>
+        <h1>Authentication wireframes</h1>
+      </div>
+      <p>Task 2 · Low-fidelity grayscale · Each state shown at 1440px, 768px, and 375px. Task 1 cream, primary action, focus, error, and success tokens are retained.</p>
+    </header>
+
+    <section class="section panel">
+      <h2>Assumptions and pending decisions</h2>
+      <div class="assumptions">
+        <p>New email and Google accounts are <strong>User / Inactive</strong>. A <strong>Superadmin</strong> approves access. Registration never grants ERP access.</p>
+        <p>Email registration: submit name/email → Superadmin review → if approved, set password from emailed link → Sign In. Google: OAuth identity → pending approval → Google Sign In after approval.</p>
+        <p>Existing DEV guidance defaults signups to Superadmin; this conflicts with User/Inactive and must be reconciled before implementation.</p>
+        <p>Password requirements, lockout, token expiry, resend cooldown, registration availability, and Remember me duration are pending product/security decisions.</p>
+      </div>
+    </section>
+
+    <section class="section panel">
+      <h2>Flow overview</h2>
+      <div class="flow">
+        <div class="flow-row"><span class="flow-node">Sign In</span><span class="arrow">→ Forgot password →</span><span class="flow-node">Request reset</span><span class="arrow">→</span><span class="flow-node">Check email</span><span class="arrow">→</span><span class="flow-node">Choose new password</span><span class="arrow">→ Sign In</span></div>
+        <div class="flow-row"><span class="flow-node">Register: First + Last name + Email</span><span class="arrow">→</span><span class="flow-node">User / Inactive request</span><span class="arrow">→ Superadmin approves →</span><span class="flow-node">Set password link</span><span class="arrow">→ Sign In</span></div>
+        <div class="flow-row"><span class="flow-node">Continue with Google</span><span class="arrow">→</span><span class="flow-node">New: User / Inactive → Superadmin approval</span><span class="arrow">· Existing account: Active gate</span></div>
+        <div class="flow-row"><span class="flow-node">Invalid credentials → neutral error</span><span class="flow-node">Pending/Blocked → message only after identity proof</span><span class="flow-node">Expired/invalid reset → request replacement link</span></div>
+      </div>
+    </section>
+
+    <div id="screens"></div>
+
+    <section class="section panel" id="microcopy-table">
+      <h2>Complete microcopy table</h2>
+      <div class="microcopy-wrap"><table class="microcopy"><thead><tr><th>Context</th><th>Copy</th></tr></thead><tbody id="microcopy"></tbody></table></div>
+    </section>
+    <section class="section panel" id="open-decisions">
+      <h2>Pending product/security decisions</h2>
+      <ol class="decision-list">
+        <li>Reconcile DEV Superadmin signup instruction with mandatory User/Inactive signup.</li>
+        <li>Approve password policy and strength-meter behavior.</li>
+        <li>Set failed-attempt rate limits and temporary lockout duration.</li>
+        <li>Approve invite/reset token expiry, one-time use, resend cooldown, and attempt limits.</li>
+        <li>Confirm registration availability, Superadmin review/rejection workflow, and notification text.</li>
+        <li>Confirm Google account linking, verified-email requirement, duplicate email handling, and session behavior.</li>
+        <li>Approve Remember me persistence duration, help/contact route, and post-password return behavior.</li>
+      </ol>
+    </section>
+    <section class="section panel" id="support-route">
+      <h2>Support route placeholder</h2>
+      <p class="muted">Replace this placeholder with the organization's approved administrator/support destination. No contact address is defined in project context.</p>
+    </section>
+    <section class="section panel">
+      <h2>Task 1 gaps used as compositions</h2>
+      <p class="muted">Google option, Remember me, Superadmin/pending notice, password checklist, summary errors, loading, reset confirmation/cooldown, and link-recovery states are auth-specific compositions. No new design-system color, font, or component token is introduced.</p>
+    </section>
+    <footer class="footer">Numbered callouts describe initial focus, DOM/tab order, validation timing, and recovery behavior. Visual samples are static wireframes, not functional authentication forms.</footer>
+  </main>
+  <script>
+    const rules = [
+      "At least 12 characters",
+      "One uppercase letter",
+      "One lowercase letter",
+      "One number",
+      "One symbol"
+    ];
+
+    const screens = [
+      {
+        id: "login", title: "1. Login / Sign In", heading: "Sign In",
+        helper: "Sign in to your Hope account.", initialFocus: "Email",
+        tabOrder: "Email → Password → Show/Hide → Remember me → Forgot password? → Sign In → Continue with Google → Register",
+        fields: [
+          { key: "email", label: "Email", value: "you@company.com" },
+          { key: "password", label: "Password", value: "Password", password: true }
+        ],
+        remember: true, google: "Continue with Google", preActionLinks: ["Forgot password?"], links: ["New to Hope? Register"], action: "Sign In",
+        callouts: [
+          "Initial focus is Email. Enter submits the form.",
+          "Remember me is optional; persistence duration is pending approval.",
+          "Invalid credentials always use neutral copy, regardless of email existence.",
+          "Pending/Blocked states show only after valid password or verified Google callback.",
+          "New Google identities are created User/Inactive and wait for Superadmin approval."
+        ],
+        states: [
+          { name: "Default" },
+          { name: "Email field focus", focus: "email" },
+          { name: "Required-field validation", summary: "Check the highlighted fields.", errors: { email: "Enter your email address.", password: "Enter your password." } },
+          { name: "Invalid email format", summary: "Check the highlighted field.", errors: { email: "Enter a valid email address." } },
+          { name: "Invalid credentials (privacy-safe)", summary: "We couldn't sign you in with those details. Check your email and password, then try again.", errors: { password: "We couldn't sign you in with those details. Check your email and password, then try again." } },
+          { name: "Pending account (identity verified)", message: "Your account is pending Superadmin approval. You can sign in after it is approved." },
+          { name: "Blocked account (identity verified)", message: "This account can't sign in right now. Contact your administrator for help.", links: ["Contact administrator"] },
+          { name: "Temporary lockout (policy pending)", message: "Sign-in is temporarily unavailable. Try again later.", buttonDisabled: true },
+          { name: "Loading password sign-in", loading: "Signing in…", disabled: true },
+          { name: "Loading Google sign-in", loading: "Connecting to Google…", disabled: true },
+          { name: "Sign-in success", success: "Signed in. Opening Hope…", heading: "Signed in", action: "Continue to Hope", links: [], hideForm: true },
+          { name: "Session expired", message: "Your session expired. Sign in again to continue.", summary: null },
+          { name: "Google sign-in error", summary: "Google sign-in didn't finish. Try again or use your email and password." }
+        ]
+      },
+      {
+        id: "register", title: "2. Register", heading: "Register",
+        helper: "Request access to Hope. A Superadmin must approve new accounts.", initialFocus: "First name",
+        tabOrder: "First name → Last name → Email → Register → Continue with Google → Sign In",
+        fields: [
+          { key: "first", label: "First name", value: "Your first name" },
+          { key: "last", label: "Last name", value: "Your last name" },
+          { key: "email", label: "Email", value: "you@company.com" }
+        ],
+        note: "New accounts are created as User and remain pending Superadmin approval.",
+        google: "Continue with Google", links: ["Already have an account? Sign In"], action: "Register",
+        callouts: [
+          "Initial focus is First name; names use given-name and family-name autocomplete.",
+          "No password is collected during registration.",
+          "New email and Google identities are assigned User/Inactive server-side.",
+          "Registration acknowledgement does not mean approval or ERP access.",
+          "After approval: email users set a password from the emailed link; Google users continue with Google."
+        ],
+        states: [
+          { name: "Default" },
+          { name: "Field validation", summary: "Check the highlighted fields.", errors: { first: "Enter your first name.", last: "Enter your last name.", email: "Enter your email address." } },
+          { name: "Invalid email format", summary: "Check the highlighted field.", errors: { email: "Enter a valid email address." } },
+          { name: "Existing/conflicting email (neutral)", summary: "We couldn't complete this request. If you already have an account, Sign In or reset your password. Otherwise check the email and try again.", errors: { email: "Check the email and try again, or Sign In if you already have an account." } },
+          { name: "Loading", loading: "Submitting request…", disabled: true },
+          { name: "Request received", success: "Your request is pending Superadmin approval. We’ll email you after it’s reviewed. If approved, we’ll send a link to set your password.", action: "Back to Sign In", hideForm: true, links: [] },
+          { name: "Google account pending", success: "Your Google account is linked. A Superadmin must approve your access before you can use Hope.", action: "Back to Sign In", hideForm: true, links: [] },
+          { name: "Registration unavailable", message: "New requests aren't available right now. Contact your administrator for access.", action: "Back to Sign In", hideForm: true, links: [] },
+          { name: "Google sign-in error", summary: "Google sign-in didn't finish. Try again or use the registration form." }
+        ]
+      },
+      {
+        id: "reset-request", title: "3. Forgot Password — Request Reset", heading: "Forgot password?",
+        helper: "Enter your email address. If an account matches, we'll send reset instructions.", initialFocus: "Email",
+        tabOrder: "Email → Send Reset Link → Back to Sign In",
+        fields: [{ key: "email", label: "Email", value: "you@company.com" }],
+        links: ["Back to Sign In"], action: "Send Reset Link",
+        callouts: [
+          "Initial focus is Email. Enter submits the request.",
+          "Validate email on blur; after the first error, revalidate on input.",
+          "Same generic response for registered and unregistered addresses; do not reveal account existence."
+        ],
+        states: [
+          { name: "Default" },
+          { name: "Required-field validation", summary: "Check the highlighted field.", errors: { email: "Enter your email address." } },
+          { name: "Invalid email format", summary: "Check the highlighted field.", errors: { email: "Enter a valid email address." } },
+          { name: "Loading", loading: "Sending reset link…", disabled: true },
+          { name: "Request accepted", success: "If an account matches that email, we'll send a reset link. Check your inbox and spam folder.", heading: "Check your email", helper: "Check your inbox and spam folder. The message won't confirm whether the address is registered.", action: "Back to Sign In", hideForm: true, links: [] },
+          { name: "Request error", summary: "We couldn't process that request right now. Try again." }
+        ]
+      },
+      {
+        id: "check-email", title: "4. Forgot Password — Check Your Email", heading: "Check your email",
+        helper: "If an account matches that email, we'll send a reset link. Check your inbox and spam folder.", initialFocus: "Confirmation heading",
+        tabOrder: "Confirmation heading → Resend link → Back to Sign In",
+        fields: [], action: "Resend link", links: ["Back to Sign In"],
+        callouts: [
+          "Initial focus is the announced confirmation heading.",
+          "Never display whether the address exists; avoid showing the full email on shared screens.",
+          "Cooldown duration is pending approval; the server enforces any approved rate limit."
+        ],
+        states: [
+          { name: "Confirmation / cooldown", message: "You can request another link when the timer ends.", action: "Resend link · timer pending", buttonDisabled: true },
+          { name: "Resend available", action: "Resend link" },
+          { name: "Resend loading", loading: "Sending reset link…", disabled: true },
+          { name: "Resend success", success: "If an account matches that email, we'll send a new reset link.", action: "Resend link · timer pending", buttonDisabled: true },
+          { name: "Resend error", summary: "We couldn't send a link right now. Try again later." }
+        ]
+      },
+      {
+        id: "set-password", title: "5. Set Password — First time", heading: "Set your password",
+        helper: "Choose a password to finish setting up your Hope account.", initialFocus: "New password",
+        tabOrder: "New password → Show/Hide → Confirm password → Show/Hide → Save → Back to Sign In",
+        fields: [
+          { key: "email", label: "Email", value: "maya@company.com", readonly: true },
+          { key: "password", label: "New password", value: "Create a password", password: true },
+          { key: "confirm", label: "Confirm password", value: "Enter it again", password: true }
+        ],
+        passwordRules: true, links: ["Back to Sign In"], action: "Save",
+        callouts: [
+          "Initial focus is New password; the email is visible and read-only.",
+          "This screen follows Superadmin approval for email registration.",
+          "Password checklist is an example policy pending approval.",
+          "Token expiry and one-time use are pending decisions; server validates the link."
+        ],
+        states: [
+          { name: "Default", rulePasses: 2 },
+          { name: "Password rule validation", summary: "Check the highlighted fields.", errors: { password: "Meet each password rule below." }, rulePasses: 1 },
+          { name: "Confirm password mismatch", summary: "Check the highlighted field.", errors: { confirm: "These passwords don't match. Check both fields and try again." }, rulePasses: 5 },
+          { name: "Loading", loading: "Saving password…", disabled: true },
+          { name: "Success", success: "Your password is ready. Sign in to continue.", hideForm: true, action: "Back to Sign In" },
+          { name: "Expired/invalid setup link", message: "This setup link can't be used. Ask your Superadmin to send a new one.", action: "Request a new setup link", hideForm: true, links: ["Back to Sign In", "Contact administrator"] },
+          { name: "Save error", summary: "We couldn't update your password right now. Try again." }
+        ]
+      },
+      {
+        id: "choose-password", title: "6. Reset Password — Choose New Password", heading: "Choose a new password",
+        helper: "Create a new password for your Hope account.", initialFocus: "New password",
+        tabOrder: "New password → Show/Hide → Confirm password → Show/Hide → Save → Back to Sign In",
+        fields: [
+          { key: "password", label: "New password", value: "Create a new password", password: true },
+          { key: "confirm", label: "Confirm password", value: "Enter it again", password: true }
+        ],
+        passwordRules: true, links: ["Back to Sign In"], action: "Save",
+        callouts: [
+          "Initial focus is New password; show this form only after link validation.",
+          "Use the same approved policy as Set Password; present the example checklist as pending.",
+          "On success return to Sign In; do not silently sign in.",
+          "Expired/invalid links offer Request a new reset link and route to Forgot Password."
+        ],
+        states: [
+          { name: "Default", rulePasses: 2 },
+          { name: "Password rule validation", summary: "Check the highlighted fields.", errors: { password: "Meet each password rule below." }, rulePasses: 1 },
+          { name: "Confirm password mismatch", summary: "Check the highlighted field.", errors: { confirm: "These passwords don't match. Check both fields and try again." }, rulePasses: 5 },
+          { name: "Loading", loading: "Saving password…", disabled: true },
+          { name: "Success", success: "Your password has been updated. Sign in with your new password.", hideForm: true, action: "Back to Sign In" },
+          { name: "Expired reset link", message: "This reset link has expired. Request a new link to reset your password.", hideForm: true, links: ["Request a new reset link", "Back to Sign In"] },
+          { name: "Invalid/already-used reset link", message: "This reset link can't be used. Request a new link to continue.", hideForm: true, links: ["Request a new reset link", "Back to Sign In"] },
+          { name: "Save error", summary: "We couldn't update your password right now. Try again." }
+        ]
+      }
+    ];
+
+    const microcopy = [
+      ["Login heading/helper", "Sign In · Sign in to your Hope account."],
+      ["Login fields", "Email · Password (Show password / Hide password)"],
+      ["Login options", "Remember me · Forgot password? · Sign In · Continue with Google · New to Hope? Register"],
+      ["Register fields/actions", "First name · Last name · Email · Register · Continue with Google · Already have an account? Sign In"],
+      ["New-account note", "New accounts are created as User and remain pending Superadmin approval."],
+      ["Email validation", "Enter your email address. · Enter a valid email address."],
+      ["Name validation", "Enter your first name. · Enter your last name."],
+      ["Password mismatch", "These passwords don't match. Check both fields and try again."],
+      ["Validation summary", "Check the highlighted fields."],
+      ["Neutral sign-in failure", "We couldn't sign you in with those details. Check your email and password, then try again."],
+      ["Pending account", "Your account is pending Superadmin approval. You can sign in after it is approved."],
+      ["Blocked account", "This account can't sign in right now. Contact your administrator for help."],
+      ["Session expiry", "Your session expired. Sign in again to continue."],
+      ["Register confirmation", "Your request is pending Superadmin approval. We’ll email you after it’s reviewed. If approved, we’ll send a link to set your password."],
+      ["Google pending", "Your Google account is linked. A Superadmin must approve your access before you can use Hope."],
+      ["Generic reset helper", "Enter your email address. If an account matches, we'll send reset instructions."],
+      ["Reset confirmation", "If an account matches that email, we'll send a reset link. Check your inbox and spam folder."],
+      ["Password policy", "Example policy — pending approval: 12+ characters, uppercase, lowercase, number, symbol."],
+      ["Password save", "Save · Saving password…"],
+      ["Password success", "Your password has been updated. Sign in with your new password."],
+      ["Expired/invalid reset", "This reset link can't be used. Request a new link to continue."]
+    ];
+
+    const esc = (value) => String(value).replace(/[&<>"']/g, (c) => ({
+      "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+    })[c]);
+
+    function renderField(field, state) {
+      const error = state.errors && state.errors[field.key];
+      const focus = state.focus === field.key;
+      return `<div class="field">
+        <label>${esc(field.label)}</label>
+        <div class="input${error ? " error" : ""}${focus ? " focused" : ""}${field.readonly ? " readonly" : ""}">
+          <span>${esc(field.password ? "••••••••••••" : field.value)}</span>
+          ${field.password ? `<button class="input-action" type="button" aria-label="Show password"${state.disabled ? " disabled" : ""}>Show</button>` : field.readonly ? "<span>Read only</span>" : ""}
+        </div>
+        ${error ? `<div class="field-error"><strong>Error:</strong> ${esc(error)}</div>` : ""}
+      </div>`;
+    }
+
+    function renderRules(state) {
+      if (state.hideForm === true || !state.screenHasRules) return "";
+      const passed = Math.min(state.rulePasses || 0, rules.length);
+      return `<div class="rules">
+        <div class="rules-title"><span>Example password rules · pending approval</span><span>${passed ? "In progress" : "Not checked"}</span></div>
+        <ul>${rules.map((rule, index) => `<li class="${index < passed ? "pass" : ""}">${index < passed ? "✓" : "○"} ${esc(rule)}</li>`).join("")}</ul>
+        <div class="strength" aria-label="Example strength indicator"><span style="width:${Math.max(14, passed * 20)}%"></span></div>
+      </div>`;
+    }
+
+    function renderState(screen, state, stateNumber) {
+      const screenState = { ...state, screenHasRules: screen.passwordRules };
+      const message = state.summary
+        ? `<div class="message error"><strong>! ${esc(state.summary)}</strong></div>`
+        : state.success
+          ? `<div class="message success"><strong>✓ ${esc(state.success)}</strong></div>`
+          : state.message
+            ? `<div class="message${state.name.toLowerCase().includes("error") ? " error" : ""}"><strong>ℹ ${esc(state.message)}</strong></div>`
+            : "";
+      const fields = state.hideForm ? "" : screen.fields.map((field) => renderField(field, screenState)).join("");
+      const remember = screen.remember && !state.hideForm
+        ? `<div class="check-row"><span class="checkbox${state.remember ? " checked" : ""}"></span><span>Remember me</span></div>` : "";
+      const note = screen.note && !state.hideForm ? `<p class="note">${esc(screen.note)}</p>` : "";
+      const rulesHtml = !state.hideForm && screen.passwordRules ? renderRules(screenState) : "";
+      const buttonText = state.loading || state.action || (state.buttonDisabled ? state.action || screen.action : screen.action);
+      const primary = buttonText ? `<div class="button${state.loading ? " loading" : ""}${state.buttonDisabled && !state.loading ? " disabled" : ""}">${state.loading ? '<span class="spinner" aria-hidden="true"></span>' : ""}${esc(buttonText)}</div>` : "";
+      const google = screen.google && !state.hideForm
+        ? `<div class="button secondary">${esc(screen.google)}</div>` : "";
+      const preAction = (state.preActionLinks || screen.preActionLinks || []).length
+        ? `<div class="sample-links">${(state.preActionLinks || screen.preActionLinks).map((link) => `<a href="#reset-request">${esc(link)}</a>`).join("")}</div>` : "";
+      let links = state.links !== undefined ? state.links : screen.links;
+      if (state.success && state.links === undefined && screen.links.includes("Back to Sign In")) links = ["Back to Sign In"];
+      const linkHtml = links && links.length
+        ? `<div class="sample-links">${links.map((link) => {
+          const target = link.toLowerCase().includes("reset") || link.includes("Forgot") ? "reset-request"
+            : link.includes("Register") ? "register"
+            : link.includes("administrator") ? "support-route"
+            : "login";
+          return `<a href="#${target}">${esc(link)}</a>`;
+        }).join("")}</div>` : "";
+      const actionLabel = state.loading || state.action || screen.action;
+      const card = `<div class="auth-card">
+        <div class="logo">LOGO PLACEHOLDER</div>
+        ${message}
+        <h3>${esc(state.heading || screen.heading)}</h3>
+        <p class="helper">${esc(state.helper || screen.helper)}</p>
+        ${fields}${remember}${note}${rulesHtml}
+        ${preAction}${primary}${google}${linkHtml}
+      </div>`;
+      const viewports = [
+        ["desktop", "1440px", "Desktop"],
+        ["tablet", "768px", "Tablet"],
+        ["mobile", "375px", "Mobile"]
+      ].map(([size, width, label]) => `
+        <figure class="viewport" data-size="${size}">
+          <figcaption class="viewport-label"><span>${width} · ${label}</span><span>Centered card</span></figcaption>
+          <div class="canvas">${card}</div>
+        </figure>`).join("");
+      const callouts = screen.callouts.map((text) => `<li>${esc(text)}</li>`).join("");
+      const stateNote = state.note ? `<li>${esc(state.note)}</li>` : "";
+      return `<article class="state" id="${screen.id}-state-${stateNumber}">
+        <div class="state-title"><strong>${esc(state.name)}</strong><span>${screen.id.toUpperCase()} · state ${stateNumber} of ${screen.states.length}</span></div>
+        <div class="views">${viewports}</div>
+        <ol class="callouts">${callouts}${stateNote}</ol>
+      </article>`;
+    }
+
+    document.getElementById("screens").innerHTML = screens.map((screen) => `
+      <section class="screen" id="${screen.id}">
+        <div class="screen-heading"><h2>${esc(screen.title)}</h2><span class="meta">No app sidebar · grayscale wireframe</span></div>
+        <p class="screen-intro">${esc(screen.helper)}</p>
+        <div class="screen-meta">
+          <span><strong>Initial focus:</strong> ${esc(screen.initialFocus)}</span>
+          <span><strong>Tab order:</strong> ${esc(screen.tabOrder)}</span>
+        </div>
+        ${screen.states.map((state, index) => renderState(screen, state, index + 1)).join("")}
+      </section>`).join("");
+
+    document.getElementById("microcopy").innerHTML = microcopy.map(([context, copy]) =>
+      `<tr><th scope="row">${esc(context)}</th><td>${esc(copy)}</td></tr>`
+    ).join("");
+  </script>
+</body>
+</html>
