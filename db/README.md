@@ -1,6 +1,6 @@
 # Hope, Inc. ERP database setup
 
-PostgreSQL is the database engine. The source `HopeDB_audit.sql` uses PostgreSQL-specific syntax, including JSONB and PL/pgSQL trigger functions. Use PostgreSQL 15 or newer for local development. The Node.js tools below work on Windows, macOS, and Linux.
+The source `HopeDB_audit.sql` uses PostgreSQL-specific syntax, so the project database engine is PostgreSQL. The recommended team database is a **non-production Supabase project**, which hosts PostgreSQL for you. Students do not need to install or run a local database server, and Docker is not used. The migration and seed runner uses Node.js 20+ and works on Windows, macOS, and Linux.
 
 ## Repository layout
 
@@ -9,105 +9,105 @@ PostgreSQL is the database engine. The source `HopeDB_audit.sql` uses PostgreSQL
 ├── .env.example
 ├── .gitignore
 ├── package.json
-├── db/
-│   ├── README.md
-│   ├── migrations/       # numbered, forward-only PostgreSQL SQL files
-│   ├── seeds/            # repeatable, idempotent seed SQL files
-│   └── scripts/          # cross-platform Node.js migration and seed tools
-└── README.md
+├── package-lock.json
+├── README.md
+└── db/
+    ├── README.md
+    ├── migrations/       # numbered, forward-only PostgreSQL SQL files
+    ├── seeds/            # repeatable, idempotent SQL seed files
+    └── scripts/
+        ├── lib.js
+        ├── migrate.js
+        └── seed.js
 ```
 
-No application tables or schema migrations are included yet. The migration runner creates only its own `public.schema_migrations` tracking table.
+The runner creates only `public.schema_migrations` for bookkeeping. **There are no HOPE application-table migrations or seeds yet**, by request. A temporary empty migration was used to smoke-test the runner and removed afterward.
 
 ## Team database approach
 
 | Approach | Advantages | Tradeoffs |
 | --- | --- | --- |
-| (a) Each student installs PostgreSQL locally | Isolated, fast, and works offline | Every student must maintain a local database and apply changes |
-| (b) One shared hosted dev database | Easy onboarding; no local database server needed | Shared data can be overwritten, and the team depends on network access |
-| (c) Local development plus a shared integration database | Safe daily work and a common place to verify team changes | Requires local PostgreSQL plus careful separation of local and shared credentials |
+| (a) Each student installs PostgreSQL locally | Private database; can work offline | Everyone installs and maintains a database server |
+| (b) One shared hosted Supabase development project | No local database server; simple onboarding; shared integration target | Needs internet and team coordination; data is shared |
+| (c) Local PostgreSQL for daily work plus shared Supabase integration | Isolated local work and common integration target | Requires local PostgreSQL as well as a shared project |
 
-**Recommendation: (c).** Install PostgreSQL 15+ locally for daily work; use one free-tier hosted PostgreSQL database (the team's Supabase project) for integration checks. Both environments use the same numbered migration files and Node runner, so they receive the same schema. Never point the reset command at the shared integration database. Do not use Docker.
+**Recommendation: (b), a free-tier, non-production Supabase project.** Supabase provides the PostgreSQL engine; there is no separate engine installation for this default. Keep production in a separate project. Every environment uses the same numbered migration files and runner, so migrations produce the same schema wherever they are applied. Do not run destructive reset commands on a shared or production project.
 
-For students who cannot install a local server, the team may temporarily use the shared integration database with their individual database login; avoid destructive actions and coordinate data changes.
+The DB admin should privately give migration access only to teammates responsible for applying reviewed migrations. Never put a database password, connection URL, Supabase service-role key, or other credential in Git, a pull request, browser code, or chat. Supabase Auth's public client key is not a database password.
 
 ## Student setup (Windows, macOS, and Linux)
 
-### 1. Install PostgreSQL 15+
+### 1. Provision the PostgreSQL database
 
-Install PostgreSQL 15 or newer using the official [Windows installer](https://www.postgresql.org/download/windows/), [macOS packages](https://www.postgresql.org/download/macosx/), or your Linux distribution's PostgreSQL package instructions at [postgresql.org/download](https://www.postgresql.org/download/). On Windows, include command-line tools in the installer. During local setup, make note of the administrator username (commonly `postgres`) and port (commonly `5432`). You need the database server and `psql` command-line client; Docker is not needed.
+Create a free-tier Supabase project for development or ask the team admin for access to the team's non-production project. Supabase provisions PostgreSQL and a database (normally named `postgres`); students do not issue `CREATE DATABASE` on the hosted service.
 
-Verify the client is installed and on your PATH:
+In the project dashboard:
+
+1. In **Project Settings → API**, copy the project URL and public anon/publishable key.
+2. In **Connect**, copy the PostgreSQL connection URI and note its host, port, and database name.
+3. Keep the existing project database owner password private. The DB admin should distribute a dedicated migration connection privately to approved maintainers rather than sharing the project owner's credentials.
+
+There are no application tables in this task, so no runtime application database login or table grants are needed yet. When tables are introduced, the team will add least-privilege app access in a reviewed migration; do not use the migration credential from application code. For a local-only alternative, an administrator creates a `hope_erp_dev` database owned by a dedicated migration role and creates a separate `hope_app` login with only `CONNECT` and schema `USAGE`; grant table/sequence access later, only as needed. Never use a PostgreSQL superuser as the application login.
+
+Expected result: the team admin can connect to the non-production PostgreSQL database using the private migration URL. No local PostgreSQL server installation is needed for the recommended hosted workflow. Optional local PostgreSQL server packages are available from the official [PostgreSQL downloads](https://www.postgresql.org/download/); use PostgreSQL 15 or newer if choosing the local alternative.
+
+For local development only, after installing PostgreSQL, connect as the local administrator and create separate migration and application logins and a disposable database:
 
 ```text
-psql --version
+psql -U postgres -h localhost -d postgres
 ```
 
-Expected output resembles `psql (PostgreSQL) 15.x` or newer.
+At the `psql` prompt, set passwords interactively with `\password` (they are not echoed):
 
-Install Node.js 20 LTS or newer from the official [Node.js downloads](https://nodejs.org/en/download). Verify:
+```sql
+CREATE ROLE hope_migrator LOGIN CREATEDB;
+\password hope_migrator
+CREATE ROLE hope_app LOGIN;
+\password hope_app
+CREATE DATABASE hope_erp_dev OWNER hope_migrator;
+GRANT CONNECT ON DATABASE hope_erp_dev TO hope_app;
+\connect hope_erp_dev
+GRANT USAGE ON SCHEMA public TO hope_app;
+\q
+```
+
+Expected output includes `CREATE ROLE`, `CREATE DATABASE`, and `GRANT`; password prompts do not echo secrets. Use `hope_migrator` only for `DATABASE_URL` and local migrations. `hope_app` has only database-connect and schema-usage permissions until reviewed migrations create tables and explicitly grant the minimal required table privileges.
+
+### 2. Install Node.js
+
+Install Node.js 20 LTS or newer from the official [Node.js downloads](https://nodejs.org/en/download).
 
 ```text
 node --version
 npm --version
 ```
 
-Expected output resembles `v20.x.x` and an npm version number.
-
-### 2. Create a local development database and least-privilege app user
-
-Connect using your local PostgreSQL administrator account:
-
-```text
-psql -U postgres -h localhost -d postgres
-```
-
-At the `postgres=#` prompt, create two separate logins without putting passwords in shell history, set their passwords interactively, and create the development database:
-
-```sql
-CREATE ROLE hope_app LOGIN;
-\password hope_app
-CREATE ROLE hope_migrator LOGIN;
-\password hope_migrator
-CREATE DATABASE hope_erp_dev OWNER hope_migrator;
-GRANT CONNECT ON DATABASE hope_erp_dev TO hope_app;
-\q
-```
-
-Use unique local development passwords when prompted. `hope_app` has only database connect access and is the least-privilege runtime login; grant it only the specific table/sequence permissions the application needs after migrations create those objects. `hope_migrator` owns only the development database and is used by migration and seed commands; never use it in application code. Do not use the PostgreSQL superuser in the application.
-
-Expected output includes `CREATE ROLE` and `CREATE DATABASE`. The password prompt does not echo the password.
-
-For the hosted integration database, a project owner should create separate `hope_migrator` and `hope_app` database logins over a secure `psql` session. Grant the migration login `CONNECT` on the project database and `USAGE, CREATE` on `public`; grant the app login only `CONNECT` and `USAGE` initially, then only the required table privileges after tables exist. Store the individual connection URLs in `.env.local`; keep each password private. Set `DATABASE_SSL=true`. Do not enable reset for the shared database.
+Expected output resembles `v20.x.x` (or newer) and an npm version number.
 
 ### 3. Clone the repository
 
-Clone the team repository using Git or your IDE. In a terminal, enter the checked-out repository directory.
-
-Verify you are at the project root:
+Clone the team's Git repository using Git or your IDE, then open a terminal at the repository root.
 
 ```text
 git status --short --branch
 ```
 
-Expected output shows your current branch and no unexpected changes.
+Expected output shows the current branch and no unexpected changes.
 
-### 4. Create your private `.env.local`
+### 4. Create your private `.env`
 
-Copy the committed template:
+Copy the committed template without overwriting an existing file:
 
 ```text
-Windows PowerShell:  Copy-Item .env.example .env.local
-macOS/Linux shell:   cp .env.example .env.local
+node -e "require('node:fs').copyFileSync('.env.example','.env',{flag:'wx'})"
 ```
 
-Set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` from your Supabase project settings. Set `DATABASE_URL` to the Supabase connection string from **Project Dashboard → Connect → Connection string (URI)**. URL-encode special characters in the database password.
+If `.env` already exists, keep it and edit the needed values locally; do not overwrite or share it. Set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` from Step 1, and set `DATABASE_URL` to the private PostgreSQL migration connection URL provided by the DB admin. URL-encode special characters in the password. Example placeholders only:
 
 ```dotenv
 NEXT_PUBLIC_SUPABASE_URL=https://your-project-ref.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-or-publishable-key
-DATABASE_URL=your-supabase-postgresql-connection-uri
-APP_DATABASE_URL=your-app-connection-uri-if-used
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-public-anon-or-publishable-key
+DATABASE_URL=postgresql://hope_migrator:encoded-password@your-db-host:5432/postgres
 DATABASE_SSL=true
 ALLOW_DATABASE_RESET=false
 DEV_DATABASE_NAME=hope_erp_dev
@@ -116,43 +116,59 @@ DATABASE_ADMIN_URL=
 NODE_ENV=development
 ```
 
-Keep reset disabled. Add a hosted hostname to `DEV_ALLOWED_HOSTS` only if the team explicitly chooses that exact development host for destructive reset; never add a production/shared host. `.env.local` is ignored by Git; never commit it or share its passwords. The runner loads `.env.local` before `.env`; values already supplied by the process environment take precedence.
-
-Expected output: `.env.local` exists locally. It should not appear in `git status --short`.
-
-### 5. Install project dependencies
-
-Run the same npm command on every operating system:
+The runner reads `.env.local` first, then `.env`; if a legacy `.env.local` exists, it takes precedence. The shell's existing environment variables take precedence over both files. Both `.env` and `.env.local` are Git-ignored. Check without revealing their contents:
 
 ```text
-npm install
+git status --short
 ```
 
-Expected output reports the packages added/audited and creates `node_modules/` and `package-lock.json`.
+Expected output does not list either environment file.
 
-### 6. Check migration status
+### 5. Install dependencies
+
+Run in the repository root:
+
+```text
+npm ci
+```
+
+Expected output completes successfully and installs locked dependencies into `node_modules/`.
+
+On Windows PowerShell, if `npm` is blocked because the PowerShell execution policy prevents running `npm.ps1`, use the Windows command shim instead:
+
+```powershell
+npm.cmd ci
+```
+
+This avoids changing the machine's execution policy. The same applies to the npm commands in the next steps: use `npm.cmd` in PowerShell, or use `npm` in Command Prompt, macOS Terminal, or Linux shells.
+
+### 6. Check and apply migrations
+
+Run:
 
 ```text
 npm run db:status
+npm run db:migrate
+npm run db:status
 ```
 
-Expected output includes `Database: hope_erp_dev (localhost)` and `No migration files found.` The runner creates the `schema_migrations` metadata table. No HOPE application tables are created in this task.
-
-### 7. Apply pending migrations
+Expected first status output resembles:
 
 ```text
-npm run db:migrate
+Database: postgres (your-db-host)
+Migrations:
+  No migration files found.
 ```
 
-Expected output:
+Expected migrate output:
 
 ```text
 No migration files found. schema_migrations is ready.
 ```
 
-Once the team adds numbered SQL migrations, this command applies them in filename order and stores their SHA-256 checksums. Each migration runs in a transaction, including the tracking-row insert.
+Expected final status output again says no migration files found. The runner creates `public.schema_migrations` if missing. It applies future numbered SQL files in filename order, each in a transaction, and records the filename and SHA-256 checksum in the same transaction. It fails if an applied migration's file is changed or missing.
 
-### 8. Run seed files
+### 7. Run seeds
 
 ```text
 npm run db:seed
@@ -164,68 +180,57 @@ Expected output:
 No seed files found. Add idempotent SQL seeds when the schema is ready.
 ```
 
-When seed files are added, each one is run in its own transaction. Seed SQL must use PostgreSQL upserts (`INSERT ... ON CONFLICT ...`) or another idempotent pattern because the command safely runs all seed files every time.
+There are no seed files yet. When added, seed files must be idempotent (for example, use `INSERT ... ON CONFLICT DO NOTHING`) and the seed runner executes each in its own transaction.
 
-### 9. Verify the database
+### 8. Verify the database
 
-Run the following using `psql` with the same database URL settings:
+In the Supabase dashboard, open **SQL Editor** and run:
 
 ```sql
 SELECT current_database();
-SELECT filename, checksum, applied_at FROM public.schema_migrations ORDER BY filename;
+SELECT filename, checksum, applied_at
+FROM public.schema_migrations
+ORDER BY filename;
 ```
 
-Expected results: the first query returns `hope_erp_dev`; the second returns zero rows because no application migrations exist yet. The tracking table itself exists.
+Expected: `current_database()` returns `postgres` (or the configured project database name). The second query returns **zero rows** because no application migrations exist yet; the tracking table itself exists.
 
 ## Commands
 
-All team commands use npm and work the same on Windows, macOS, and Linux:
-
 | Command | Effect |
 | --- | --- |
-| `npm run db:status` | Shows applied/pending migrations; exits non-zero for changed or missing applied migration files |
-| `npm run db:migrate` | Creates migration tracking if needed and applies pending migrations in filename order |
+| `npm run db:status` | Shows applied and pending migration files; fails if applied checksums differ or files are missing |
+| `npm run db:migrate` | Creates the tracking table and applies pending migrations in filename order |
 | `npm run db:seed` | Runs each idempotent seed SQL file in its own transaction |
-| `npm run db:reset` | Destructive development-only reset; requires explicit configuration and interactive confirmation |
+| `npm run db:reset` | Drops and recreates a development database only after safety checks and interactive confirmation |
 
 ### Reset a local development database
 
-Reset permanently deletes all data. The command refuses to run unless `ALLOW_DATABASE_RESET=true`, the target database name exactly equals `DEV_DATABASE_NAME`, the host is localhost or an exact hostname in `DEV_ALLOWED_HOSTS`, and `DATABASE_ADMIN_URL` uses the same host and port but connects to a maintenance database. It also refuses non-interactive use and `NODE_ENV=production`.
+Reset permanently deletes all data. It requires `ALLOW_DATABASE_RESET=true`, an exact `DEV_DATABASE_NAME` match, a target host of localhost or an exact hostname in `DEV_ALLOWED_HOSTS`, a separate maintenance `DATABASE_ADMIN_URL` on the same host and port, and an interactive terminal. The runner refuses production mode and non-interactive use.
 
-For a local-only reset, set `ALLOW_DATABASE_RESET=true` in `.env.local`, ensure `DEV_DATABASE_NAME=hope_erp_dev`, and leave `DEV_ALLOWED_HOSTS` empty. Run:
+**Never enable reset for a shared Supabase or production database.** The default `.env.example` disables reset and leaves the allowlist empty. For a local disposable database only, set the reset variables in `.env`, run `npm run db:reset`, and type the exact `RESET hope_erp_dev` confirmation. Apply migrations and seeds again afterward, then set `ALLOW_DATABASE_RESET=false`. For a disposable hosted Supabase test database, create a fresh project through the dashboard instead.
 
-```text
-npm run db:reset
-```
+Rollback for this setup is by recreating a disposable development database/project. Migrations are forward-only; never manually delete migration history from a shared database.
 
-At the prompt, type the exact text `RESET hope_erp_dev`. The database is dropped and recreated owned by the migration user in `DATABASE_URL`. Then apply migrations and seeds again. Restore `ALLOW_DATABASE_RESET=false` afterward. This command is not for the shared Supabase database.
+## Team migration rules
 
-## Migration and seed rules
-
-- Never edit an applied migration. Add a new migration instead.
-- Use one migration per pull request.
+- Never edit an applied migration; add a new numbered migration instead.
+- Keep one migration per pull request.
 - Pull the latest branch before choosing a migration number.
-- Name files with zero-padded increasing numbers and snake_case, for example `001_create_customers.sql`.
-- The runner orders SQL files by their numeric prefix and refuses duplicate migration/seed numbers.
-- If two people choose the same number, the person whose change has not merged should pull the latest branch, rename their **unapplied** migration to the next unused number, and update its PR. Never rename or edit a migration already applied by anyone.
-- Migration files must not include `BEGIN` or `COMMIT`; the runner wraps each file and its checksum record in one transaction.
-- Once a migration is applied, preserve its exact contents. The runner compares SHA-256 and refuses changed or missing migration files.
-- Seed files also use numbered snake_case names and must be idempotent, typically with `ON CONFLICT ... DO UPDATE` or `DO NOTHING`.
+- Use zero-padded increasing numbers and snake_case, such as `001_create_customer.sql`.
+- If two people choose the same number, the author whose migration is still unapplied pulls the latest branch, renames their file to the next unused number, and updates their pull request. Never rename an applied migration.
+- Do not add `BEGIN` or `COMMIT`; the runner wraps each migration and its tracking insert in one transaction.
+- Keep seeds idempotent. Seeds are not recorded in `schema_migrations`, so the runner may execute them again.
 - Never commit `.env`, `.env.local`, passwords, connection strings, or service-role keys.
-- Keep local and shared hosted connection settings separate; do not run reset against shared integration or production.
 
 ## Troubleshooting
 
 | Problem | What to check |
 | --- | --- |
-| Port in use | PostgreSQL commonly uses `5432`. Check whether another local PostgreSQL service is running; choose an unused port and update `DATABASE_URL`. |
-| Authentication failed | Confirm the username, password, database name, and port. URL-encode special characters in the password (for example, `@` as `%40`). Check the user's database privileges. |
-| Permission denied | Use `hope_migrator` for migrations and seeds; it owns the local dev database. Keep `hope_app` separate and grant it only needed runtime permissions. Do not run routine migrations as `postgres`. For hosted PostgreSQL, ask the database admin for `USAGE, CREATE` on `public` for the migration role. |
-| Migration checksum mismatch | Do not edit or delete the applied file. Restore it from Git history. Put the desired change in a new migration; if a migration is missing locally, restore it from the team branch. |
-| Wrong engine version | Run `psql --version` and check the server with `SELECT version();`. Use PostgreSQL 15+ and ensure the URL points to PostgreSQL, not another database engine. |
-| `psql` or Node not found | Install PostgreSQL client tools or Node.js 20+, then reopen the terminal so PATH updates take effect. |
-| Hosted SSL connection fails | Use the Supabase-provided connection URL and set `DATABASE_SSL=true`. Verify that the network permits the chosen Supabase connection endpoint. |
-
-## Current scope
-
-This setup deliberately does not define HOPE application tables or permissions yet. Add them later as reviewed, numbered migrations informed by the team's approved ERD and table dictionary.
+| Port in use | For hosted Supabase, use the exact host and port from **Connect**. For local PostgreSQL, check whether another service uses port `5432`; update the connection URL if needed. |
+| Authentication failed | Check username, password, database, and port in the private connection URL. URL-encode reserved characters in the password. Ask the DB admin to verify the migration login; do not switch to a production credential. |
+| Permission denied | Ask the DB admin to check the migration login's `CONNECT`, schema `USAGE, CREATE`, and required Supabase Auth grants. Do not use the public client key as a database password. |
+| Migration checksum mismatch | Never edit or delete the applied file. Restore it from Git history and put changes in a new migration. |
+| Wrong engine version | Supabase hosts PostgreSQL. The local alternative requires PostgreSQL 15 or newer; this runner is not configured for MySQL or SQLite. |
+| PowerShell blocks `npm` | Run `npm.cmd` in PowerShell or switch the VS Code terminal to Command Prompt. Do not change the execution policy just for this project. |
+| Hosted SSL connection fails | Use the Supabase-provided connection URI and keep `DATABASE_SSL=true`; verify the network permits the selected connection endpoint. |
