@@ -78,7 +78,7 @@ Use unique local development passwords when prompted. `hope_app` has only databa
 
 Expected output includes `CREATE ROLE` and `CREATE DATABASE`. The password prompt does not echo the password.
 
-For the hosted integration database, a project owner should create separate `hope_migrator` and `hope_app` database logins over a secure `psql` session. Grant the migration login `CONNECT` on the project database and `USAGE, CREATE` on `public`; grant the app login only `CONNECT` and `USAGE` initially, then only the required table privileges after tables exist. Store the individual connection URLs in `.env`; keep each password private. Set `DATABASE_SSL=true`. Do not enable reset for the shared database.
+For the hosted integration database, a project owner should create separate `hope_migrator` and `hope_app` database logins over a secure `psql` session. Grant the migration login `CONNECT` on the project database and `USAGE, CREATE` on `public`; grant the app login only `CONNECT` and `USAGE` initially, then only the required table privileges after tables exist. Store the individual connection URLs in `.env.local`; keep each password private. Set `DATABASE_SSL=true`. Do not enable reset for the shared database.
 
 ### 3. Clone the repository
 
@@ -92,31 +92,33 @@ git status --short --branch
 
 Expected output shows your current branch and no unexpected changes.
 
-### 4. Create your private `.env`
+### 4. Create your private `.env.local`
 
 Copy the committed template:
 
 ```text
-Windows PowerShell:  Copy-Item .env.example .env
-macOS/Linux shell:   cp .env.example .env
+Windows PowerShell:  Copy-Item .env.example .env.local
+macOS/Linux shell:   cp .env.example .env.local
 ```
 
-Set `DATABASE_URL` in `.env` to your own local database password:
+Set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` from your Supabase project settings. Set `DATABASE_URL` to the Supabase connection string from **Project Dashboard → Connect → Connection string (URI)**. URL-encode special characters in the database password.
 
 ```dotenv
-DATABASE_URL=postgresql://hope_migrator:YOUR_MIGRATOR_PASSWORD@localhost:5432/hope_erp_dev
-APP_DATABASE_URL=postgresql://hope_app:YOUR_APP_PASSWORD@localhost:5432/hope_erp_dev
-DATABASE_SSL=false
+NEXT_PUBLIC_SUPABASE_URL=https://your-project-ref.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-or-publishable-key
+DATABASE_URL=your-supabase-postgresql-connection-uri
+APP_DATABASE_URL=your-app-connection-uri-if-used
+DATABASE_SSL=true
 ALLOW_DATABASE_RESET=false
 DEV_DATABASE_NAME=hope_erp_dev
 DEV_ALLOWED_HOSTS=
-DATABASE_ADMIN_URL=postgresql://postgres:YOUR_LOCAL_ADMIN_PASSWORD@localhost:5432/postgres
+DATABASE_ADMIN_URL=
 NODE_ENV=development
 ```
 
-For Supabase, use the project's PostgreSQL connection URL instead and set `DATABASE_SSL=true`. Keep reset disabled. Add a hosted hostname to `DEV_ALLOWED_HOSTS` only if the team explicitly chooses that exact development host for destructive reset; never add a production/shared host. `.env` is ignored by Git; never commit it or share its passwords.
+Keep reset disabled. Add a hosted hostname to `DEV_ALLOWED_HOSTS` only if the team explicitly chooses that exact development host for destructive reset; never add a production/shared host. `.env.local` is ignored by Git; never commit it or share its passwords. The runner loads `.env.local` before `.env`; values already supplied by the process environment take precedence.
 
-Expected output: `.env` exists locally. It should not appear in `git status --short`.
+Expected output: `.env.local` exists locally. It should not appear in `git status --short`.
 
 ### 5. Install project dependencies
 
@@ -190,7 +192,7 @@ All team commands use npm and work the same on Windows, macOS, and Linux:
 
 Reset permanently deletes all data. The command refuses to run unless `ALLOW_DATABASE_RESET=true`, the target database name exactly equals `DEV_DATABASE_NAME`, the host is localhost or an exact hostname in `DEV_ALLOWED_HOSTS`, and `DATABASE_ADMIN_URL` uses the same host and port but connects to a maintenance database. It also refuses non-interactive use and `NODE_ENV=production`.
 
-For a local-only reset, set `ALLOW_DATABASE_RESET=true` in `.env`, ensure `DEV_DATABASE_NAME=hope_erp_dev`, and leave `DEV_ALLOWED_HOSTS` empty. Run:
+For a local-only reset, set `ALLOW_DATABASE_RESET=true` in `.env.local`, ensure `DEV_DATABASE_NAME=hope_erp_dev`, and leave `DEV_ALLOWED_HOSTS` empty. Run:
 
 ```text
 npm run db:reset
@@ -209,7 +211,7 @@ At the prompt, type the exact text `RESET hope_erp_dev`. The database is dropped
 - Migration files must not include `BEGIN` or `COMMIT`; the runner wraps each file and its checksum record in one transaction.
 - Once a migration is applied, preserve its exact contents. The runner compares SHA-256 and refuses changed or missing migration files.
 - Seed files also use numbered snake_case names and must be idempotent, typically with `ON CONFLICT ... DO UPDATE` or `DO NOTHING`.
-- Never commit `.env`, passwords, connection strings, or service-role keys.
+- Never commit `.env`, `.env.local`, passwords, connection strings, or service-role keys.
 - Keep local and shared hosted connection settings separate; do not run reset against shared integration or production.
 
 ## Troubleshooting
