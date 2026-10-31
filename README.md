@@ -1,7 +1,52 @@
 # Hope, Inc. ERP
 
-Cross-platform team database setup for the student ERP project. The team uses a non-production Supabase development project, which hosts PostgreSQL; students do not need to install a local database server or Docker.
+Next.js App Router starter for the Hope, Inc. business management system.
 
-Follow the [student database setup guide](db/README.md) to set up a private environment file, run the migration and seed commands, and verify the database connection. The runner is ready, but **no HOPE application-table migrations or seeds are included yet**.
+For the cross-platform, no-Docker team database workflow, follow the [student database setup guide](db/README.md). It documents the Supabase PostgreSQL connection, migration and seed commands, verification, reset safeguards, and team migration rules. **This task adds the database tooling only; it does not add HOPE application-table migrations or seeds.**
 
-Never commit credentials or edit an applied migration. Add a new numbered migration when the team is ready to define application tables.
+## Local setup
+
+1. Install the project dependencies:
+
+   ```powershell
+   npm ci
+   ```
+
+2. Create `.env.local` from the example, then replace the placeholders with the
+   Supabase project URL and anon key:
+
+   ```powershell
+   Copy-Item .env.local.example .env.local
+   ```
+
+   `.env.local` is ignored by Git. Never commit it or put a Supabase service-role
+   key in a `NEXT_PUBLIC_` variable.
+
+3. Apply `supabase/migrations/20261025100000_health_check.sql` in the Supabase
+   SQL Editor. This adds the read-only `health_check()` RPC used by the health
+   route; it creates no tables and does not change table RLS.
+
+4. Start the development server:
+
+   ```powershell
+   npm run dev
+   ```
+
+   Visit `http://localhost:3000` for the landing page and
+   `http://localhost:3000/api/health` to check Supabase connectivity.
+
+Use `npm run typecheck` and `npm run build` to verify the project.
+
+## Starter structure
+
+- `app/`: App Router pages, shared layout/styles, and the API health route.
+- `app/(auth)/`: Sign-in and registration route placeholders; authentication UI
+  is not implemented in this scaffold.
+- `components/`: Shared landing-page account links and auth-page placeholder.
+- `lib/supabase/`: Shared environment validation plus browser, server, and
+  middleware clients.
+- `middleware.ts`: Refreshes Supabase sessions and cookies. It does not grant
+  module access; server-side role and rights checks must be implemented for
+  protected routes and data operations.
+- `supabase/migrations/`: Database SQL migrations, including the health-check
+  RPC.

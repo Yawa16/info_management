@@ -1,11 +1,16 @@
-# Local credentials and environment
-.env
-.env.*
-!.env.example
-
-# Dependencies and generated files
+# Dependencies and build output
 node_modules/
+.next/
+out/
+dist/
+coverage/
+*.tsbuildinfo
 npm-debug.log*
+
+# Local environment and credentials
+.env*
+!.env.example
+!.env.local.example
 
 # OS and editor files
 .DS_Store
