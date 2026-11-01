@@ -99,7 +99,10 @@ message. Approved accounts with `must_change_password = true` are redirected
 to `/set-password` while signed in. After the password is changed, the server
 clears that profile flag. Forgot Password remains a separate email-reset flow.
 Admin-created temporary accounts must have this flag set to `true` by the
-trusted server-side account creation flow.
+trusted server-side account creation flow. The `/users` page provides an
+Admin/Superadmin-only form to create regular User accounts with temporary
+passwords; it creates the Auth user and approved profile server-side and
+requires a password change at first sign-in.
 
 Middleware refreshes Supabase cookies so sessions survive navigation and
 refreshes. Protected pages verify the session and profile server-side on every

@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import ApproveUserForm from "@/components/ApproveUserForm";
+import CreateUserForm from "@/components/CreateUserForm";
 import { getProfileAccess } from "@/lib/auth/access";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -43,6 +44,9 @@ export default async function UsersPage() {
 
     return (
       <main className="container" style={{ paddingBlock: "4rem" }}>
+        <h1>Create a user</h1>
+        <p>New accounts are approved and must change their temporary password.</p>
+        <CreateUserForm />
         <h1>Pending user approvals</h1>
         <p role="alert">
           We couldn’t load pending accounts. Please try again or contact
