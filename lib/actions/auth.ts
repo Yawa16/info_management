@@ -160,7 +160,11 @@ export async function loginUser(
     };
   }
 
-  redirect(access.mustChangePassword ? "/set-password" : "/dashboard");
+  if (access.mustChangePassword) {
+    redirect("/set-password");
+  }
+
+  redirect("/dashboard");
 }
 
 export async function requestPasswordReset(
@@ -329,6 +333,7 @@ export async function setInitialPassword(
       message: "Password setup is temporarily unavailable. Please try again.",
     };
   }
+
   const {
     data: { user },
     error: authError,
@@ -346,24 +351,22 @@ export async function setInitialPassword(
   }
 
   const access = await getProfileAccess(user.id);
-  if (access.status !== "approved") {
-    const { error: signOutError } = await supabase.auth.signOut();
-    if (signOutError) {
-      console.error("Unable to sign out account without access.", {
-        code: signOutError.code,
-        message: signOutError.message,
-        userId: user.id,
-      });
-    }
-
+  if (access.status === "pending") {
     return {
       status: "error",
-      message:
-        access.status === "blocked"
-          ? "Your account is blocked. Contact an Admin for help."
-          : access.status === "pending"
-            ? "Your account is waiting for approval."
-            : "We can’t verify account access right now. Please sign in again later.",
+      message: "Your account is waiting for approval.",
+    };
+  }
+  if (access.status === "blocked") {
+    return {
+      status: "error",
+      message: "Your account is blocked. Contact an Admin for help.",
+    };
+  }
+  if (access.status === "unavailable") {
+    return {
+      status: "error",
+      message: "We can’t verify account access right now. Please contact support.",
     };
   }
 
@@ -393,32 +396,7 @@ export async function setInitialPassword(
   try {
     adminClient = createSupabaseAdminClient();
   } catch (error) {
-    console.error(
-      "First-login password changed, but the password-change flag could not be cleared.",
-      { error, userId: user.id },
-    );
-    return {
-      status: "error",
-      message:
-        "Your password was changed, but setup could not be completed. Contact an Admin.",
-    };
-  }
-
-  let updatedProfiles: { id: string }[] | null = null;
-  let profileError: { code?: string; message: string } | null = null;
-  try {
-    const result = await adminClient
-      .from("profiles")
-      .update({ must_change_password: false })
-      .eq("id", user.id)
-      .eq("must_change_password", true)
-      .eq("is_blocked", false)
-      .eq("approval_status", "approved")
-      .select("id");
-    updatedProfiles = result.data;
-    profileError = result.error;
-  } catch (error) {
-    console.error("First-login password flag update request failed.", {
+    console.error("Password changed, but first-login setup could not finish.", {
       error,
       userId: user.id,
     });
@@ -428,6 +406,15 @@ export async function setInitialPassword(
         "Your password was changed, but setup could not be completed. Contact an Admin.",
     };
   }
+
+  const { data: updatedProfiles, error: profileError } = await adminClient
+    .from("profiles")
+    .update({ must_change_password: false })
+    .eq("id", user.id)
+    .eq("must_change_password", true)
+    .eq("is_blocked", false)
+    .eq("approval_status", "approved")
+    .select("id");
 
   if (profileError || !updatedProfiles?.length) {
     console.error("Unable to clear first-login password flag.", {

@@ -136,7 +136,11 @@ export async function redirectSignedInUser() {
     return await redirectAfterAccessFailure("unavailable", user.id);
   }
 
-  redirect(access.mustChangePassword ? "/set-password" : "/dashboard");
+  if (access.mustChangePassword) {
+    redirect("/set-password");
+  }
+
+  redirect("/dashboard");
 }
 
 export async function requireApprovedUser() {

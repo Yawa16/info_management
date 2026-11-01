@@ -95,11 +95,11 @@ policies remain enabled and unchanged.
 Login uses Supabase Auth, which stores password hashes; the application never
 hashes or stores passwords itself. After authentication, the server checks the
 profile. Pending and blocked accounts are signed out and shown an appropriate
-message. Approved accounts with `must_change_password = true` are sent to
-`/set-password`; after Supabase accepts the new password, the server clears
-that profile flag and sends the user to the dashboard. Admin-created temporary
-accounts must have this flag set to `true` by the trusted server-side account
-creation flow.
+message. Approved accounts with `must_change_password = true` are redirected
+to `/set-password` while signed in. After the password is changed, the server
+clears that profile flag. Forgot Password remains a separate email-reset flow.
+Admin-created temporary accounts must have this flag set to `true` by the
+trusted server-side account creation flow.
 
 Middleware refreshes Supabase cookies so sessions survive navigation and
 refreshes. Protected pages verify the session and profile server-side on every

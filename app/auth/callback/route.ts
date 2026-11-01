@@ -85,7 +85,9 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.redirect(
       new URL(
-        access.mustChangePassword ? "/set-password" : nextPath,
+        access.mustChangePassword
+          ? "/set-password"
+          : nextPath,
         siteOrigin,
       ),
     );
