@@ -7,6 +7,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getSiteUrl } from "@/lib/site-url";
 import type {
   LoginState,
+  GoogleRegistrationState,
   PasswordResetRequestState,
   PasswordUpdateState,
   RegisterState,
@@ -425,6 +426,54 @@ export async function registerUser(
     status: "success",
     message: "Your account is waiting for approval",
   };
+}
+
+export async function registerWithGoogle(
+  _previousState: GoogleRegistrationState,
+  _formData: FormData,
+): Promise<GoogleRegistrationState> {
+  let authorizationUrl: string;
+
+  try {
+    const supabase = await createSupabaseServerClient();
+    const redirectTo = new URL(
+      "/auth/callback?flow=registration",
+      getSiteUrl(),
+    ).toString();
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo },
+    });
+
+    if (error) {
+      console.error("Supabase Google registration failed.", {
+        code: error.code,
+        message: error.message,
+      });
+      return {
+        status: "error",
+        message: "Google sign-up is unavailable. Please try again later.",
+      };
+    }
+
+    if (!data.url) {
+      console.error("Supabase returned no Google authorization URL.");
+      return {
+        status: "error",
+        message: "Google sign-up is unavailable. Please try again later.",
+      };
+    }
+
+    authorizationUrl = data.url;
+  } catch (error) {
+    console.error("Google registration is not configured.", error);
+    return {
+      status: "error",
+      message: "Google sign-up is temporarily unavailable. Please try again.",
+    };
+  }
+
+  redirect(authorizationUrl);
 }
 
 export async function signOutUser() {

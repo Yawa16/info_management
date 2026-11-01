@@ -63,10 +63,20 @@ email-confirmation links return through `/auth/callback`. In the development
 Supabase project's Authentication → URL Configuration, set the Site URL to
 the local origin and allow the callback URLs, for example
 `http://localhost:3000/auth/callback` and
+`http://localhost:3000/auth/callback?flow=registration` and
 `http://localhost:3000/auth/callback?next=/reset-password/update`. Password
 reset links return to `/reset-password/update`; after a successful password
 change, the user is signed out and must sign in again. Do not change production
 Supabase settings for local testing.
+
+The registration page also supports Google sign-up. Configure Google as an
+enabled provider under the development project's Authentication → Providers
+settings, including the Google OAuth client ID and secret. Copy the Supabase
+provider callback URL into the Google OAuth client's authorized redirect URIs,
+and allow the development app's `/auth/callback` URL in Supabase's redirect
+URL settings. First-time Google sign-ups create regular User profiles with
+pending approval; they do not grant access until an Admin or Superadmin
+approves the account.
 
 The login flow checks the profile on the server and rejects users whose
 approval status is pending. Approved Admins and Superadmins can open

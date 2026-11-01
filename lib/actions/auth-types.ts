@@ -11,6 +11,16 @@ export const initialRegisterState: RegisterState = {
   message: "",
 };
 
+export type GoogleRegistrationState = {
+  status: "idle" | "error";
+  message: string;
+};
+
+export const initialGoogleRegistrationState: GoogleRegistrationState = {
+  status: "idle",
+  message: "",
+};
+
 export type LoginState = {
   status: "idle" | "error";
   message: string;

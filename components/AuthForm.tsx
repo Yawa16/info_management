@@ -5,9 +5,11 @@ import { useActionState, useState } from "react";
 import {
   loginUser,
   registerUser,
+  registerWithGoogle,
   requestPasswordReset,
 } from "@/lib/actions/auth";
 import {
+  initialGoogleRegistrationState,
   initialLoginState,
   initialPasswordResetRequestState,
   initialRegisterState,
@@ -54,6 +56,10 @@ export default function AuthForm({
   const [loginState, loginAction, isLoginPending] = useActionState(
     loginUser,
     initialLoginState,
+  );
+  const [googleState, googleAction, isGooglePending] = useActionState(
+    registerWithGoogle,
+    initialGoogleRegistrationState,
   );
   const [passwordResetState, passwordResetAction, isPasswordResetPending] =
     useActionState(requestPasswordReset, initialPasswordResetRequestState);
@@ -266,6 +272,50 @@ export default function AuthForm({
             </p>
           )}
         </form>
+      )}
+      {isRegister && registerState.status !== "success" && (
+        <>
+          <div className="auth-divider" aria-hidden="true">
+            <span>or</span>
+          </div>
+          <form action={googleAction}>
+            <button
+              className="auth-google-button"
+              type="submit"
+              disabled={isGooglePending}
+            >
+              <svg
+                aria-hidden="true"
+                viewBox="0 0 48 48"
+                width="16"
+                height="16"
+              >
+                <path
+                  fill="#FFC107"
+                  d="M43.6 24.5c0-1.4-.1-2.8-.4-4.1H24v7.8h11a9.4 9.4 0 0 1-4.1 6.2v5.1h6.6c3.9-3.6 6.1-8.8 6.1-15Z"
+                />
+                <path
+                  fill="#FF3D00"
+                  d="M24 44c5.5 0 10.1-1.8 13.5-4.8l-6.6-5.1c-1.8 1.2-4.1 2-6.9 2-5.3 0-9.8-3.6-11.4-8.4H5.8v5.3A20 20 0 0 0 24 44Z"
+                />
+                <path
+                  fill="#4CAF50"
+                  d="M12.6 27.7a12 12 0 0 1 0-7.4V15H5.8a20 20 0 0 0 0 18l6.8-5.3Z"
+                />
+                <path
+                  fill="#1976D2"
+                  d="M24 12c3 0 5.7 1 7.8 3.1l5.8-5.8A19.4 19.4 0 0 0 24 4 20 20 0 0 0 5.8 15l6.8 5.3C14.2 15.6 18.7 12 24 12Z"
+                />
+              </svg>
+              {isGooglePending ? "Connecting…" : "Continue with Google"}
+            </button>
+          </form>
+          {googleState.status === "error" && (
+            <p className="auth-status" role="alert" aria-live="polite">
+              {googleState.message}
+            </p>
+          )}
+        </>
       )}
       <p className="auth-footer">{current.footer}</p>
     </section>

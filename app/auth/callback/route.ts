@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getProfileAccess } from "@/lib/auth/access";
 import { getSiteUrl } from "@/lib/site-url";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 function getSafeNextPath(value: string | null, origin: string) {
@@ -16,9 +17,25 @@ function getSafeNextPath(value: string | null, origin: string) {
   return `${nextUrl.pathname}${nextUrl.search}${nextUrl.hash}`;
 }
 
+async function signOutAfterGoogleProfileFailure(
+  supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>,
+  userId: string,
+) {
+  const { error } = await supabase.auth.signOut();
+  if (error) {
+    console.error("Unable to sign out Google account after profile failure.", {
+      code: error.code,
+      message: error.message,
+      userId,
+    });
+  }
+}
+
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get("code");
+  const isGoogleRegistration =
+    requestUrl.searchParams.get("flow") === "registration";
   let siteOrigin: string;
   try {
     siteOrigin = getSiteUrl();
@@ -35,7 +52,9 @@ export async function GET(request: NextRequest) {
   const isPasswordRecovery = nextPath === "/reset-password/update";
   const errorPath = isPasswordRecovery
     ? "/reset-password?notice=invalid-link"
-    : "/login?notice=confirmation-error";
+    : isGoogleRegistration
+      ? "/login?notice=google-error"
+      : "/login?notice=confirmation-error";
 
   if (!code) {
     return NextResponse.redirect(new URL(errorPath, siteOrigin));
@@ -58,6 +77,104 @@ export async function GET(request: NextRequest) {
 
     if (isPasswordRecovery) {
       return NextResponse.redirect(new URL(nextPath, siteOrigin));
+    }
+
+    if (
+      isGoogleRegistration &&
+      data.user.app_metadata.provider === "google"
+    ) {
+      let adminClient: ReturnType<typeof createSupabaseAdminClient>;
+      try {
+        adminClient = createSupabaseAdminClient();
+      } catch (error) {
+        console.error("Google account profile creation is not configured.", {
+          error,
+          userId: data.user.id,
+        });
+        await signOutAfterGoogleProfileFailure(supabase, data.user.id);
+        return NextResponse.redirect(
+          new URL("/login?notice=unavailable", siteOrigin),
+        );
+      }
+
+      const { data: profile, error: profileLookupError } = await adminClient
+        .from("profiles")
+        .select("id")
+        .eq("id", data.user.id)
+        .maybeSingle();
+
+      if (profileLookupError) {
+        console.error("Unable to check Google account profile.", {
+          code: profileLookupError.code,
+          message: profileLookupError.message,
+          userId: data.user.id,
+        });
+        await signOutAfterGoogleProfileFailure(supabase, data.user.id);
+        return NextResponse.redirect(
+          new URL("/login?notice=unavailable", siteOrigin),
+        );
+      }
+
+      if (!profile) {
+        const email = data.user.email?.trim().toLowerCase() ?? "";
+        const metadata = data.user.user_metadata;
+        const fullName =
+          [metadata.full_name, metadata.name].find(
+            (value): value is string =>
+              typeof value === "string" && value.trim().length > 0,
+          )?.trim() ?? "";
+        const nameParts = fullName.split(/\s+/).filter(Boolean);
+        const providerFirstName =
+          [metadata.given_name, metadata.first_name].find(
+            (value): value is string =>
+              typeof value === "string" && value.trim().length > 0,
+          )?.trim();
+        const firstName =
+          providerFirstName ||
+          nameParts[0] ||
+          email.split("@")[0] ||
+          "Google";
+        const providerLastName =
+          [metadata.family_name, metadata.last_name].find(
+            (value): value is string =>
+              typeof value === "string" && value.trim().length > 0,
+          )?.trim();
+        const lastName =
+          providerLastName || nameParts.slice(1).join(" ") || "User";
+
+        if (!email) {
+          console.error("Google account profile is missing valid signup details.", {
+            userId: data.user.id,
+          });
+          await signOutAfterGoogleProfileFailure(supabase, data.user.id);
+          return NextResponse.redirect(
+            new URL("/login?notice=google-error", siteOrigin),
+          );
+        }
+
+        const { error: insertError } = await adminClient
+          .from("profiles")
+          .insert({
+            id: data.user.id,
+            first_name: firstName.slice(0, 80),
+            last_name: lastName.slice(0, 80),
+            email,
+            role: "user",
+            approval_status: "pending",
+          });
+
+        if (insertError) {
+          console.error("Unable to create pending Google account profile.", {
+            code: insertError.code,
+            message: insertError.message,
+            userId: data.user.id,
+          });
+          await signOutAfterGoogleProfileFailure(supabase, data.user.id);
+          return NextResponse.redirect(
+            new URL("/login?notice=google-error", siteOrigin),
+          );
+        }
+      }
     }
 
     const access = await getProfileAccess(data.user.id);

@@ -7,6 +7,8 @@ const notices: Record<string, string> = {
     "We can’t verify account access right now. Please contact support.",
   "confirmation-error":
     "We couldn’t verify that link. Request a new confirmation email and try again.",
+  "google-error":
+    "We couldn’t complete Google sign-up. Please try again or contact support.",
   "password-updated": "Your password was updated. Sign in with your new password.",
 };
 
