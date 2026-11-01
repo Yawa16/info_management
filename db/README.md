@@ -21,7 +21,11 @@ The source `HopeDB_audit.sql` uses PostgreSQL-specific syntax, so the project da
         └── seed.js
 ```
 
-The runner creates only `public.schema_migrations` for bookkeeping. **There are no HOPE application-table migrations or seeds yet**, by request. A temporary empty migration was used to smoke-test the runner and removed afterward.
+The runner records applied migrations in `public.schema_migrations`.
+`001_create_hope_base_tables.sql` creates the ten guide tables, and
+`002_seed_hope_sample_data.sql` inserts the guide-based sample records.
+`db/seeds/001_seed_hope_sample_data.sql` provides the same sample records for
+the repeatable seed command; it uses `ON CONFLICT DO NOTHING`.
 
 ## Team database approach
 
@@ -47,7 +51,13 @@ In the project dashboard:
 2. In **Connect**, copy the PostgreSQL connection URI and note its host, port, and database name.
 3. Keep the existing project database owner password private. The DB admin should distribute a dedicated migration connection privately to approved maintainers rather than sharing the project owner's credentials.
 
-There are no application tables in this task, so no runtime application database login or table grants are needed yet. When tables are introduced, the team will add least-privilege app access in a reviewed migration; do not use the migration credential from application code. For a local-only alternative, an administrator creates a `hope_erp_dev` database owned by a dedicated migration role and creates a separate `hope_app` login with only `CONNECT` and schema `USAGE`; grant table/sequence access later, only as needed. Never use a PostgreSQL superuser as the application login.
+The HOPE tables have row-level security enabled without permissive policies.
+Add reviewed least-privilege policies before exposing them through Supabase
+Auth; never use the migration credential from application code. For a
+local-only alternative, an administrator creates a `hope_erp_dev` database
+owned by a dedicated migration role and creates a separate `hope_app` login
+with only `CONNECT` and schema `USAGE`; grant table/sequence access later,
+only as needed. Never use a PostgreSQL superuser as the application login.
 
 Expected result: the team admin can connect to the non-production PostgreSQL database using the private migration URL. No local PostgreSQL server installation is needed for the recommended hosted workflow. Optional local PostgreSQL server packages are available from the official [PostgreSQL downloads](https://www.postgresql.org/download/); use PostgreSQL 15 or newer if choosing the local alternative.
 
@@ -152,21 +162,29 @@ npm run db:migrate
 npm run db:status
 ```
 
-Expected first status output resembles:
+Expected first status output lists two pending migrations:
 
 ```text
 Database: postgres (your-db-host)
 Migrations:
-  No migration files found.
+  [pending] 001_create_hope_base_tables.sql
+  [pending] 002_seed_hope_sample_data.sql
 ```
 
 Expected migrate output:
 
 ```text
-No migration files found. schema_migrations is ready.
+Applying: 001_create_hope_base_tables.sql
+Applied: 001_create_hope_base_tables.sql
+Applying: 002_seed_hope_sample_data.sql
+Applied: 002_seed_hope_sample_data.sql
 ```
 
-Expected final status output again says no migration files found. The runner creates `public.schema_migrations` if missing. It applies future numbered SQL files in filename order, each in a transaction, and records the filename and SHA-256 checksum in the same transaction. It fails if an applied migration's file is changed or missing.
+Expected final status shows both files as applied. The runner creates
+`public.schema_migrations` if missing. It applies numbered SQL files in
+filename order, each in a transaction, and records the filename and SHA-256
+checksum in the same transaction. It fails if an applied migration's file is
+changed or missing.
 
 ### 7. Run seeds
 
@@ -177,14 +195,66 @@ npm run db:seed
 Expected output:
 
 ```text
-No seed files found. Add idempotent SQL seeds when the schema is ready.
+Running seed: 001_seed_hope_sample_data.sql
+Seed complete: 001_seed_hope_sample_data.sql
 ```
 
-There are no seed files yet. When added, seed files must be idempotent (for example, use `INSERT ... ON CONFLICT DO NOTHING`) and the seed runner executes each in its own transaction.
+This sample seed is safe to run repeatedly. The seed runner executes each
+seed file in its own transaction.
 
 ### 8. Verify the database
 
-In the Supabase dashboard, open **SQL Editor** and run:
+In the Supabase dashboard, open **SQL Editor** and run
+`db/verification/verify_hope_sample_data.sql` from the repository. You can
+also run it with `psql` connected to the same development database:
+
+```text
+psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f db/verification/verify_hope_sample_data.sql
+```
+
+In PowerShell, use:
+
+```text
+psql "$env:DATABASE_URL" -v ON_ERROR_STOP=1 -f db/verification/verify_hope_sample_data.sql
+```
+
+Every `passed` value should be `true`; P-004 should have no current price and
+all foreign-key orphan counts should be zero. Expected row counts are
+employee 4, job 4, department 4, jobhistory 2, customer 5, product 5,
+pricehist 4, sales 4, salesdetail 8, and payment 0. Expected sale totals are
+T-001 234.50, T-002 140.00, T-003 510.00, with active sales totaling 884.50.
+
+The guide specifies T-001's detail rows, but not T-002/T-003 line composition;
+those lines were chosen to match the required totals using the sample prices.
+The guide also does not provide payment rows, so PAYMENT is empty. Audit
+objects (`audit_log`, `audit_user()`, triggers/functions, and active views)
+are deferred to Task 6.
+
+## Source SQL and guide differences
+
+- The source SQL uses legacy key formats such as `C0001`, `AD0001`, and
+  `TR000001`; sample rows use the guide's `C-001`, `E-001`, and `T-001`
+  formats. The schema key widths are widened to fit those IDs.
+- Source table/column names and some widths differ from the guide; the
+  migrations use clear snake_case names and widths that fit the guide's
+  displayed values, including `jobhistory.dept_code`.
+- The source uses a boolean `is_deleted`; the guide requires a constrained
+  `status` of `Active` or `Inactive`. Employee `sep_date` remains separate
+  from soft-delete status.
+- Source payment-term and product-unit vocabularies differ from the guide;
+  the checks and sample values use the guide's payment terms and units.
+- The task's required checks are applied for separation date, positive sales
+  quantity, nonnegative unit price, and positive payment amount. Derived
+  sales totals and current prices remain unstored.
+- The source's audit tables/functions/triggers and active views are not
+  copied; they are deferred to Task 6 so they can be built against the final
+  status/stamp design.
+
+The schema and seed migrations are forward-only. For a disposable development
+database, rollback by recreating the database with the guarded reset command,
+then rerun migrations. Never reset a shared or production database.
+
+To confirm migration tracking, run:
 
 ```sql
 SELECT current_database();
@@ -193,7 +263,9 @@ FROM public.schema_migrations
 ORDER BY filename;
 ```
 
-Expected: `current_database()` returns `postgres` (or the configured project database name). The second query returns **zero rows** because no application migrations exist yet; the tracking table itself exists.
+Expected: `current_database()` returns `postgres` (or the configured project
+database name); the tracking query returns both filenames and 64-character
+SHA-256 checksums.
 
 ## Commands
 
@@ -215,7 +287,8 @@ Rollback for this setup is by recreating a disposable development database/proje
 ## Team migration rules
 
 - Never edit an applied migration; add a new numbered migration instead.
-- Keep one migration per pull request.
+- Keep each pull request focused on one task. When schema and sample-data
+  migrations are a single task, keep the related numbered files together.
 - Pull the latest branch before choosing a migration number.
 - Use zero-padded increasing numbers and snake_case, such as `001_create_customer.sql`.
 - If two people choose the same number, the author whose migration is still unapplied pulls the latest branch, renames their file to the next unused number, and updates their pull request. Never rename an applied migration.
