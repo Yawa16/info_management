@@ -1,5 +1,6 @@
 import "server-only";
 
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -101,6 +102,15 @@ async function redirectAfterAccessFailure(
 }
 
 export async function redirectSignedInUser() {
+  const cookieStore = await cookies();
+  const hasAuthSessionCookie = cookieStore
+    .getAll()
+    .some(({ name }) => /^sb-.+-auth-token(?:\.\d+)?$/.test(name));
+
+  if (!hasAuthSessionCookie) {
+    return;
+  }
+
   const supabase = await createSupabaseServerClient();
   const {
     data: { user },
