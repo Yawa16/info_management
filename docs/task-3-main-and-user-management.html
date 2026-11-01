@@ -91,19 +91,22 @@
     .state-title { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
     .state-title strong { font-size: 14px; }
     .state-title span { color: var(--color-text-secondary); font-size: 12px; }
-    .views { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
-    .viewport { min-width: 0; padding: 8px; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-page); }
+    .views { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
+    .viewport { min-width: 0; margin: 0; padding: 8px; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-page); }
     .viewport-label { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 8px; font-size: 12px; font-weight: 600; }
     .viewport-label span:last-child { color: var(--color-text-secondary); font-weight: 400; }
-    .scene { position: relative; height: 370px; overflow: hidden; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-page); }
-    .app-shot { position: relative; display: flex; min-height: 100%; background: var(--color-page); }
-    .sidebar { display: flex; width: 76px; flex: 0 0 76px; flex-direction: column; gap: 8px; padding: 10px 7px; color: var(--color-sidebar-text); background: var(--color-sidebar); }
-    .brand { display: block; margin: 0 0 8px; padding: 5px 2px; border-bottom: 1px solid rgb(255 255 255 / 28%); font-size: 10px; font-weight: 600; }
-    .nav-item { display: flex; min-height: 32px; align-items: center; gap: 6px; padding: 5px; border-radius: var(--radius-sm); color: var(--color-sidebar-text-secondary); font-size: 9px; text-decoration: none; }
+    .scene { position: relative; height: 370px; overflow-x: auto; overflow-y: hidden; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-page); }
+    .frame-caption { margin: 5px 2px 0; color: var(--color-text-secondary); font-size: 10px; line-height: 14px; }
+    .app-shot { position: relative; display: flex; width: 100%; min-width: 0; min-height: 100%; overflow: hidden; background: var(--color-page); }
+    .sidebar { display: flex; width: 256px; flex: 0 0 256px; flex-direction: column; gap: 8px; overflow: hidden; padding: 10px 12px; color: var(--color-sidebar-text); background: var(--color-sidebar); }
+    .brand { display: flex; min-width: 0; align-items: center; gap: 8px; margin: 0 0 8px; padding: 5px 2px; overflow: hidden; border-bottom: 1px solid rgb(255 255 255 / 28%); font-size: 12px; font-weight: 600; }
+    .brand-icon { display: inline-grid; width: 20px; height: 20px; flex: 0 0 20px; place-items: center; border: 1px solid currentColor; border-radius: 4px; }
+    .brand-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .nav-item { display: flex; min-width: 0; min-height: 36px; align-items: center; gap: 8px; overflow: hidden; padding: 6px 8px; border-radius: var(--radius-sm); color: var(--color-sidebar-text-secondary); font-size: 12px; text-decoration: none; }
     .nav-item.active { color: var(--color-sidebar-text); background: rgb(255 255 255 / 16%); box-shadow: inset 3px 0 0 var(--color-sidebar-text); }
     .nav-item.disabled { color: var(--color-sidebar-text-disabled); background: transparent; text-decoration: underline dotted; text-underline-offset: 3px; }
-    .nav-icon { display: inline-grid; width: 16px; height: 16px; flex: 0 0 16px; place-items: center; border: 1px solid currentColor; border-radius: 3px; font-size: 9px; }
-    .side-label { white-space: nowrap; }
+    .nav-icon { display: inline-grid; width: 20px; height: 20px; flex: 0 0 20px; place-items: center; border: 1px solid currentColor; border-radius: 3px; font-size: 10px; }
+    .side-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .shot-main { min-width: 0; flex: 1; }
     .topbar { display: flex; min-height: 42px; align-items: center; justify-content: space-between; gap: 5px; padding: 5px 8px; border-bottom: 1px solid var(--color-border); background: var(--color-surface); }
     .topbar-title { font-size: 12px; font-weight: 600; }
@@ -129,9 +132,9 @@
     .button.disabled { color: var(--color-text-disabled); background: var(--color-row-deleted); }
     .home-greeting { margin: 10px 0; font-size: 13px; font-weight: 600; }
     .quick-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; margin-top: 10px; }
-    .quick-action { display: flex; min-height: 66px; flex-direction: column; justify-content: center; gap: 4px; padding: 8px; border: 1px solid var(--color-border); border-radius: var(--radius-md); color: var(--color-text-primary); background: var(--color-surface); text-align: left; }
+    .quick-action { display: flex; height: 84px; min-width: 0; flex-direction: column; align-items: flex-start; justify-content: flex-start; gap: 6px; overflow: hidden; padding: 12px; border: 1px solid var(--color-border); border-radius: var(--radius-md); color: var(--color-text-primary); background: var(--color-surface); text-align: left; }
     .quick-action strong { font-size: 10px; }
-    .quick-action span { color: var(--color-text-secondary); font-size: 8px; }
+    .quick-action span { display: -webkit-box; overflow: hidden; color: var(--color-text-secondary); font-size: 8px; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
     .empty-note, .alert { margin: 10px 0; padding: 8px; border: 1px solid var(--color-border); border-radius: var(--radius-sm); background: var(--color-surface); font-size: 9px; }
     .alert.error { border-color: var(--color-danger-800); color: var(--color-danger-800); background: var(--color-danger-50); }
     .alert.info { border-color: var(--color-info-800); color: var(--color-info-800); background: var(--color-info-50); }
@@ -142,7 +145,7 @@
     .toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; margin: 7px 0; }
     .search { display: flex; min-width: 112px; min-height: 27px; flex: 1; align-items: center; padding: 3px 6px; border: 1px solid var(--color-border); border-radius: var(--radius-sm); color: var(--color-text-secondary); background: var(--color-surface); font-size: 8px; }
     .select-mock { min-height: 27px; padding: 3px 6px; border: 1px solid var(--color-border); border-radius: var(--radius-sm); background: var(--color-surface); font-size: 8px; }
-    .tabs { display: flex; overflow: hidden; gap: 3px; margin: 6px 0; border-bottom: 1px solid var(--color-border); }
+    .tabs { display: flex; overflow-x: auto; overflow-y: hidden; gap: 3px; margin: 6px 0; border-bottom: 1px solid var(--color-border); }
     .tab { flex: 0 0 auto; padding: 5px 4px; border: 0; border-bottom: 2px solid transparent; background: transparent; font-size: 7px; white-space: nowrap; }
     .tab.selected { border-bottom-color: var(--color-primary-800); font-weight: 700; }
     .bulk-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin: 6px 0; padding: 5px; border: 1px solid var(--color-border); border-radius: var(--radius-sm); background: var(--color-info-50); font-size: 8px; }
@@ -194,20 +197,22 @@
     .legend { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
     .legend .role-pill, .legend .status { font-size: 10px; }
     .footer { margin-top: 36px; padding-top: 16px; border-top: 1px solid var(--color-border); color: var(--color-text-secondary); font-size: 12px; }
-    @media (min-width: 1100px) {
-      .v-desktop .sidebar { width: 76px; flex-basis: 76px; }
-    }
-    .v-tablet .sidebar { width: 38px; flex-basis: 38px; align-items: center; padding-inline: 3px; }
-    .v-tablet .brand { font-size: 7px; }
-    .v-tablet .side-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); }
-    .v-tablet .nav-item { justify-content: center; padding: 4px 2px; }
+    .v-desktop.app-shot { min-width: 720px; }
+    .v-tablet.app-shot { min-width: 520px; }
+    .v-mobile.app-shot { min-width: 375px; }
+    .v-desktop .sidebar { width: 256px; flex: 0 0 256px; }
+    .v-tablet .sidebar { width: 72px; flex: 0 0 72px; align-items: center; padding-inline: 8px; }
+    .v-tablet .brand { justify-content: center; width: 100%; }
+    .v-tablet .brand-label, .v-tablet .side-label { display: none; }
+    .v-tablet .nav-item { width: 100%; justify-content: center; padding: 6px; }
     .v-tablet .nav-item.disabled { opacity: 1; }
+    .v-tablet .sidebar .meta { display: none; }
     .v-mobile .sidebar { display: none; }
     .v-mobile .menu-trigger { display: inline-block; }
     .v-mobile .profile .person { display: none; }
     .v-mobile .content { padding: 8px; }
     .v-mobile .quick-actions { grid-template-columns: 1fr; }
-    .v-mobile .quick-action { min-height: 50px; }
+    .v-mobile .quick-action { height: 84px; }
     .v-mobile .table-wrap { display: none; }
     .v-mobile .mobile-cards { display: block; }
     .v-mobile .tabs { overflow-x: auto; }
@@ -363,11 +368,9 @@
       return `<span class="status ${map[status][0]}">${map[status][1]} ${status}</span>`;
     };
     const nav = (role, active = "Home") => `
-      <div class="brand">HOPE ERP</div>
-      <a class="nav-item ${active === "Home" ? "active" : ""}" href="#" aria-current="${active === "Home" ? "page" : "false"}"><span class="nav-icon" aria-hidden="true">H</span><span class="side-label">Home</span></a>
-      <a class="nav-item ${active === "User Management" ? "active" : ""} ${role === "user" ? "disabled" : ""}" href="#" ${role === "user" ? 'aria-disabled="true" aria-describedby="nav-reason"' : `aria-current="${active === "User Management" ? "page" : "false"}"`}><span class="nav-icon" aria-hidden="true">U</span><span class="side-label">User Management</span></a>
-      ${role === "user" ? '<span id="nav-reason" class="side-label" style="font-size:7px">You don’t have access to User Management.</span>' : ""}
-      <span class="meta" style="margin-top:auto;color:var(--color-sidebar-text-secondary)">Only documented modules</span>`;
+      <div class="brand"><span class="brand-icon" aria-hidden="true">H</span><span class="brand-label">HOPE ERP</span></div>
+      <a class="nav-item ${active === "Home" ? "active" : ""}" href="#" aria-label="Home" aria-current="${active === "Home" ? "page" : "false"}" title="Home"><span class="nav-icon" aria-hidden="true">H</span><span class="side-label">Home</span></a>
+      <a class="nav-item ${active === "User Management" ? "active" : ""} ${role === "user" ? "disabled" : ""}" href="#" aria-label="${role === "user" ? "User Management. You don’t have access to User Management." : "User Management"}" title="${role === "user" ? "You don’t have access to User Management." : "User Management"}" ${role === "user" ? 'aria-disabled="true"' : `aria-current="${active === "User Management" ? "page" : "false"}"`}><span class="nav-icon" aria-hidden="true">U</span><span class="side-label">User Management</span></a>`;
     const listRows = (state) => {
       if (state === "loading") return `<div class="loading-line"></div><div class="loading-line medium"></div><div class="loading-line short"></div><div class="loading-line"></div>`;
       const rows = [
@@ -547,9 +550,9 @@
               ["desktop", "Desktop", "1440px"],
               ["tablet", "Tablet", "768px"],
               ["mobile", "Mobile", "375px"]
-            ].map(([size, label, width]) => `<figure class="viewport v-${size}"><figcaption class="viewport-label"><span>${label}</span><span>${width}</span></figcaption><div class="scene">${shot(state, size)}</div></figure>`).join("")}
+            ].map(([size, label, width]) => `<figure class="viewport v-${size}"><figcaption class="viewport-label"><span>${label}</span><span>${width}</span></figcaption><div class="scene">${shot(state, size)}</div><figcaption class="frame-caption">Only documented modules</figcaption></figure>`).join("")}
           </div>
-          <ol class="state-note"><li>${esc(state.note)}</li></ol>`;
+          <ol class="state-note">${state.note.split(/\s(?=\d+\.\s)/).map((note) => `<li>${esc(note.replace(/^\d+\.\s*/, ""))}</li>`).join("")}</ol>`;
         section.append(article);
       }
       gallery.append(section);
