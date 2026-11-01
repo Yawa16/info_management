@@ -1,5 +1,5 @@
-import { AuthPlaceholder } from "@/components/auth-placeholder";
+import { redirect } from "next/navigation";
 
 export default function SignInPage() {
-  return <AuthPlaceholder title="Sign in" />;
+  redirect("/login");
 }
