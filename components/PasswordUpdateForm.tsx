@@ -1,12 +1,16 @@
 "use client";
 
 import { useActionState } from "react";
-import { updatePassword } from "@/lib/actions/auth";
+import { setInitialPassword, updatePassword } from "@/lib/actions/auth";
 import { initialPasswordUpdateState } from "@/lib/actions/auth-types";
 
-export default function PasswordUpdateForm() {
+export default function PasswordUpdateForm({
+  mode = "reset",
+}: {
+  mode?: "reset" | "first-login";
+}) {
   const [state, formAction, isPending] = useActionState(
-    updatePassword,
+    mode === "first-login" ? setInitialPassword : updatePassword,
     initialPasswordUpdateState,
   );
 
@@ -39,7 +43,11 @@ export default function PasswordUpdateForm() {
         />
       </div>
       <button className="button button-dark auth-submit" disabled={isPending}>
-        {isPending ? "Updating…" : "Update Password"}
+        {isPending
+          ? "Updating…"
+          : mode === "first-login"
+            ? "Set Password"
+            : "Update Password"}
       </button>
       <p
         className="auth-status"

@@ -97,10 +97,23 @@ export async function loginUser(
     };
   }
 
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  });
+  let signInResult: Awaited<
+    ReturnType<typeof supabase.auth.signInWithPassword>
+  >;
+  try {
+    signInResult = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+  } catch (requestError) {
+    console.error("Supabase sign-in request failed.", requestError);
+    return {
+      status: "error",
+      message: "Sign in is temporarily unavailable. Please try again later.",
+    };
+  }
+
+  const { data, error } = signInResult;
   if (error || !data.user) {
     if (error) {
       console.error("Supabase sign-in failed.", {
@@ -141,11 +154,13 @@ export async function loginUser(
       message:
         access.status === "pending"
           ? "Your account is waiting for approval."
-          : "We can’t verify account access right now. Please contact support.",
+          : access.status === "blocked"
+            ? "Your account is blocked. Contact an Admin for help."
+            : "We can’t verify account access right now. Please contact support.",
     };
   }
 
-  redirect("/dashboard");
+  redirect(access.mustChangePassword ? "/set-password" : "/dashboard");
 }
 
 export async function requestPasswordReset(
@@ -278,6 +293,156 @@ export async function updatePassword(
   }
 
   redirect("/login?notice=password-updated");
+}
+
+export async function setInitialPassword(
+  _previousState: PasswordUpdateState,
+  formData: FormData,
+): Promise<PasswordUpdateState> {
+  const passwordValue = formData.get("password");
+  const confirmationValue = formData.get("confirmPassword");
+  const password = typeof passwordValue === "string" ? passwordValue : "";
+  const confirmPassword =
+    typeof confirmationValue === "string" ? confirmationValue : "";
+
+  if (password.length < 8 || password.length > 128) {
+    return {
+      status: "error",
+      message: "Password must be between 8 and 128 characters.",
+    };
+  }
+
+  if (password !== confirmPassword) {
+    return {
+      status: "error",
+      message: "The passwords do not match.",
+    };
+  }
+
+  let supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>;
+  try {
+    supabase = await createSupabaseServerClient();
+  } catch (error) {
+    console.error("First-login password update is not configured.", error);
+    return {
+      status: "error",
+      message: "Password setup is temporarily unavailable. Please try again.",
+    };
+  }
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+
+  if (authError) {
+    console.error("Unable to verify first-login password session.", {
+      code: authError.code,
+      message: authError.message,
+    });
+  }
+
+  if (!user) {
+    redirect("/login");
+  }
+
+  const access = await getProfileAccess(user.id);
+  if (access.status !== "approved") {
+    const { error: signOutError } = await supabase.auth.signOut();
+    if (signOutError) {
+      console.error("Unable to sign out account without access.", {
+        code: signOutError.code,
+        message: signOutError.message,
+        userId: user.id,
+      });
+    }
+
+    return {
+      status: "error",
+      message:
+        access.status === "blocked"
+          ? "Your account is blocked. Contact an Admin for help."
+          : access.status === "pending"
+            ? "Your account is waiting for approval."
+            : "We can’t verify account access right now. Please sign in again later.",
+    };
+  }
+
+  if (!access.mustChangePassword) {
+    redirect("/dashboard");
+  }
+
+  const { error: passwordError } = await supabase.auth.updateUser({
+    password,
+  });
+  if (passwordError) {
+    console.error("Supabase first-login password update failed.", {
+      code: passwordError.code,
+      message: passwordError.message,
+      userId: user.id,
+    });
+    return {
+      status: "error",
+      message:
+        passwordError.code === "weak_password"
+          ? "Choose a stronger password that meets the password requirements."
+          : "We couldn’t update your password. Please try again.",
+    };
+  }
+
+  let adminClient: ReturnType<typeof createSupabaseAdminClient>;
+  try {
+    adminClient = createSupabaseAdminClient();
+  } catch (error) {
+    console.error(
+      "First-login password changed, but the password-change flag could not be cleared.",
+      { error, userId: user.id },
+    );
+    return {
+      status: "error",
+      message:
+        "Your password was changed, but setup could not be completed. Contact an Admin.",
+    };
+  }
+
+  let updatedProfiles: { id: string }[] | null = null;
+  let profileError: { code?: string; message: string } | null = null;
+  try {
+    const result = await adminClient
+      .from("profiles")
+      .update({ must_change_password: false })
+      .eq("id", user.id)
+      .eq("must_change_password", true)
+      .eq("is_blocked", false)
+      .eq("approval_status", "approved")
+      .select("id");
+    updatedProfiles = result.data;
+    profileError = result.error;
+  } catch (error) {
+    console.error("First-login password flag update request failed.", {
+      error,
+      userId: user.id,
+    });
+    return {
+      status: "error",
+      message:
+        "Your password was changed, but setup could not be completed. Contact an Admin.",
+    };
+  }
+
+  if (profileError || !updatedProfiles?.length) {
+    console.error("Unable to clear first-login password flag.", {
+      code: profileError?.code,
+      message: profileError?.message,
+      userId: user.id,
+    });
+    return {
+      status: "error",
+      message:
+        "Your password was changed, but setup could not be completed. Contact an Admin.",
+    };
+  }
+
+  redirect("/dashboard");
 }
 
 export async function registerUser(

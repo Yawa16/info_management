@@ -5,8 +5,14 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 type ProfileAccess =
-  | { status: "approved"; role: string }
-  | { status: "pending" | "unavailable"; role?: undefined };
+  | {
+      status: "approved";
+      role: string;
+      mustChangePassword: boolean;
+    }
+  | { status: "pending"; role?: undefined }
+  | { status: "blocked"; role?: undefined }
+  | { status: "unavailable"; role?: undefined };
 
 export async function getProfileAccess(userId: string): Promise<ProfileAccess> {
   let data;
@@ -14,7 +20,7 @@ export async function getProfileAccess(userId: string): Promise<ProfileAccess> {
     const adminClient = createSupabaseAdminClient();
     const result = await adminClient
       .from("profiles")
-      .select("role, approval_status")
+      .select("role, approval_status, is_blocked, must_change_password")
       .eq("id", userId)
       .maybeSingle();
 
@@ -41,6 +47,10 @@ export async function getProfileAccess(userId: string): Promise<ProfileAccess> {
     return { status: "unavailable" };
   }
 
+  if (data.is_blocked) {
+    return { status: "blocked" };
+  }
+
   if (
     data.approval_status === "pending" &&
     ["superadmin", "admin", "user"].includes(data.role)
@@ -60,7 +70,63 @@ export async function getProfileAccess(userId: string): Promise<ProfileAccess> {
     return { status: "unavailable" };
   }
 
-  return { status: "approved", role: data.role };
+  return {
+    status: "approved",
+    role: data.role,
+    mustChangePassword: data.must_change_password,
+  };
+}
+
+async function redirectAfterAccessFailure(
+  status: "pending" | "blocked" | "unavailable",
+  userId: string,
+): Promise<never> {
+  const supabase = await createSupabaseServerClient();
+  const { error } = await supabase.auth.signOut();
+  if (error) {
+    console.error("Unable to sign out account without access.", {
+      code: error.code,
+      message: error.message,
+      userId,
+    });
+  }
+
+  redirect(
+    status === "pending"
+      ? "/login?notice=pending"
+      : status === "blocked"
+        ? "/login?notice=blocked"
+        : "/login?notice=unavailable",
+  );
+}
+
+export async function redirectSignedInUser() {
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser();
+
+  if (error) {
+    console.error("Unable to verify existing login session.", error);
+  }
+
+  if (!user) {
+    return;
+  }
+
+  const access = await getProfileAccess(user.id);
+  if (access.status === "pending") {
+    return await redirectAfterAccessFailure("pending", user.id);
+  }
+  if (access.status === "blocked") {
+    return await redirectAfterAccessFailure("blocked", user.id);
+  }
+  if (access.status === "unavailable") {
+    return await redirectAfterAccessFailure("unavailable", user.id);
+  }
+
+  redirect(access.mustChangePassword ? "/set-password" : "/dashboard");
 }
 
 export async function requireApprovedUser() {
@@ -79,22 +145,52 @@ export async function requireApprovedUser() {
   }
 
   const access = await getProfileAccess(user.id);
-  if (access.status !== "approved") {
-    const { error: signOutError } = await supabase.auth.signOut();
-    if (signOutError) {
-      console.error("Unable to sign out account without approved access.", {
-        code: signOutError.code,
-        message: signOutError.message,
-        userId: user.id,
-      });
-    }
+  if (access.status === "pending") {
+    return await redirectAfterAccessFailure("pending", user.id);
+  }
+  if (access.status === "blocked") {
+    return await redirectAfterAccessFailure("blocked", user.id);
+  }
+  if (access.status === "unavailable") {
+    return await redirectAfterAccessFailure("unavailable", user.id);
+  }
 
-    redirect(
-      access.status === "pending"
-        ? "/login?notice=pending"
-        : "/login?notice=unavailable",
-    );
+  if (access.mustChangePassword) {
+    redirect("/set-password");
   }
 
   return { user, role: access.role };
+}
+
+export async function requirePasswordChangeUser() {
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser();
+
+  if (error) {
+    console.error("Unable to verify first-login password session.", error);
+  }
+
+  if (!user) {
+    redirect("/login");
+  }
+
+  const access = await getProfileAccess(user.id);
+  if (access.status === "pending") {
+    return await redirectAfterAccessFailure("pending", user.id);
+  }
+  if (access.status === "blocked") {
+    return await redirectAfterAccessFailure("blocked", user.id);
+  }
+  if (access.status === "unavailable") {
+    return await redirectAfterAccessFailure("unavailable", user.id);
+  }
+
+  if (!access.mustChangePassword) {
+    redirect("/dashboard");
+  }
+
+  return user;
 }

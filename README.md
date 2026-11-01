@@ -83,3 +83,25 @@ The registration action always sets `role = 'user'` and
 `approval_status = 'pending'` on the server and never accepts those values
 from the browser. Confirm with the DB Admin that the status used after
 approval is exactly `approved` before deploying this check.
+
+## Login and first-time password setup
+
+The migration `supabase/migrations/20261101100000_add_login_access_flags.sql`
+adds `must_change_password` and `is_blocked` boolean columns to
+`public.profiles`. Both default to `false`. Apply it to the approved Supabase
+project before deploying the Task 3 login code. The existing profiles RLS
+policies remain enabled and unchanged.
+
+Login uses Supabase Auth, which stores password hashes; the application never
+hashes or stores passwords itself. After authentication, the server checks the
+profile. Pending and blocked accounts are signed out and shown an appropriate
+message. Approved accounts with `must_change_password = true` are sent to
+`/set-password`; after Supabase accepts the new password, the server clears
+that profile flag and sends the user to the dashboard. Admin-created temporary
+accounts must have this flag set to `true` by the trusted server-side account
+creation flow.
+
+Middleware refreshes Supabase cookies so sessions survive navigation and
+refreshes. Protected pages verify the session and profile server-side on every
+request. Repeated failed sign-in attempts rely on Supabase Auth's configured
+rate limits; review the Auth rate-limit settings in the Supabase project.

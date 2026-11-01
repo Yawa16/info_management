@@ -75,13 +75,20 @@ export async function GET(request: NextRequest) {
         new URL(
           access.status === "pending"
             ? "/login?notice=pending"
-            : "/login?notice=unavailable",
+            : access.status === "blocked"
+              ? "/login?notice=blocked"
+              : "/login?notice=unavailable",
           siteOrigin,
         ),
       );
     }
 
-    return NextResponse.redirect(new URL(nextPath, siteOrigin));
+    return NextResponse.redirect(
+      new URL(
+        access.mustChangePassword ? "/set-password" : nextPath,
+        siteOrigin,
+      ),
+    );
   } catch (error) {
     console.error("Unable to complete email confirmation callback.", error);
     return NextResponse.redirect(new URL(errorPath, siteOrigin));
