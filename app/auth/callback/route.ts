@@ -34,8 +34,9 @@ async function signOutAfterGoogleProfileFailure(
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get("code");
-  const isGoogleRegistration =
-    requestUrl.searchParams.get("flow") === "registration";
+  const googleFlow = requestUrl.searchParams.get("flow");
+  const isGoogleRegistration = googleFlow === "registration";
+  const isGoogleLogin = googleFlow === "login";
   let siteOrigin: string;
   try {
     siteOrigin = getSiteUrl();
@@ -52,7 +53,7 @@ export async function GET(request: NextRequest) {
   const isPasswordRecovery = nextPath === "/reset-password/update";
   const errorPath = isPasswordRecovery
     ? "/reset-password?notice=invalid-link"
-    : isGoogleRegistration
+    : isGoogleRegistration || isGoogleLogin
       ? "/login?notice=google-error"
       : "/login?notice=confirmation-error";
 

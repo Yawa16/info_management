@@ -11,12 +11,12 @@ export const initialRegisterState: RegisterState = {
   message: "",
 };
 
-export type GoogleRegistrationState = {
+export type GoogleAuthState = {
   status: "idle" | "error";
   message: string;
 };
 
-export const initialGoogleRegistrationState: GoogleRegistrationState = {
+export const initialGoogleAuthState: GoogleAuthState = {
   status: "idle",
   message: "",
 };

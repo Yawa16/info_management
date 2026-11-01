@@ -6,8 +6,8 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getSiteUrl } from "@/lib/site-url";
 import type {
+  GoogleAuthState,
   LoginState,
-  GoogleRegistrationState,
   PasswordResetRequestState,
   PasswordUpdateState,
   RegisterState,
@@ -428,16 +428,15 @@ export async function registerUser(
   };
 }
 
-export async function registerWithGoogle(
-  _previousState: GoogleRegistrationState,
-  _formData: FormData,
-): Promise<GoogleRegistrationState> {
+async function startGoogleAuth(
+  flow: "registration" | "login",
+): Promise<GoogleAuthState> {
   let authorizationUrl: string;
 
   try {
     const supabase = await createSupabaseServerClient();
     const redirectTo = new URL(
-      "/auth/callback?flow=registration",
+      `/auth/callback?flow=${flow}`,
       getSiteUrl(),
     ).toString();
     const { data, error } = await supabase.auth.signInWithOAuth({
@@ -446,34 +445,53 @@ export async function registerWithGoogle(
     });
 
     if (error) {
-      console.error("Supabase Google registration failed.", {
+      console.error("Supabase Google authentication failed.", {
         code: error.code,
         message: error.message,
+        flow,
       });
       return {
         status: "error",
-        message: "Google sign-up is unavailable. Please try again later.",
+        message: "Google authentication is unavailable. Please try again later.",
       };
     }
 
     if (!data.url) {
-      console.error("Supabase returned no Google authorization URL.");
+      console.error("Supabase returned no Google authorization URL.", { flow });
       return {
         status: "error",
-        message: "Google sign-up is unavailable. Please try again later.",
+        message: "Google authentication is unavailable. Please try again later.",
       };
     }
 
     authorizationUrl = data.url;
   } catch (error) {
-    console.error("Google registration is not configured.", error);
+    console.error("Google authentication is not configured.", { error, flow });
     return {
       status: "error",
-      message: "Google sign-up is temporarily unavailable. Please try again.",
+      message: "Google authentication is temporarily unavailable. Please try again.",
     };
   }
 
   redirect(authorizationUrl);
+}
+
+export async function registerWithGoogle(
+  _previousState: GoogleAuthState,
+  _formData: FormData,
+): Promise<GoogleAuthState> {
+  void _previousState;
+  void _formData;
+  return startGoogleAuth("registration");
+}
+
+export async function signInWithGoogle(
+  _previousState: GoogleAuthState,
+  _formData: FormData,
+): Promise<GoogleAuthState> {
+  void _previousState;
+  void _formData;
+  return startGoogleAuth("login");
 }
 
 export async function signOutUser() {

@@ -69,7 +69,7 @@ reset links return to `/reset-password/update`; after a successful password
 change, the user is signed out and must sign in again. Do not change production
 Supabase settings for local testing.
 
-The registration page also supports Google sign-up. Configure Google as an
+The registration and sign-in pages also support Google OAuth. Configure Google as an
 enabled provider under the development project's Authentication → Providers
 settings, including the Google OAuth client ID and secret. Copy the Supabase
 provider callback URL into the Google OAuth client's authorized redirect URIs,

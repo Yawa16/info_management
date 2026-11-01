@@ -7,9 +7,10 @@ import {
   registerUser,
   registerWithGoogle,
   requestPasswordReset,
+  signInWithGoogle,
 } from "@/lib/actions/auth";
 import {
-  initialGoogleRegistrationState,
+  initialGoogleAuthState,
   initialLoginState,
   initialPasswordResetRequestState,
   initialRegisterState,
@@ -57,10 +58,13 @@ export default function AuthForm({
     loginUser,
     initialLoginState,
   );
-  const [googleState, googleAction, isGooglePending] = useActionState(
-    registerWithGoogle,
-    initialGoogleRegistrationState,
-  );
+  const [googleRegisterState, googleRegisterAction, isGoogleRegisterPending] =
+    useActionState(
+      registerWithGoogle,
+      initialGoogleAuthState,
+    );
+  const [googleLoginState, googleLoginAction, isGoogleLoginPending] =
+    useActionState(signInWithGoogle, initialGoogleAuthState);
   const [passwordResetState, passwordResetAction, isPasswordResetPending] =
     useActionState(requestPasswordReset, initialPasswordResetRequestState);
   const current = content[mode];
@@ -273,16 +277,19 @@ export default function AuthForm({
           )}
         </form>
       )}
-      {isRegister && registerState.status !== "success" && (
+      {((isRegister && registerState.status !== "success") || isLogin) && (
         <>
           <div className="auth-divider" aria-hidden="true">
             <span>or</span>
           </div>
-          <form action={googleAction}>
+          <form action={isRegister ? googleRegisterAction : googleLoginAction}>
             <button
               className="auth-google-button"
               type="submit"
-              disabled={isGooglePending}
+              disabled={
+                (isRegister && isGoogleRegisterPending) ||
+                (isLogin && isGoogleLoginPending)
+              }
             >
               <svg
                 aria-hidden="true"
@@ -307,12 +314,18 @@ export default function AuthForm({
                   d="M24 12c3 0 5.7 1 7.8 3.1l5.8-5.8A19.4 19.4 0 0 0 24 4 20 20 0 0 0 5.8 15l6.8 5.3C14.2 15.6 18.7 12 24 12Z"
                 />
               </svg>
-              {isGooglePending ? "Connecting…" : "Continue with Google"}
+              {(isRegister && isGoogleRegisterPending) ||
+              (isLogin && isGoogleLoginPending)
+                ? "Connecting…"
+                : "Continue with Google"}
             </button>
           </form>
-          {googleState.status === "error" && (
+          {((isRegister && googleRegisterState.status === "error") ||
+            (isLogin && googleLoginState.status === "error")) && (
             <p className="auth-status" role="alert" aria-live="polite">
-              {googleState.message}
+              {isRegister
+                ? googleRegisterState.message
+                : googleLoginState.message}
             </p>
           )}
         </>
