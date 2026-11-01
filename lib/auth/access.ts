@@ -1,5 +1,6 @@
 import "server-only";
 
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -64,6 +65,15 @@ export async function getProfileAccess(userId: string): Promise<ProfileAccess> {
 }
 
 export async function requireApprovedUser() {
+  const cookieStore = await cookies();
+  const hasAuthSessionCookie = cookieStore
+    .getAll()
+    .some(({ name }) => /^sb-.+-auth-token(?:\.\d+)?$/.test(name));
+
+  if (!hasAuthSessionCookie) {
+    redirect("/login");
+  }
+
   const supabase = await createSupabaseServerClient();
   const {
     data: { user },
