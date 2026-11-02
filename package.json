@@ -2,16 +2,26 @@
   "name": "hope-inc-erp",
   "version": "0.1.0",
   "private": true,
+  "description": "Hope, Inc. ERP application and cross-platform database tooling",
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "db:migrate": "node db/scripts/migrate.js migrate",
+    "db:status": "node db/scripts/migrate.js status",
+    "db:reset": "node db/scripts/migrate.js reset",
+    "db:seed": "node db/scripts/seed.js"
   },
   "dependencies": {
     "@supabase/ssr": "^0.6.1",
     "@supabase/supabase-js": "^2.49.4",
+    "dotenv": "^16.4.7",
     "next": "^15.3.0",
+    "pg": "^8.13.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },

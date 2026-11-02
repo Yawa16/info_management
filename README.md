@@ -1,24 +1,51 @@
-# info_management
+# Hope, Inc. ERP
 
-## Task 1: Supabase scaffold
+Next.js App Router app for the Hope, Inc. business management system.
+
+For the cross-platform, no-Docker team database workflow, follow the
+[student database setup guide](db/README.md). It covers the Supabase PostgreSQL
+connection, migrations and seeds, verification, reset safeguards, and team
+migration rules. Apply application migrations only to the team-approved
+development project after confirmation from the DB Admin.
+
+## Local setup
+
+1. Install dependencies:
+
+   ```powershell
+   npm ci
+   ```
+
+2. Copy `.env.local.example` to `.env.local` and fill in the local Supabase
+   settings. If Next.js uses a different port, set `NEXT_PUBLIC_SITE_URL` to
+   the exact local origin it prints. Keep `.env.local` out of Git.
+
+3. Apply `supabase/migrations/20261025100000_health_check.sql` only to the
+   approved development project. This migration adds a read-only health-check
+   RPC; `/api/health` returns `{"status":"ok","database":"connected"}` when the
+   connection works.
+
+4. Start the development server:
+
+   ```powershell
+   npm run dev
+   ```
+
+   Visit `http://localhost:3000` for the landing page and
+   `http://localhost:3000/api/health` to check Supabase connectivity.
+
+Use `npm run typecheck` and `npm run build` to verify the project.
+
+## Supabase scaffold
 
 The reusable Supabase clients are in `lib/supabase/client.ts` for browser
 components and `lib/supabase/server.ts` for server components, actions, and
 route handlers. Both use the project URL and anon key; the service-role client
 is separate and server-only.
 
-Copy `.env.local.example` to `.env.local` and fill in the values locally. The
-development server uses port 3000 by default; if Next.js selects another port,
-set `NEXT_PUBLIC_SITE_URL` to the exact local origin it prints. Keep `.env.local`
-out of Git.
-
-The SQL migration `supabase/migrations/20261025100000_health_check.sql`
-defines `public.health_check()`, a minimal RPC that returns `true`, and grants
-execution to Supabase `anon` and `authenticated` roles. Apply migrations only
-to the team-approved development project. The app endpoint `/api/health`
-returns `{"status":"ok","database":"connected"}` when it can call that RPC.
-This tests connectivity, not the presence or correctness of application
-tables. It does not create any user table.
+The health-check migration does not create application tables or verify their
+schema. Keep `.env.local` private; never put a service-role key in a
+`NEXT_PUBLIC_` variable.
 
 ## Registration setup
 
