@@ -307,7 +307,7 @@ export async function approvePendingUser(
   const adminClient = createSupabaseAdminClient();
   const actorResult = await adminClient
     .from("profiles")
-    .select("role, approval_status")
+    .select("role, approval_status, is_blocked")
     .eq("id", actor.id)
     .maybeSingle();
 
@@ -326,11 +326,12 @@ export async function approvePendingUser(
   if (
     !actorResult.data ||
     actorResult.data.approval_status !== "approved" ||
+    actorResult.data.is_blocked ||
     !["admin", "superadmin"].includes(actorResult.data.role)
   ) {
     return {
       status: "error",
-      message: "Only an approved Admin or Superadmin can approve users.",
+      message: "Only an approved, unblocked Admin or Superadmin can approve users.",
     };
   }
 
