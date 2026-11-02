@@ -102,11 +102,9 @@
     .checkbox.checked { border-color: var(--color-text-primary); background: var(--color-border); }
     .note { margin: 8px 0; padding: 8px; border: 1px solid var(--color-border); border-radius: var(--radius-sm); color: var(--color-text-primary); background: var(--color-row-deleted); font-size: 12px; line-height: 16px; }
     .rules { margin-top: 8px; padding: 8px; border: 1px solid var(--color-border); border-radius: var(--radius-md); font-size: 12px; line-height: 16px; }
-    .rules-title { display: flex; justify-content: space-between; font-weight: 600; }
-    .rules ul { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 3px 8px; margin: 6px 0 0; padding: 0; list-style: none; color: var(--color-text-secondary); }
+    .rules-title { font-weight: 600; }
+    .rules ul { display: grid; gap: 3px 8px; margin: 6px 0 0; padding: 0; list-style: none; color: var(--color-text-secondary); }
     .rules li.pass { color: var(--color-success-800); }
-    .strength { height: 5px; margin-top: 7px; border: 1px solid var(--color-border); border-radius: var(--radius-md); }
-    .strength span { display: block; height: 100%; border-radius: inherit; background: var(--color-border); }
     .button { display: flex; width: 100%; min-height: 40px; align-items: center; justify-content: center; gap: 8px; margin-top: 10px; padding: 8px 12px; border: 1px solid var(--color-primary-600); border-radius: var(--radius-md); color: var(--color-surface); background: var(--color-primary-600); font-size: 14px; font-weight: 600; text-align: center; }
     .button.loading { background: var(--color-primary-700); }
     .button.secondary { border-color: var(--color-border); color: var(--color-text-primary); background: var(--color-surface); }
@@ -157,16 +155,16 @@
         <p>New email and Google accounts are <strong>User / Inactive</strong>. A <strong>Superadmin</strong> approves access. Registration never grants ERP access.</p>
         <p>Email registration: submit name/email → Superadmin review → if approved, set password from emailed link → Sign In. Google: OAuth identity → pending approval → Google Sign In after approval.</p>
         <p>Existing DEV guidance defaults signups to Superadmin; this conflicts with User/Inactive and must be reconciled before implementation.</p>
-        <p>Password requirements, lockout, token expiry, resend cooldown, registration availability, and Remember me duration are pending product/security decisions.</p>
+        <p>Lockout, token expiry, resend cooldown, registration availability, and Remember me duration are pending product/security decisions. Passwords require at least 8 characters.</p>
       </div>
     </section>
 
     <section class="section panel">
       <h2>Flow overview</h2>
       <div class="flow">
-        <div class="flow-row"><span class="flow-node">Sign In</span><span class="arrow">→ Forgot password →</span><span class="flow-node">Request reset</span><span class="arrow">→</span><span class="flow-node">Check email</span><span class="arrow">→</span><span class="flow-node">Choose new password</span><span class="arrow">→ Sign In</span></div>
+        <div class="flow-row"><span class="flow-node">Sign In</span><span class="arrow">→ Reset-Password? →</span><span class="flow-node">Request reset</span><span class="arrow">→</span><span class="flow-node">Check email</span><span class="arrow">→</span><span class="flow-node">Choose new password</span><span class="arrow">→ Sign In</span></div>
         <div class="flow-row"><span class="flow-node">Register: First + Last name + Email</span><span class="arrow">→</span><span class="flow-node">User / Inactive request</span><span class="arrow">→ Superadmin approves →</span><span class="flow-node">Set password link</span><span class="arrow">→ Sign In</span></div>
-        <div class="flow-row"><span class="flow-node">Continue with Google</span><span class="arrow">→</span><span class="flow-node">New: User / Inactive → Superadmin approval</span><span class="arrow">· Existing account: Active gate</span></div>
+        <div class="flow-row"><span class="flow-node">Continue with Google</span><span class="arrow">→</span><span class="flow-node">New: User / Inactive → Superadmin and Admin approval</span><span class="arrow">· Existing account: Active gate</span></div>
         <div class="flow-row"><span class="flow-node">Invalid credentials → neutral error</span><span class="flow-node">Pending/Blocked → message only after identity proof</span><span class="flow-node">Expired/invalid reset → request replacement link</span></div>
       </div>
     </section>
@@ -181,7 +179,6 @@
       <h2>Pending product/security decisions</h2>
       <ol class="decision-list">
         <li>Reconcile DEV Superadmin signup instruction with mandatory User/Inactive signup.</li>
-        <li>Approve password policy and strength-meter behavior.</li>
         <li>Set failed-attempt rate limits and temporary lockout duration.</li>
         <li>Approve invite/reset token expiry, one-time use, resend cooldown, and attempt limits.</li>
         <li>Confirm registration availability, Superadmin review/rejection workflow, and notification text.</li>
@@ -195,35 +192,31 @@
     </section>
     <section class="section panel">
       <h2>Task 1 gaps used as compositions</h2>
-      <p class="muted">Google option, Remember me, Superadmin/pending notice, password checklist, summary errors, loading, reset confirmation/cooldown, and link-recovery states are auth-specific compositions. No new design-system color, font, or component token is introduced.</p>
+      <p class="muted">Google option, Remember me, Superadmin/pending notice, minimum-length password requirement, summary errors, loading, reset confirmation/cooldown, and link-recovery states are auth-specific compositions. No new design-system color, font, or component token is introduced.</p>
     </section>
     <footer class="footer">Numbered callouts describe initial focus, DOM/tab order, validation timing, and recovery behavior. Visual samples are static wireframes, not functional authentication forms.</footer>
   </main>
   <script>
     const rules = [
-      "At least 12 characters",
-      "One uppercase letter",
-      "One lowercase letter",
-      "One number",
-      "One symbol"
+      "At least 8 characters"
     ];
 
     const screens = [
       {
         id: "login", title: "1. Login / Sign In", heading: "Sign In",
         helper: "Sign in to your Hope account.", initialFocus: "Email",
-        tabOrder: "Email → Password → Show/Hide → Remember me → Forgot password? → Sign In → Continue with Google → Register",
+        tabOrder: "Email → Password → Show/Hide → Remember me → Reset-Password? → Sign In → Continue with Google → Register",
         fields: [
           { key: "email", label: "Email", value: "you@company.com" },
           { key: "password", label: "Password", value: "Password", password: true }
         ],
-        remember: true, google: "Continue with Google", preActionLinks: ["Forgot password?"], links: ["New to Hope? Register"], action: "Sign In",
+        remember: true, google: "Continue with Google", preActionLinks: ["Reset-Password?"], links: ["New to Hope? Register"], action: "Sign In",
         callouts: [
           "Initial focus is Email. Enter submits the form.",
           "Remember me is optional; persistence duration is pending approval.",
           "Invalid credentials always use neutral copy, regardless of email existence.",
           "Pending/Blocked states show only after valid password or verified Google callback.",
-          "New Google identities are created User/Inactive and wait for Superadmin approval."
+          "New Google identities are created User/Inactive and wait for Superadmin and Admin approval."
         ],
         states: [
           { name: "Default" },
@@ -231,9 +224,8 @@
           { name: "Required-field validation", summary: "Check the highlighted fields.", errors: { email: "Enter your email address.", password: "Enter your password." } },
           { name: "Invalid email format", summary: "Check the highlighted field.", errors: { email: "Enter a valid email address." } },
           { name: "Invalid credentials (privacy-safe)", summary: "We couldn't sign you in with those details. Check your email and password, then try again.", errors: { password: "We couldn't sign you in with those details. Check your email and password, then try again." } },
-          { name: "Pending account (identity verified)", message: "Your account is pending Superadmin approval. You can sign in after it is approved." },
+          { name: "Pending account (identity verified)", message: "Your account is pending Superadmin and Admin approval. You can sign in after it is approved." },
           { name: "Blocked account (identity verified)", message: "This account can't sign in right now. Contact your administrator for help.", links: ["Contact administrator"] },
-          { name: "Temporary lockout (policy pending)", message: "Sign-in is temporarily unavailable. Try again later.", buttonDisabled: true },
           { name: "Loading password sign-in", loading: "Signing in…", disabled: true },
           { name: "Loading Google sign-in", loading: "Connecting to Google…", disabled: true },
           { name: "Sign-in success", success: "Signed in. Opening Hope…", heading: "Signed in", action: "Continue to Hope", links: [], hideForm: true },
@@ -266,13 +258,12 @@
           { name: "Existing/conflicting email (neutral)", summary: "We couldn't complete this request. If you already have an account, Sign In or reset your password. Otherwise check the email and try again.", errors: { email: "Check the email and try again, or Sign In if you already have an account." } },
           { name: "Loading", loading: "Submitting request…", disabled: true },
           { name: "Request received", success: "Your request is pending Superadmin approval. We’ll email you after it’s reviewed. If approved, we’ll send a link to set your password.", action: "Back to Sign In", hideForm: true, links: [] },
-          { name: "Google account pending", success: "Your Google account is linked. A Superadmin must approve your access before you can use Hope.", action: "Back to Sign In", hideForm: true, links: [] },
-          { name: "Registration unavailable", message: "New requests aren't available right now. Contact your administrator for access.", action: "Back to Sign In", hideForm: true, links: [] },
+          { name: "Google account pending", success: "Your Google account is linked. A Superadmin and Admin must approve your access before you can use Hope.", action: "Back to Sign In", hideForm: true, links: [] },
           { name: "Google sign-in error", summary: "Google sign-in didn't finish. Try again or use the registration form." }
         ]
       },
       {
-        id: "reset-request", title: "3. Forgot Password — Request Reset", heading: "Forgot password?",
+        id: "reset-request", title: "3. Reset-Password — Request Reset", heading: "Reset-Password?",
         helper: "Enter your email address. If an account matches, we'll send reset instructions.", initialFocus: "Email",
         tabOrder: "Email → Send Reset Link → Back to Sign In",
         fields: [{ key: "email", label: "Email", value: "you@company.com" }],
@@ -321,17 +312,17 @@
         passwordRules: true, links: ["Back to Sign In"], action: "Save",
         callouts: [
           "Initial focus is New password; the email is visible and read-only.",
-          "This screen follows Superadmin approval for email registration.",
-          "Password checklist is an example policy pending approval.",
+          "This screen follows Superadmin and Admin approval for email registration.",
+          "The password requirement is at least 8 characters.",
           "Token expiry and one-time use are pending decisions; server validates the link."
         ],
         states: [
-          { name: "Default", rulePasses: 2 },
-          { name: "Password rule validation", summary: "Check the highlighted fields.", errors: { password: "Meet each password rule below." }, rulePasses: 1 },
-          { name: "Confirm password mismatch", summary: "Check the highlighted field.", errors: { confirm: "These passwords don't match. Check both fields and try again." }, rulePasses: 5 },
+          { name: "Default", rulePasses: 0 },
+          { name: "Password rule validation", summary: "Check the highlighted fields.", errors: { password: "Meet each password requirements below." }, rulePasses: 0 },
+          { name: "Confirm password mismatch", summary: "Check the highlighted field.", errors: { confirm: "These passwords don't match. Check both fields and try again." }, rulePasses: 1 },
           { name: "Loading", loading: "Saving password…", disabled: true },
           { name: "Success", success: "Your password is ready. Sign in to continue.", hideForm: true, action: "Back to Sign In" },
-          { name: "Expired/invalid setup link", message: "This setup link can't be used. Ask your Superadmin to send a new one.", action: "Request a new setup link", hideForm: true, links: ["Back to Sign In", "Contact administrator"] },
+          { name: "Expired/invalid setup link", message: "This setup link can't be used. Ask your Superadmin and Admin to send a new one.", action: "Request a new setup link", hideForm: true, links: ["Back to Sign In", "Contact administrator"] },
           { name: "Save error", summary: "We couldn't update your password right now. Try again." }
         ]
       },
@@ -346,14 +337,14 @@
         passwordRules: true, links: ["Back to Sign In"], action: "Save",
         callouts: [
           "Initial focus is New password; show this form only after link validation.",
-          "Use the same approved policy as Set Password; present the example checklist as pending.",
+          "Use the same at-least-8-character requirement as Set Password.",
           "On success return to Sign In; do not silently sign in.",
           "Expired/invalid links offer Request a new reset link and route to Forgot Password."
         ],
         states: [
-          { name: "Default", rulePasses: 2 },
-          { name: "Password rule validation", summary: "Check the highlighted fields.", errors: { password: "Meet each password rule below." }, rulePasses: 1 },
-          { name: "Confirm password mismatch", summary: "Check the highlighted field.", errors: { confirm: "These passwords don't match. Check both fields and try again." }, rulePasses: 5 },
+          { name: "Default", rulePasses: 0 },
+          { name: "Password rule validation", summary: "Check the highlighted fields.", errors: { password: "Meet each password requirements below." }, rulePasses: 0 },
+          { name: "Confirm password mismatch", summary: "Check the highlighted field.", errors: { confirm: "These passwords don't match. Check both fields and try again." }, rulePasses: 1 },
           { name: "Loading", loading: "Saving password…", disabled: true },
           { name: "Success", success: "Your password has been updated. Sign in with your new password.", hideForm: true, action: "Back to Sign In" },
           { name: "Expired reset link", message: "This reset link has expired. Request a new link to reset your password.", hideForm: true, links: ["Request a new reset link", "Back to Sign In"] },
@@ -366,7 +357,7 @@
     const microcopy = [
       ["Login heading/helper", "Sign In · Sign in to your Hope account."],
       ["Login fields", "Email · Password (Show password / Hide password)"],
-      ["Login options", "Remember me · Forgot password? · Sign In · Continue with Google · New to Hope? Register"],
+      ["Login options", "Remember me · Reset-Password? · Sign In · Continue with Google · New to Hope? Register"],
       ["Register fields/actions", "First name · Last name · Email · Register · Continue with Google · Already have an account? Sign In"],
       ["New-account note", "New accounts are created as User and remain pending Superadmin approval."],
       ["Email validation", "Enter your email address. · Enter a valid email address."],
@@ -374,14 +365,15 @@
       ["Password mismatch", "These passwords don't match. Check both fields and try again."],
       ["Validation summary", "Check the highlighted fields."],
       ["Neutral sign-in failure", "We couldn't sign you in with those details. Check your email and password, then try again."],
-      ["Pending account", "Your account is pending Superadmin approval. You can sign in after it is approved."],
+      ["Pending account", "Your account is pending Superadmin and Admin approval. You can sign in after it is approved."],
       ["Blocked account", "This account can't sign in right now. Contact your administrator for help."],
       ["Session expiry", "Your session expired. Sign in again to continue."],
       ["Register confirmation", "Your request is pending Superadmin approval. We’ll email you after it’s reviewed. If approved, we’ll send a link to set your password."],
-      ["Google pending", "Your Google account is linked. A Superadmin must approve your access before you can use Hope."],
+      ["Google pending", "Your Google account is linked. A Superadmin and Admin must approve your access before you can use Hope."],
       ["Generic reset helper", "Enter your email address. If an account matches, we'll send reset instructions."],
       ["Reset confirmation", "If an account matches that email, we'll send a reset link. Check your inbox and spam folder."],
-      ["Password policy", "Example policy — pending approval: 12+ characters, uppercase, lowercase, number, symbol."],
+      ["Password requirement", "At least 8 characters"],
+      ["Password validation", "Error: Meet each password requirements below."],
       ["Password save", "Save · Saving password…"],
       ["Password success", "Your password has been updated. Sign in with your new password."],
       ["Expired/invalid reset", "This reset link can't be used. Request a new link to continue."]
@@ -408,9 +400,8 @@
       if (state.hideForm === true || !state.screenHasRules) return "";
       const passed = Math.min(state.rulePasses || 0, rules.length);
       return `<div class="rules">
-        <div class="rules-title"><span>Example password rules · pending approval</span><span>${passed ? "In progress" : "Not checked"}</span></div>
+        <div class="rules-title">Password requirement</div>
         <ul>${rules.map((rule, index) => `<li class="${index < passed ? "pass" : ""}">${index < passed ? "✓" : "○"} ${esc(rule)}</li>`).join("")}</ul>
-        <div class="strength" aria-label="Example strength indicator"><span style="width:${Math.max(14, passed * 20)}%"></span></div>
       </div>`;
     }
 

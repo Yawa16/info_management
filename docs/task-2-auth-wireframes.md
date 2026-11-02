@@ -2,13 +2,13 @@
 
 ## Assumptions and decisions
 
-- **Approved role/status requirement:** every account created by Register or first created through Google is assigned the `User` role and `Inactive` (pending approval). A **Superadmin** approves the account. Registration and Google account creation do not grant application access. Only an approved, `Active` account may continue into the ERP.
+- **Approved role/status requirement:** every account created by Register or first created through Google is assigned the `User` role and `Inactive` (pending approval). A **Superadmin** reviews the request, and both a Superadmin and Admin must approve access. Registration and Google account creation do not grant application access. Only an approved, `Active` account may continue into the ERP.
 - The project context defines roles `superadmin`, `admin`, and `user`, and statuses Active, Inactive, and Blocked. Existing global DEV instructions say signups default to Superadmin; that conflicts with this Task 2 requirement. The account lifecycle in these wireframes follows the explicit Task 2 review correction: new accounts are User/Inactive in all environments. Resolve/update that DEV instruction before implementation; do not silently grant Superadmin to a public signup.
 - Register collects First name, Last name, and Email only. After submission, show a generic request-received confirmation. A Superadmin reviews the request. If approved, the user receives a first-password setup link, sets a password, then returns to Sign In. Approval/rejection notification content is not defined; rejection must not activate the account.
-- Continue with Google creates/links an identity only after a provider callback. A newly created Google identity receives `User` + `Inactive`; it sees a pending-approval notice and cannot access protected ERP data until a Superadmin approves it. Existing Google-linked accounts must also pass the same Active-status gate. Account linking, duplicate-email handling, and provider verification are security decisions still to confirm.
+- Continue with Google creates/links an identity only after a provider callback. A newly created Google identity receives `User` + `Inactive`; it sees a pending-approval notice and cannot access protected ERP data until a Superadmin and Admin approve access. Existing Google-linked accounts must also pass the same Active-status gate. Account linking, duplicate-email handling, and provider verification are security decisions still to confirm.
 - Sign In uses email/password or Continue with Google. Remember me is a persistent-session preference; its lifetime and device policy need product/security approval.
-- Password creation occurs only on Set Password and Reset Password, not on Register. The exact password rules are pending product/security approval. The displayed checklist is a **provisional example only**: minimum 12 characters, uppercase, lowercase, number, symbol. Use identical provisional rules on both password-setting screens until approved.
-- Lockout thresholds/duration, invite/reset token lifetime and one-time semantics, resend cooldown, registration availability, and approval notification behavior are **pending product/security decisions**, not settled requirements. Wireframe values, when shown, are labeled provisional. Do not implement them as approved policy.
+- Password creation occurs only on Set Password and Reset Password, not on Register. The approved password requirement for both screens is at least 8 characters.
+- Lockout thresholds/duration, invite/reset token lifetime and one-time semantics, resend cooldown, registration availability, and approval notification behavior are **pending product/security decisions**, not settled requirements. Values for these unresolved decisions are not settled policy.
 - Visuals are low-fidelity grayscale: Task 1 cream page background and primary action color are retained, as are existing error/success tokens and focus token for accessibility. Other surfaces, borders, and text use Task 1 neutral tokens. The only branding element is a text logo placeholder.
 
 ## Gaps found in Task 1
@@ -17,9 +17,9 @@ Task 1 defines the reusable input/password input, buttons, card, inline errors, 
 
 - Google identity-provider button and Remember me checkbox composition.
 - Registration status message, Superadmin approval / rejection messaging, and Google-created-account pending gate.
-- Password checklist and strength indicator.
+- The single minimum-length password requirement.
 - Submission error summary and focus behavior.
-- Session-expiry, generic sign-in failure, pending/blocked account, loading form, and registration-closed compositions.
+- Session-expiry, generic sign-in failure, pending/blocked account, and loading-form compositions.
 - Generic reset confirmation, resend cooldown, one-time-link expiry, and replacement-link recovery.
 - Auth-specific card width and content rhythm.
 
@@ -36,13 +36,11 @@ flowchart TD
   Login -->|Valid credentials, Active| App[ERP]
   Login -->|Invalid email/password| Generic[Neutral sign-in error; same wording]
   Generic --> Login
-  Login -->|Valid identity, Inactive| Pending[Pending Superadmin approval]
+  Login -->|Valid identity, Inactive| Pending[Pending Superadmin and Admin approval]
   Pending --> Login
   Login -->|Valid identity, Blocked| Blocked[Blocked account notice]
   Blocked --> Support[Contact administrator]
-  Login -->|Rate limit| Locked[Temporary lockout; policy pending]
-  Locked -->|After server cooldown| Login
-  Login -->|Forgot password?| ResetRequest[Reset: request link]
+  Login -->|Reset-Password?| ResetRequest[Reset: request link]
   ResetRequest -->|Accepted, generic response| CheckEmail[Check your email]
   CheckEmail -->|Reset email link| Choose[Choose new password]
   CheckEmail -->|Cooldown complete / resend| CheckEmail
@@ -56,7 +54,7 @@ flowchart TD
   Register -->|Accepted| Submitted[Request received: User / Inactive]
   Submitted --> Superadmin[Superadmin review]
   Superadmin -->|Denied / needs follow-up| Decision[Neutral review-update message / contact route]
-  Superadmin -->|Approved| Invite[Email first-password setup link]
+  Superadmin -->|Superadmin and Admin approve| Invite[Email first-password setup link]
   Invite --> SetPassword[Set Password]
   SetPassword -->|Validation error| SetPassword
   SetPassword -->|Save success| Login
@@ -84,34 +82,29 @@ flowchart TD
 - During loading disable editable fields and duplicate submit, retain values, set `aria-busy="true"`, and show a readable spinner label. Continue with Google has its own loading/error state and must not silently fall back to password auth.
 - Pending/blocked status is only disclosed after the user proves identity (valid password or successful Google callback). Before identity verification, invalid credentials use the same neutral message and response path for unknown email and wrong password.
 
-## Password checklist shown on Set Password and Reset Password
+## Password requirement shown on Set Password and Reset Password
 
-The checklist below is provisional and must remain marked “Example policy — pending approval” until security/product approves it:
+The approved requirement is:
 
-1. At least 12 characters.
-2. At least one uppercase letter.
-3. At least one lowercase letter.
-4. At least one number.
-5. At least one symbol.
+1. At least 8 characters.
 
-Show a visible pass/fail text and icon per rule. The strength indicator is supporting feedback only; it does not replace requirements. Reevaluate as the user types. If the policy changes, apply the exact same approved rules to both password-setting screens.
+Show a visible pass/fail text and icon for this requirement. Reevaluate as the user types and apply it identically to both password-setting screens.
 
 ## Screen 1 — Login / Sign In
 
 - **Heading:** Sign In
 - **Helper:** Sign in to your Hope account.
 - **Fields/options:** Email; Password with Show/Hide; Remember me checkbox.
-- **Actions:** Forgot password?; primary `Sign In`; secondary `Continue with Google`; link `Register`.
+- **Actions:** `Reset-Password?`; primary `Sign In`; secondary `Continue with Google`; link `Register`.
 
 | State | Visible copy and behavior |
 |---|---|
-| Default | `Email`; `Password`; `Remember me`; `Forgot password?`; `Sign In`; `Continue with Google`; `New to Hope? Register`. |
+| Default | `Email`; `Password`; `Remember me`; `Reset-Password?`; `Sign In`; `Continue with Google`; `New to Hope? Register`. |
 | Email focus | Visible Task 1 focus ring. Initial focus is Email. |
 | Empty/invalid fields | Summary `Check the highlighted fields.` Email `Enter your email address.` or `Enter a valid email address.` Password `Enter your password.` |
 | Invalid credentials | Neutral summary and field-level message: `We couldn't sign you in with those details. Check your email and password, then try again.` Same message for unknown email and incorrect password; do not reveal registration status. |
-| Pending account | Only after valid credentials/provider callback: `Your account is pending Superadmin approval. You can sign in after it is approved.` This confirms status after identity verification, not from an unverified email. |
+| Pending account | Only after valid credentials/provider callback: `Your account is pending Superadmin and Admin approval. You can sign in after it is approved.` This confirms status after identity verification, not from an unverified email. |
 | Blocked account | Only after valid credentials/provider callback: `This account can't sign in right now. Contact your administrator for help.` Avoid status disclosure before identity proof. |
-| Too many attempts | `Sign-in is temporarily unavailable. Try again later.` Lock duration/threshold are pending; show server-provided retry time if policy approves. |
 | Loading | Password submit: `Signing in…`; Google: `Connecting to Google…`. Disable form controls relevant to the in-flight action; preserve the other method only if safe. |
 | Success | `Signed in. Opening Hope…` then navigate to ERP only for Active accounts. |
 | Session expired | `Your session expired. Sign in again to continue.` Focus this notice; after successful sign-in return to original protected destination. |
@@ -119,7 +112,7 @@ Show a visible pass/fail text and icon per rule. The strength indicator is suppo
 
 **Numbered behavior callouts**
 
-1. Initial focus Email; tab sequence: Email → Password → Show/Hide → Remember me → Forgot password? → Sign In → Continue with Google → Register.
+1. Initial focus Email; tab sequence: Email → Password → Show/Hide → Remember me → Reset-Password? → Sign In → Continue with Google → Register.
 2. Remember me is optional and its persistence duration is pending security/product approval.
 3. Generic invalid-credentials message is identical regardless of whether email exists.
 4. Pending/blocked notice occurs after valid identity proof. Neither state reaches the ERP.
@@ -137,17 +130,16 @@ Show a visible pass/fail text and icon per rule. The strength indicator is suppo
 |---|---|
 | Default | Three labeled fields, pending-role note, `Register`, `Continue with Google`, `Already have an account? Sign In`. No password fields on Register. |
 | Field validation | Summary `Check the highlighted fields.` First name `Enter your first name.` Last name `Enter your last name.` Email `Enter your email address.` / `Enter a valid email address.` |
-| Duplicate/conflicting email | Privacy-safe summary `We couldn't complete this request. If you already have an account, Sign In or reset your password. Otherwise check the email and try again.` Links `Sign In` and `Forgot password?` |
+| Duplicate/conflicting email | Privacy-safe summary `We couldn't complete this request. If you already have an account, Sign In or reset your password. Otherwise check the email and try again.` Links `Sign In` and `Reset-Password?` |
 | Loading | `Submitting request…`; disable fields and duplicate request. |
 | Success | Heading `Request received`; `Your request is pending Superadmin approval. We’ll email you after it’s reviewed. If approved, we’ll send a link to set your password.` Link `Back to Sign In`. Account is User/Inactive; no ERP access yet. |
-| Registration closed | Heading `Registration is unavailable`; `New requests aren't available right now. Contact your administrator for access.` Link `Back to Sign In`. Availability is pending product decision. |
 | Google loading/error | `Connecting to Google…`; on failure `Google sign-in didn't finish. Try again or use the registration form.` |
-| Google success: new account | Create role User/status Inactive; heading `Request received`; `Your Google account is linked. A Superadmin must approve your access before you can use Hope.` |
+| Google success: new account | Create role User/status Inactive; heading `Request received`; `Your Google account is linked. A Superadmin and Admin must approve your access before you can use Hope.` |
 | Google success: existing status | Active: continue to ERP. Inactive: show pending approval message. Blocked: show neutral blocked message only after provider identity is verified. |
 
 **What happens after registration**
 
-The request does not set a password or grant access. A Superadmin approves the User/Inactive account. On approval, email registration receives a first-password setup link; the user sets a password, then signs in. Google registration uses the verified Google identity instead of a password-setting step; after Superadmin approval, the user signs in with Google. Rejected requests stay inactive and do not receive access. Approval/rejection email wording and a follow-up route are pending product decisions.
+The request does not set a password or grant access. A Superadmin and Admin approve the User/Inactive account. On approval, email registration receives a first-password setup link; the user sets a password, then signs in. Google registration uses the verified Google identity instead of a password-setting step; after Superadmin and Admin approval, the user signs in with Google. Rejected requests stay inactive and do not receive access. Approval/rejection email wording and a follow-up route are pending product decisions.
 
 **Numbered behavior callouts**
 
@@ -155,33 +147,33 @@ The request does not set a password or grant access. A Superadmin approves the U
 2. Names use `given-name` and `family-name`; email uses `email`.
 3. Duplicate response stays neutral to avoid email enumeration; do not return account-existence-specific timing or copy.
 4. Assign `User`/`Inactive` atomically for both email and Google-created identities. Never honor client-supplied role/status.
-5. Superadmin approval is required before protected access; email users receive the setup link after approval; Google users return via Google after approval.
+5. Superadmin and Admin approval is required before protected access; email users receive the setup link after approval; Google users return via Google after approval.
 
 ## Screen 3 — Set Password (approved email account)
 
 - **Heading:** Set your password
 - **Helper:** Choose a password to finish setting up your Hope account.
-- **Fields:** Email (read-only); New password; Confirm password; provisional checklist.
+- **Fields:** Email (read-only); New password; Confirm password; password requirement.
 - **Action:** `Save`.
 
 | State | Visible copy and behavior |
 |---|---|
-| Default | Email from validated approval link; New password; Confirm password; labeled provisional checklist; `Save`. |
-| Validation errors | Summary `Check the highlighted fields.` New password `Meet each password rule below.` Confirm password `These passwords don't match. Check both fields and try again.` |
+| Default | Email from validated approval link; New password; Confirm password; requirement `At least 8 characters`; `Save`. |
+| Validation errors | Summary `Check the highlighted fields.` New password `Error: Meet each password requirements below.` Confirm password `These passwords don't match. Check both fields and try again.` |
 | Loading | `Saving password…`; disable form and duplicate submission. |
 | Success | Heading `Password set`; `Your password is ready. Sign in to continue.` Action `Back to Sign In`. |
-| Expired/invalid link | `This setup link can't be used. Ask your Superadmin to send a new one.` Distinguish expired from malformed only if doing so does not disclose identity. Link `Back to Sign In`. |
+| Expired/invalid link | `This setup link can't be used. Ask your Superadmin and Admin to send a new one.` Distinguish expired from malformed only if doing so does not disclose identity. Link `Back to Sign In`. |
 
 **Numbered behavior callouts**
 
 1. Initial focus New password; tab sequence: New password → Show/Hide → Confirm password → Show/Hide → Save → Back to Sign In.
 2. Email is visibly labeled/read-only and bound to the approved account.
 3. Link validity, single use, and expiry are pending security approval; server owns token validity.
-4. Superadmin approval is the only transition from Inactive to Active; even after approval, an email account cannot sign in until password setup completes.
+4. Superadmin and Admin approval is the only transition from Inactive to Active; even after approval, an email account cannot sign in until password setup completes.
 
-## Screen 4 — Forgot Password: Request Reset
+## Screen 4 — Reset-Password: Request Reset
 
-- **Heading:** Forgot password?
+- **Heading:** Reset-Password?
 - **Helper:** Enter your email address. If an account matches, we'll send reset instructions.
 - **Field:** Email. **Actions:** `Send Reset Link`; `Back to Sign In`.
 
@@ -222,13 +214,13 @@ The request does not set a password or grant access. A Superadmin approves the U
 
 - **Heading:** Choose a new password
 - **Helper:** Create a new password for your Hope account.
-- **Fields:** New password; Confirm password; same provisional checklist as Screen 3.
+- **Fields:** New password; Confirm password; same `At least 8 characters` requirement as Screen 3.
 - **Action:** `Save`.
 
 | State | Visible copy and behavior |
 |---|---|
-| Default | Show fields only after reset-link validation; checklist identifies itself as provisional until approved. |
-| Validation | Summary `Check the highlighted fields.` New password `Meet each password rule below.` Confirm password `These passwords don't match. Check both fields and try again.` |
+| Default | Show fields only after reset-link validation; display the `At least 8 characters` requirement. |
+| Validation | Summary `Check the highlighted fields.` New password `Error: Meet each password requirements below.` Confirm password `These passwords don't match. Check both fields and try again.` |
 | Loading | `Saving password…`; prevent duplicate submit. |
 | Success | Heading `Password reset`; `Your password has been updated. Sign in with your new password.` Action `Back to Sign In`. |
 | Expired link | Heading `This reset link has expired`; `Request a new link to reset your password.` Action `Request a new reset link` → Forgot Password request. |
@@ -238,9 +230,9 @@ The request does not set a password or grant access. A Superadmin approves the U
 **Numbered behavior callouts**
 
 1. Initial focus New password; tab sequence: New password → Show/Hide → Confirm password → Show/Hide → Save → Back to Sign In.
-2. Same approved policy as Screen 3; current checklist is explicitly provisional.
+2. Use the same `At least 8 characters` requirement as Screen 3.
 3. On success return to Sign In; do not automatically sign in.
-4. Expired and invalid links always have a replacement-link path back to Forgot Password.
+4. Expired and invalid links always have a replacement-link path back to Reset-Password.
 
 ## Complete microcopy table
 
@@ -249,7 +241,7 @@ The request does not set a password or grant access. A Superadmin approves the U
 | Login heading | `Sign In` |
 | Login helper | `Sign in to your Hope account.` |
 | Field labels | `Email`; `Password`; `First name`; `Last name`; `New password`; `Confirm password` |
-| Login options | `Remember me`; `Forgot password?`; `Sign In`; `Continue with Google`; `New to Hope? Register` |
+| Login options | `Remember me`; `Reset-Password?`; `Sign In`; `Continue with Google`; `New to Hope? Register` |
 | Register helper | `Request access to Hope. A Superadmin must approve new accounts.` |
 | New-account note | `New accounts are created as User and remain pending Superadmin approval.` |
 | Register actions | `Register`; `Continue with Google`; `Already have an account? Sign In` |
@@ -257,23 +249,21 @@ The request does not set a password or grant access. A Superadmin approves the U
 | Last name errors | `Enter your last name.` |
 | Email errors | `Enter your email address.`; `Enter a valid email address.` |
 | Password empty | `Enter your password.` |
-| Password policy | `Meet each password rule below.` |
+| Password requirement | `At least 8 characters` |
+| Password validation | `Error: Meet each password requirements below.` |
 | Password mismatch | `These passwords don't match. Check both fields and try again.` |
 | Submission summary | `Check the highlighted fields.` |
 | Generic sign-in error | `We couldn't sign you in with those details. Check your email and password, then try again.` |
-| Pending account | `Your account is pending Superadmin approval. You can sign in after it is approved.` |
+| Pending account | `Your account is pending Superadmin and Admin approval. You can sign in after it is approved.` |
 | Blocked account | `This account can't sign in right now. Contact your administrator for help.` |
-| Generic lockout | `Sign-in is temporarily unavailable. Try again later.` |
 | Session expired | `Your session expired. Sign in again to continue.` |
 | Google error | `Google sign-in didn't finish. Try again or use your email and password.` |
 | Google loading | `Connecting to Google…` |
 | Password sign-in loading | `Signing in…` |
-| Temporary lockout | `Sign-in is temporarily unavailable. Try again later.` |
 | Registration received | `Your request is pending Superadmin approval. We’ll email you after it’s reviewed. If approved, we’ll send a link to set your password.` |
-| Google pending | `Your Google account is linked. A Superadmin must approve your access before you can use Hope.` |
-| Registration closed | `New requests aren't available right now. Contact your administrator for access.` |
+| Google pending | `Your Google account is linked. A Superadmin and Admin must approve your access before you can use Hope.` |
 | Registration loading | `Submitting request…` |
-| Reset heading/helper | `Forgot password?`; `Enter your email address. If an account matches, we'll send reset instructions.` |
+| Reset heading/helper | `Reset-Password?`; `Enter your email address. If an account matches, we'll send reset instructions.` |
 | Reset actions | `Send Reset Link`; `Back to Sign In` |
 | Generic reset confirmation | `If an account matches that email, we'll send a reset link. Check your inbox and spam folder.` |
 | Resend success/error | `If an account matches that email, we'll send a new reset link.`; `We couldn't send a link right now. Try again later.` |
@@ -285,7 +275,7 @@ The request does not set a password or grant access. A Superadmin approves the U
 | Password save | `Save`; `Saving password…` |
 | Set password success | `Your password is ready. Sign in to continue.` |
 | Reset success | `Your password has been updated. Sign in with your new password.` |
-| Setup-link error | `This setup link can't be used. Ask your Superadmin to send a new one.` |
+| Setup-link error | `This setup link can't be used. Ask your Superadmin and Admin to send a new one.` |
 | Setup-link action | `Request a new setup link` |
 | Reset-link expired | `Request a new link to reset your password.` |
 | Reset-link invalid/used | `Request a new link to continue.` |
@@ -295,7 +285,7 @@ The request does not set a password or grant access. A Superadmin approves the U
 ## Open product/security decisions
 
 1. Confirm or update the DEV signup default (`superadmin`) because it conflicts with the required User/Inactive lifecycle.
-2. Approve password policy and strength-meter behavior; checklist currently shows an example only.
+2. No password-policy decision is pending; both password-setting screens require at least 8 characters.
 3. Set lockout/rate-limit thresholds and duration; wireframe does not prescribe a final value.
 4. Approve reset/invite token expiry, single-use behavior, resend cooldown, and attempt limits.
 5. Confirm whether registration is open, closed, or organization-configurable.
@@ -307,12 +297,12 @@ The request does not set a password or grant access. A Superadmin approves the U
 
 ## Review checklist
 
-- [x] New email and Google accounts are User/Inactive and require Superadmin approval.
+- [x] New email and Google accounts are User/Inactive and require Superadmin and Admin approval.
 - [x] Register has First name, Last name, Email, Register, Google option, and Sign In link; no password fields.
-- [x] Login has Email, password show/hide, Remember me, Forgot password, Sign In, Google option, and Register link.
+- [x] Login has Email, password show/hide, Remember me, Reset-Password?, Sign In, Google option, and Register link.
 - [x] Reset confirmation and errors are privacy-safe; login credential error is identical for unknown email and wrong password.
 - [x] Pending/blocked messages appear only after identity verification.
 - [x] Every screen/state has desktop, tablet, and mobile wireframes, field copy, initial focus, tab order, and numbered behavior notes.
 - [x] Reset success returns to Login; expired/invalid links offer a replacement path.
-- [x] Password policy, lockout, cooldown, and link expiry are explicitly pending approval.
+- [x] Passwords require at least 8 characters; lockout, cooldown, and link expiry remain pending approval.
 - [x] Colors/fonts/component patterns reuse Task 1; low-fidelity screens are grayscale apart from cream page, primary action, focus, errors, and success.
