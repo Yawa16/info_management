@@ -1,5 +1,10 @@
-import { AuthPlaceholder } from "@/components/auth-placeholder";
+import AuthForm from "@/components/AuthForm";
+import AuthLayout from "@/components/AuthLayout";
 
 export default function SignInPage() {
-  return <AuthPlaceholder title="Sign in" />;
+  return (
+    <AuthLayout>
+      <AuthForm mode="login" />
+    </AuthLayout>
+  );
 }

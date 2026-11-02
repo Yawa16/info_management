@@ -1,5 +1,10 @@
-import { AuthPlaceholder } from "@/components/auth-placeholder";
+import AuthForm from "@/components/AuthForm";
+import AuthLayout from "@/components/AuthLayout";
 
 export default function RegisterPage() {
-  return <AuthPlaceholder title="Register" />;
+  return (
+    <AuthLayout>
+      <AuthForm mode="register" />
+    </AuthLayout>
+  );
 }

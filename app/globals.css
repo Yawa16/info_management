@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 :root {
-<<<<<<< HEAD
+  color-scheme: light;
   --ink: #202c29;
   --muted: #697571;
   --green: #397e68;
@@ -12,7 +12,7 @@
 
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
-body { margin: 0; background: var(--paper); color: var(--ink); font-family: Arial, Helvetica, sans-serif; -webkit-font-smoothing: antialiased; }
+body { min-height: 100vh; margin: 0; background: var(--paper); color: var(--ink); font-family: Arial, Helvetica, sans-serif; -webkit-font-smoothing: antialiased; }
 a { color: inherit; text-decoration: none; }
 button, input { font: inherit; }
 button, a { -webkit-tap-highlight-color: transparent; }
@@ -188,15 +188,23 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .password-toggle { position: absolute; top: 0; right: 0; height: 45px; padding: 0 13px; border: 0; background: transparent; color: #77857c; font-size: 10px; cursor: pointer; }
 .form-note { margin: -3px 0 0; color: #879189; font-size: 10px; line-height: 1.6; }
 .auth-submit { width: 100%; margin-top: 2px; }
+.auth-submit:disabled { cursor: wait; opacity: .7; }
 .auth-status { min-height: 14px; margin: -8px 0 -4px; color: #9a603f; font-size: 10px; line-height: 1.4; }
+.auth-status-success { color: #397e68; }
+.auth-status-info { color: #58635d; }
 .auth-divider { display: flex; align-items: center; gap: 12px; margin: 7px 0 19px; color: #a0a8a2; font-size: 10px; }
 .auth-divider span { flex: 1; height: 1px; background: #eaede8; }
+.auth-google { width: 100%; min-height: 45px; gap: 10px; border: 1px solid #e2e6df; background: #fff; color: #334139; font-size: 12px; }
+.auth-google:hover { background: #f8faf8; }
+.auth-google:disabled { cursor: wait; opacity: .7; }
+.google-icon { width: 17px; height: 17px; }
 .auth-footer { margin: 0; color: #818b84; text-align: center; font-size: 11px; }
 .auth-footer a { color: #4d8068; font-weight: 650; }
 .auth-help { position: absolute; bottom: 27px; color: #8a958d; font-size: 10px; }
 .auth-help span { margin-right: 5px; }
 .auth-help a { color: #4d8068; font-weight: 600; }
 .auth-mobile-brand { display: none; }
+.auth-mobile-brand .brand-light { color: #2d493d; }
 
 @media (min-width: 1500px) {
   .container { width: min(1280px, calc(100% - 100px)); }
@@ -278,19 +286,4 @@ button, a { -webkit-tap-highlight-color: transparent; }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
-=======
-  color-scheme: light;
-  background: #f7f8fa;
-  color: #17212b;
-  font-family: Arial, Helvetica, sans-serif;
-}
-
-* {
-  box-sizing: border-box;
-}
-
-body {
-  margin: 0;
-  min-height: 100vh;
->>>>>>> origin/develop
 }
