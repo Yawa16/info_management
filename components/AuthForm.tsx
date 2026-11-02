@@ -1,356 +1,333 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState, type FormEvent, type ReactNode } from "react";
-import { createClient } from "@/lib/supabase/client";
+import { useActionState, useState } from "react";
+import {
+  loginUser,
+  registerUser,
+  registerWithGoogle,
+  requestPasswordReset,
+  signInWithGoogle,
+} from "@/lib/actions/auth";
+import {
+  initialGoogleAuthState,
+  initialLoginState,
+  initialPasswordResetRequestState,
+  initialRegisterState,
+} from "@/lib/actions/auth-types";
 
-export type AuthMode = "login" | "register" | "reset" | "update";
+export type AuthMode = "login" | "register" | "reset";
 
-type AuthContent = {
-  eyebrow: string;
-  title: string;
-  description: string;
-  action: string;
-  footer: ReactNode;
-};
-
-const content: Record<AuthMode, AuthContent> = {
+const content = {
   login: {
-    eyebrow: "WELCOME BACK",
-    title: "Good to see you.",
-    description: "Log in to pick up right where your team left off.",
-    action: "Log in to Hope",
-    footer: (
-      <>
-        New to Hope? <Link href="/register">Create an account</Link>
-      </>
-    ),
+    title: "Welcome back",
+    description: "Sign in to your Hope, Inc. ERP account",
+    action: "Sign In",
+    footer: <>Don’t have an account? <Link href="/register">Register</Link></>,
   },
   register: {
-    eyebrow: "REQUEST ACCESS",
-    title: "Register",
-    description:
-      "Request access to Hope. A Superadmin must approve new accounts.",
+    title: "Create your account",
+    description: "Join Hope, Inc. ERP",
     action: "Register",
-    footer: (
-      <>
-        Already have an account? <Link href="/sign-in">Log in</Link>
-      </>
-    ),
+    footer: <>Already have an account? <Link href="/login">Sign in</Link></>,
   },
   reset: {
-    eyebrow: "WE'VE GOT YOU",
-    title: "Let's get you back in.",
-    description:
-      "Enter the email address you used to sign up and we’ll help you reset your password.",
-    action: "Send reset link",
-    footer: (
-      <>
-        Remembered your password? <Link href="/sign-in">Back to log in</Link>
-      </>
-    ),
+    title: "Reset password",
+    description: "We’ll send you a secure link to reset it",
+    action: "Send Reset Link",
+    footer: <>Remember your password? <Link href="/login">Back to Sign In</Link></>,
   },
-  update: {
-    eyebrow: "ALMOST THERE",
-    title: "Choose a new password.",
-    description: "Use at least 8 characters for your new password.",
-    action: "Save new password",
-    footer: (
-      <>
-        <Link href="/sign-in">Back to log in</Link>
-      </>
-    ),
-  },
-};
+} satisfies Record<
+  AuthMode,
+  { title: string; description: string; action: string; footer: React.ReactNode }
+>;
 
-function getErrorMessage(message: string, mode: AuthMode) {
-  const normalized = message.toLowerCase();
-
-  if (
-    mode === "login" &&
-    (normalized.includes("invalid login credentials") ||
-      normalized.includes("user not found"))
-  ) {
-    return "We couldn’t sign you in with those details. Check your email and password, then try again.";
-  }
-
-  if (normalized.includes("email not confirmed")) {
-    return "Please confirm your email address using the link we sent before signing in.";
-  }
-
-  if (normalized.includes("rate limit")) {
-    return "Too many attempts. Please wait a moment and try again.";
-  }
-
-  return message;
-}
-
-export default function AuthForm({ mode }: { mode: AuthMode }) {
+export default function AuthForm({
+  mode,
+  notice = "",
+}: {
+  mode: AuthMode;
+  notice?: string;
+}) {
   const [showPassword, setShowPassword] = useState(false);
-  const [status, setStatus] = useState<{
-    tone: "error" | "success" | "info";
-    text: string;
-  } | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [registerState, registerAction, isRegisterPending] = useActionState(
+    registerUser,
+    initialRegisterState,
+  );
+  const [loginState, loginAction, isLoginPending] = useActionState(
+    loginUser,
+    initialLoginState,
+  );
+  const [googleRegisterState, googleRegisterAction, isGoogleRegisterPending] =
+    useActionState(
+      registerWithGoogle,
+      initialGoogleAuthState,
+    );
+  const [googleLoginState, googleLoginAction, isGoogleLoginPending] =
+    useActionState(signInWithGoogle, initialGoogleAuthState);
+  const [passwordResetState, passwordResetAction, isPasswordResetPending] =
+    useActionState(requestPasswordReset, initialPasswordResetRequestState);
   const current = content[mode];
   const isReset = mode === "reset";
   const isRegister = mode === "register";
-  const isUpdate = mode === "update";
-  const supportsGoogle = mode === "login" || isRegister;
-
-  useEffect(() => {
-    if (new URLSearchParams(window.location.search).get("error") === "callback") {
-      setStatus({
-        tone: "error",
-        text: "We couldn’t verify that email link. It may have expired; request a new link and try again.",
-      });
-    }
-  }, []);
-
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setStatus(null);
-
-    if (isRegister) {
-      setStatus({
-        tone: "info",
-        text: "This visual preview does not submit access requests.",
-      });
-      return;
-    }
-
-    setIsSubmitting(true);
-
-    const formData = new FormData(event.currentTarget);
-    const email = String(formData.get("email") ?? "").trim();
-
-    try {
-      const supabase = createClient();
-
-      if (mode === "login") {
-        const { error } = await supabase.auth.signInWithPassword({
-          email,
-          password: String(formData.get("password") ?? ""),
-        });
-
-        if (error) {
-          setStatus({ tone: "error", text: getErrorMessage(error.message, mode) });
-          return;
-        }
-
-        setStatus({ tone: "success", text: "You’re signed in successfully." });
-        return;
-      }
-
-      if (isReset) {
-        const { error } = await supabase.auth.resetPasswordForEmail(email, {
-          redirectTo: `${window.location.origin}/auth/callback?next=/update-password`,
-        });
-
-        if (error) {
-          setStatus({ tone: "error", text: getErrorMessage(error.message, mode) });
-          return;
-        }
-
-        setStatus({
-          tone: "success",
-          text: "If an account matches that email, we’ll send a reset link. Check your inbox and spam folder.",
-        });
-        return;
-      }
-
-      const password = String(formData.get("password") ?? "");
-      const confirmPassword = String(formData.get("confirmPassword") ?? "");
-      if (password !== confirmPassword) {
-        setStatus({
-          tone: "error",
-          text: "These passwords don’t match. Check both fields and try again.",
-        });
-        return;
-      }
-
-      const { error } = await supabase.auth.updateUser({ password });
-      if (error) {
-        setStatus({ tone: "error", text: getErrorMessage(error.message, mode) });
-        return;
-      }
-
-      setStatus({
-        tone: "success",
-        text: "Your password was updated. You can now sign in with your new password.",
-      });
-    } catch (error) {
-      setStatus({
-        tone: "error",
-        text:
-          error instanceof Error
-            ? error.message
-            : "We couldn’t complete that request. Please try again.",
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
-  }
-
-  async function handleGoogleSignIn() {
-    setStatus(null);
-    setIsSubmitting(true);
-
-    try {
-      const supabase = createClient();
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback?next=/`,
-        },
-      });
-
-      if (error) {
-        setStatus({ tone: "error", text: getErrorMessage(error.message, mode) });
-      }
-    } catch (error) {
-      setStatus({
-        tone: "error",
-        text:
-          error instanceof Error
-            ? error.message
-            : "We couldn’t start Google sign-in. Please try again.",
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
-  }
+  const isLogin = mode === "login";
 
   return (
     <section className="auth-card" aria-labelledby="auth-title">
-      <span className="auth-eyebrow">
-        <i /> {current.eyebrow}
-      </span>
-      <h1 id="auth-title">{current.title}</h1>
-      <p className="auth-description">{current.description}</p>
-      <form className="auth-form" onSubmit={handleSubmit}>
-        {isRegister && (
-          <>
-            <label>
-              First name
-              <input
-                autoComplete="given-name"
-                name="firstName"
-                placeholder="Your first name"
-                required
-              />
-            </label>
-            <label>
-              Last name
-              <input
-                autoComplete="family-name"
-                name="lastName"
-                placeholder="Your last name"
-                required
-              />
-            </label>
-          </>
-        )}
-        <label>
-          Work email
-          <input
-            autoComplete="email"
-            name="email"
-            placeholder="you@company.com"
-            required
-            type="email"
-          />
-        </label>
-        {!isReset && !isRegister && (
-          <label>
-            <span className="label-row">
-              <span>{isUpdate ? "New password" : "Password"}</span>
-              {mode === "login" && <Link href="/reset-password">Forgot password?</Link>}
-            </span>
-            <span className="password-field">
-              <input
-                autoComplete={isRegister || isUpdate ? "new-password" : "current-password"}
-                minLength={8}
-                name="password"
-                placeholder="At least 8 characters"
-                required
-                type={showPassword ? "text" : "password"}
-              />
-              <button
-                type="button"
-                className="password-toggle"
-                onClick={() => setShowPassword((value) => !value)}
-                aria-label={showPassword ? "Hide password" : "Show password"}
-              >
-                {showPassword ? "Hide" : "Show"}
-              </button>
-            </span>
-          </label>
-        )}
-        {isUpdate && (
-          <label>
-            <span>Confirm new password</span>
-            <span className="password-field">
-              <input
-                autoComplete="new-password"
-                minLength={8}
-                name="confirmPassword"
-                placeholder="Enter your new password again"
-                required
-                type={showPassword ? "text" : "password"}
-              />
-              <button
-                type="button"
-                className="password-toggle"
-                onClick={() => setShowPassword((value) => !value)}
-                aria-label={showPassword ? "Hide password" : "Show password"}
-              >
-                {showPassword ? "Hide" : "Show"}
-              </button>
-            </span>
-          </label>
-        )}
-        {isRegister && (
-          <p className="form-note">
-            New accounts remain pending Superadmin approval. Approved users
-            receive a link to set a password.
-          </p>
-        )}
-        <button
-          type="submit"
-          className="button button-dark auth-submit"
-          disabled={isSubmitting}
+      <header className="auth-card-header">
+        <div>
+          <h1 id="auth-title">{current.title}</h1>
+          <p className="auth-description">{current.description}</p>
+        </div>
+        <Link className="auth-close" href="/" aria-label="Close and return home">
+          ×
+        </Link>
+      </header>
+
+      {isRegister && registerState.status === "success" ? (
+        <div className="register-success" role="status" aria-live="polite">
+          <p>{registerState.message}</p>
+          <span>
+            An Admin or Superadmin must approve your account before you can use
+            the system. If prompted, confirm your email before signing in.
+          </span>
+        </div>
+      ) : (
+        <form
+          className={`auth-form${isRegister ? " register-form" : ""}`}
+          action={
+            isRegister
+              ? registerAction
+              : isLogin
+                ? loginAction
+                : passwordResetAction
+          }
         >
-          {isSubmitting ? "Please wait…" : current.action}
-          <span aria-hidden="true">↗</span>
-        </button>
-        <p
-          className={`auth-status${status ? ` auth-status-${status.tone}` : ""}`}
-          aria-live="polite"
-          role={status?.tone === "error" ? "alert" : undefined}
-        >
-          {status?.text ?? ""}
-        </p>
-      </form>
-      {supportsGoogle && (
+          {isRegister && (
+            <div className="auth-name-row">
+              <div className="auth-field">
+                <label htmlFor="firstName">First name</label>
+                <input
+                  autoComplete="given-name"
+                  aria-invalid={Boolean(registerState.fieldErrors?.firstName)}
+                  aria-describedby={
+                    registerState.fieldErrors?.firstName
+                      ? "firstName-error"
+                      : undefined
+                  }
+                  id="firstName"
+                  maxLength={80}
+                  name="firstName"
+                  placeholder="Your first name"
+                  required
+                />
+                {registerState.fieldErrors?.firstName && (
+                  <span className="register-field-error" id="firstName-error">
+                    {registerState.fieldErrors.firstName}
+                  </span>
+                )}
+              </div>
+              <div className="auth-field">
+                <label htmlFor="lastName">Last name</label>
+                <input
+                  autoComplete="family-name"
+                  aria-invalid={Boolean(registerState.fieldErrors?.lastName)}
+                  aria-describedby={
+                    registerState.fieldErrors?.lastName
+                      ? "lastName-error"
+                      : undefined
+                  }
+                  id="lastName"
+                  maxLength={80}
+                  name="lastName"
+                  placeholder="Your last name"
+                  required
+                />
+                {registerState.fieldErrors?.lastName && (
+                  <span className="register-field-error" id="lastName-error">
+                    {registerState.fieldErrors.lastName}
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
+
+          <div className="auth-field">
+            <label htmlFor="email">Email address</label>
+            <input
+              autoComplete="email"
+              aria-invalid={
+                isRegister && Boolean(registerState.fieldErrors?.email)
+              }
+              aria-describedby={
+                isRegister && registerState.fieldErrors?.email
+                  ? "email-error"
+                  : undefined
+              }
+              id="email"
+              maxLength={254}
+              name="email"
+              placeholder="you@company.com"
+              required
+              type="email"
+            />
+            {isRegister && registerState.fieldErrors?.email && (
+              <span className="register-field-error" id="email-error">
+                {registerState.fieldErrors.email}
+              </span>
+            )}
+          </div>
+
+          {!isReset && (
+            <div className="auth-field">
+              <label className="auth-password-label" htmlFor="password">
+                <span>Password</span>
+                {isLogin && <Link href="/reset-password">Forgot password?</Link>}
+              </label>
+              <span className="password-field">
+                <input
+                  autoComplete={isRegister ? "new-password" : "current-password"}
+                  aria-invalid={
+                    isRegister && Boolean(registerState.fieldErrors?.password)
+                  }
+                  aria-describedby={
+                    isRegister && registerState.fieldErrors?.password
+                      ? "password-error"
+                      : undefined
+                  }
+                  id="password"
+                  maxLength={128}
+                  minLength={8}
+                  name="password"
+                  placeholder={isRegister ? "At least 8 characters" : "Password"}
+                  required
+                  type={showPassword ? "text" : "password"}
+                />
+                <button
+                  type="button"
+                  className="password-toggle"
+                  onClick={() => setShowPassword((value) => !value)}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? "Hide" : "Show"}
+                </button>
+              </span>
+              {isRegister && registerState.fieldErrors?.password && (
+                <span className="register-field-error" id="password-error">
+                  {registerState.fieldErrors.password}
+                </span>
+              )}
+            </div>
+          )}
+
+          {isLogin && (
+            <div className="auth-login-options">
+              <label>
+                <input type="checkbox" name="rememberMe" />
+                <span>Remember me</span>
+              </label>
+            </div>
+          )}
+
+          {isRegister && (
+            <p className="form-note">
+              New accounts are created as a User. An Admin or Superadmin must
+              approve your account before you can use the system.
+            </p>
+          )}
+
+          <button
+            type="submit"
+            className="button button-dark auth-submit"
+            disabled={
+              (isRegister && isRegisterPending) ||
+              (isLogin && isLoginPending) ||
+              (isReset && isPasswordResetPending)
+            }
+          >
+            {isRegister && isRegisterPending
+              ? "Registering…"
+              : isLogin && isLoginPending
+                ? "Signing in…"
+                : isReset && isPasswordResetPending
+                  ? "Sending…"
+                  : current.action}
+          </button>
+
+          {isRegister ? (
+            <p className="auth-status" role="alert" aria-live="polite">
+              {registerState.status === "error" ? registerState.message : ""}
+            </p>
+          ) : isLogin ? (
+            <p
+              className="auth-status"
+              role={loginState.status === "error" ? "alert" : undefined}
+              aria-live="polite"
+            >
+              {loginState.status === "error" ? loginState.message : notice}
+            </p>
+          ) : (
+            <p
+              className="auth-status"
+              role={passwordResetState.status === "error" ? "alert" : "status"}
+              aria-live="polite"
+            >
+              {passwordResetState.message || notice}
+            </p>
+          )}
+        </form>
+      )}
+      {((isRegister && registerState.status !== "success") || isLogin) && (
         <>
           <div className="auth-divider" aria-hidden="true">
-            <span /> or <span />
+            <span>or</span>
           </div>
-          <button
-            type="button"
-            className="button auth-google"
-            onClick={handleGoogleSignIn}
-            disabled={isSubmitting}
-          >
-            <svg aria-hidden="true" viewBox="0 0 48 48" className="google-icon">
-              <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5Z" />
-              <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.25 5.48-4.73 7.18l7.64 5.93c4.46-4.12 7.13-10.2 7.13-17.58Z" />
-              <path fill="#FBBC05" d="M10.53 28.59A14.4 14.4 0 0 1 9.75 24c0-1.59.27-3.13.76-4.59l-7.98-6.19A23.9 23.9 0 0 0 0 24c0 3.87.93 7.52 2.56 10.78l7.97-6.19Z" />
-              <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.9-5.87l-7.64-5.93c-2.12 1.42-4.84 2.27-8.26 2.27-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48Z" />
-            </svg>
-            Continue with Google
-          </button>
+          <form action={isRegister ? googleRegisterAction : googleLoginAction}>
+            <button
+              className="auth-google-button"
+              type="submit"
+              disabled={
+                (isRegister && isGoogleRegisterPending) ||
+                (isLogin && isGoogleLoginPending)
+              }
+            >
+              <svg
+                aria-hidden="true"
+                viewBox="0 0 48 48"
+                width="16"
+                height="16"
+              >
+                <path
+                  fill="#FFC107"
+                  d="M43.6 24.5c0-1.4-.1-2.8-.4-4.1H24v7.8h11a9.4 9.4 0 0 1-4.1 6.2v5.1h6.6c3.9-3.6 6.1-8.8 6.1-15Z"
+                />
+                <path
+                  fill="#FF3D00"
+                  d="M24 44c5.5 0 10.1-1.8 13.5-4.8l-6.6-5.1c-1.8 1.2-4.1 2-6.9 2-5.3 0-9.8-3.6-11.4-8.4H5.8v5.3A20 20 0 0 0 24 44Z"
+                />
+                <path
+                  fill="#4CAF50"
+                  d="M12.6 27.7a12 12 0 0 1 0-7.4V15H5.8a20 20 0 0 0 0 18l6.8-5.3Z"
+                />
+                <path
+                  fill="#1976D2"
+                  d="M24 12c3 0 5.7 1 7.8 3.1l5.8-5.8A19.4 19.4 0 0 0 24 4 20 20 0 0 0 5.8 15l6.8 5.3C14.2 15.6 18.7 12 24 12Z"
+                />
+              </svg>
+              {(isRegister && isGoogleRegisterPending) ||
+              (isLogin && isGoogleLoginPending)
+                ? "Connecting…"
+                : "Continue with Google"}
+            </button>
+          </form>
+          {((isRegister && googleRegisterState.status === "error") ||
+            (isLogin && googleLoginState.status === "error")) && (
+            <p className="auth-status" role="alert" aria-live="polite">
+              {isRegister
+                ? googleRegisterState.message
+                : googleLoginState.message}
+            </p>
+          )}
         </>
       )}
       <p className="auth-footer">{current.footer}</p>
