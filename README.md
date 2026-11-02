@@ -45,11 +45,10 @@ Start the app with `npm run dev`, then open:
   opening a valid password-reset link. Without a valid Supabase session, this
   route safely redirects to the reset screen.
 
-The PR does not have a hosted preview deployment. The interactive auth pages
-can be reviewed on the local dev server. The first three routes render without
-submitting a form; Supabase configuration is required for auth actions. To
-review every documented state and the desktop, tablet, and mobile wireframes
-without signing in, open
+The PR does not have a hosted preview deployment. Supabase URL and anon key
+configuration is required to run the interactive app because middleware
+refreshes sessions. To review every documented state and the desktop, tablet,
+and mobile wireframes without setting up Supabase, open
 `docs/task-2-auth-wireframes.html` in a browser.
 
 Use `npm run typecheck` and `npm run build` to verify the project.
