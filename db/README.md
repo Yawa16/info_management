@@ -24,6 +24,9 @@ The source `HopeDB_audit.sql` uses PostgreSQL-specific syntax, so the project da
 The runner records applied migrations in `public.schema_migrations`.
 `001_create_hope_base_tables.sql` creates the ten guide tables, and
 `002_seed_hope_sample_data.sql` inserts the guide-based sample records.
+`003_create_user_management_schema.sql` adds roles, users, modules, rights,
+and permissions; `004_create_password_reset_token.sql` adds single-use,
+expiring password setup/reset tokens.
 `db/seeds/001_seed_hope_sample_data.sql` provides the same sample records for
 the repeatable seed command; it uses `ON CONFLICT DO NOTHING`.
 
@@ -162,13 +165,15 @@ npm run db:migrate
 npm run db:status
 ```
 
-Expected first status output lists two pending migrations:
+Expected first status output lists the pending migration files:
 
 ```text
 Database: postgres (your-db-host)
 Migrations:
   [pending] 001_create_hope_base_tables.sql
   [pending] 002_seed_hope_sample_data.sql
+  [pending] 003_create_user_management_schema.sql
+  [pending] 004_create_password_reset_token.sql
 ```
 
 Expected migrate output:
@@ -178,9 +183,13 @@ Applying: 001_create_hope_base_tables.sql
 Applied: 001_create_hope_base_tables.sql
 Applying: 002_seed_hope_sample_data.sql
 Applied: 002_seed_hope_sample_data.sql
+Applying: 003_create_user_management_schema.sql
+Applied: 003_create_user_management_schema.sql
+Applying: 004_create_password_reset_token.sql
+Applied: 004_create_password_reset_token.sql
 ```
 
-Expected final status shows both files as applied. The runner creates
+Expected final status shows all four files as applied. The runner creates
 `public.schema_migrations` if missing. It applies numbered SQL files in
 filename order, each in a transaction, and records the filename and SHA-256
 checksum in the same transaction. It fails if an applied migration's file is
@@ -264,8 +273,8 @@ ORDER BY filename;
 ```
 
 Expected: `current_database()` returns `postgres` (or the configured project
-database name); the tracking query returns both filenames and 64-character
-SHA-256 checksums.
+database name); after migrations 001-004, the tracking query returns four
+filenames and 64-character SHA-256 checksums.
 
 ## Commands
 
