@@ -2,12 +2,14 @@
 
 Next.js App Router starter for the Hope, Inc. business management system.
 
+For the cross-platform, no-Docker team database workflow, follow the [student database setup guide](db/README.md). It documents the Supabase PostgreSQL connection, migration and seed commands, verification, reset safeguards, and team migration rules. **This task adds the database tooling only; it does not add HOPE application-table migrations or seeds.**
+
 ## Local setup
 
 1. Install the project dependencies:
 
    ```powershell
-   npm install
+   npm ci
    ```
 
 2. Create `.env.local` from the example, then replace the placeholders with the
