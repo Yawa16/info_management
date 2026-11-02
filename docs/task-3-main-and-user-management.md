@@ -6,7 +6,7 @@
 - Superadmins can manage all users. Admins can manage Users only; they can view but not edit Admin and Superadmin records. Users cannot use User Management: the sidebar item is disabled with an explanation, and direct access shows No access.
 - Delete is a soft delete. Deleted rows remain available in the Deleted tab and can be restored. No permanent-delete action is shown.
 - The right-side panel is the Task 1 Modal / dialog pattern composed as a right-anchored form panel: Add, Edit, and View use the same accessible panel; the footer stays visible while the body scrolls.
-- Creating a user through Add user sends a Set Password email. This does not imply the account is Active or bypass any approval rule. The exact status and approval behavior for manually created users is an open question.
+- Add user follows the current Task 3 implementation: an Admin enters first name, last name, email, and a temporary password; the account is created as an approved User, and the user must change the password at first sign-in. Confirm this approval policy with the product owner.
 - User records have Full name, Email, Role, Status, Created, Last edited, and (when deleted) Deleted audit details. No other user fields or permission assignments are defined in the project context.
 - The project context names no business modules besides User Management. The sidebar therefore shows Home and User Management only; no speculative HR, CRM, Product, or Sales modules or dashboard metrics are added.
 - Sample identities and dates below are illustrative and not real account data.
@@ -77,8 +77,8 @@ flowchart TD
 
 | Role | Quick Actions | Navigation |
 |---|---|---|
-| Superadmin | `Add user` — Create an account and send a Set Password email. `View users` — Search and manage accounts. | Home active; User Management enabled. |
-| Admin | `Add user` — Add a User and send a Set Password email. `View users` — Search and manage Users. | Home active; User Management enabled. |
+| Superadmin | `Add user` — Create a User account with a temporary password; the user must change it at first sign-in. `View users` — Search and manage accounts. | Home active; User Management enabled. |
+| Admin | `Add user` — Create a User account with a temporary password; the user must change it at first sign-in. `View users` — Search and manage Users. | Home active; User Management enabled. |
 | User | `No management shortcuts are available for your role.` | Home active; User Management disabled with an access explanation. |
 
 ### States
@@ -165,16 +165,19 @@ flowchart TD
 
 **Overlay and panel:** dimmed list behind the panel; desktop panel width 480px, tablet 420px, mobile full-screen. Header remains visible, body scrolls, footer sticks to the bottom. Footer order: `Cancel`, then `Save` (single primary). View mode uses `Close` and an `Edit` action when permitted.
 
-**Fields:** Full name; Email; Role; Status. Role choices are scoped by the current role: Admin can assign User only; Superadmin options require product confirmation. Status choices are Active, Inactive, Blocked; deleted records use Restore rather than a status selector. No permission checkboxes are shown because no per-module permissions are required by project context.
+**Add fields:** First name; Last name; Email address; Temporary password. The current implementation creates an approved User and requires a password change at first sign-in. The Add flow does not expose Role or Status fields.
+
+**Edit/View fields:** Full name; Email; Role; Status. Admin can edit Users only; role assignment beyond User requires product confirmation. Status choices are Active, Inactive, Blocked; deleted records use Restore rather than a status selector. No permission checkboxes are shown because no per-module permissions are required by project context.
 
 ### Dialog modes and states
 
 | Mode / state | Content and behavior |
 |---|---|
-| Add — default | Empty required fields, role and status selects, footer `Cancel` / `Save`. On successful creation, send the Set Password email per assumption. |
-| Add — validation | `Check the highlighted fields.` Full name: `Enter the user's full name.` Email required: `Enter the user's email address.` Invalid: `Enter a valid email address.` Duplicate: `This email is already in use. Enter a different email address.` |
-| Add — loading | Fields disabled; Save shows `Saving…`; prevent duplicate submit and announce `Saving user…`. |
-| Add — success | Close panel, update list/counts, announce toast `User saved`. If email delivery fails, show a clear non-success error and keep the user record result explicit; email semantics need confirmation. |
+| Add — default | Required First name, Last name, Email address, and Temporary password fields; note that the account is an approved User and must change the password at first sign-in; footer `Cancel` / `Create user`. Share the temporary password securely. |
+| Add — validation | `Please correct the highlighted fields.` First name: `Enter a first name (maximum 80 characters).` Last name: `Enter a last name (maximum 80 characters).` Invalid email: `Enter a valid email address.` Temporary password: `Temporary password must be between 8 and 128 characters.` |
+| Add — loading | Prevent duplicate submission; primary action shows `Creating user…` and announce `Creating user…`. |
+| Add — success | Confirm user creation, update list/counts, and remind the Admin to share the temporary password securely. The user must change it at first sign-in. |
+| Add — error | Keep the result explicit: `We couldn’t create that account. Check the email and password requirements.` If the account exists but profile creation fails, explain that support is needed rather than implying success. |
 | Edit — Superadmin editing Admin | Filled fields and editable role/status; footer `Cancel` / `Save`. Show CREATED and EDITED stamps. |
 | Edit — Admin editing User | Filled fields; role constrained to User; status editable; footer `Cancel` / `Save`. Show CREATED and EDITED stamps. |
 | View — permitted | Read-only labels and values; stamps at end; `Close`; `Edit` if the current role may edit this record. |
@@ -201,7 +204,7 @@ Add mode has no stamps until creation succeeds. Edit and View show Created and L
 4. During save, disable editable fields and duplicate Save; retain values and announce loading. On error, keep the panel open and show inline guidance.
 5. Success closes the panel, updates list data/counts, and announces `User saved` in a polite live region for long enough to read.
 6. Admin can edit Users only. When viewing an Admin/Superadmin, render read-only fields and no Edit action. Do not rely on disabled controls to protect data; enforce permissions server-side.
-7. Admin-created accounts send a Set Password email after successful save per the task assumption. Do not infer the new account status from this wireframe; approval behavior is unresolved.
+7. Add user matches the current Task 3 implementation: create an approved User with a temporary password, then require a password change at first sign-in. Confirm the immediate-approval policy with the product owner.
 8. Close button, Cancel, and Escape share the unsaved-changes guard. `Keep editing` restores focus to the last edited field.
 9. No permissions checkbox group is included; add one only if the product context later requires per-module access.
 
@@ -253,7 +256,7 @@ Block has no reason field: the project context does not require one. If product 
 | Home helper | `Choose an action to get started.` |
 | Loading home | `Loading your home page…` |
 | Empty home | `There’s nothing to show yet. You can still use the actions available to your role.` |
-| Home action — add | `Add user`; `Create an account and send a Set Password email.` |
+| Home action — add | `Add user`; `Create a User account with a temporary password; the user must change it at first sign-in.` |
 | Home action — view | `View users`; `Search and manage accounts.` |
 | Home no actions | `No management shortcuts are available for your role.` |
 | User Management helper | `View and manage Hope accounts.` |
@@ -277,14 +280,17 @@ Block has no reason field: the project context does not require one. If product 
 | Own-account restriction | `You can’t block or delete your own account.` |
 | Add/Edit dialog title | `Add user`; `Edit user` |
 | View dialog title | `User details` |
-| Dialog fields | `Full name`; `Email`; `Role`; `Status` |
+| Add fields | `First name`; `Last name`; `Email address`; `Temporary password` |
+| Edit/View fields | `Full name`; `Email`; `Role`; `Status` |
 | Status options | `Active`; `Inactive`; `Blocked` |
-| Dialog actions | `Cancel`; `Save`; `Close`; `Edit` |
-| Required name error | `Enter the user's full name.` |
+| Dialog actions | `Cancel`; `Create user`; `Save`; `Close`; `Edit` |
+| Required first-name error | `Enter a first name (maximum 80 characters).` |
+| Required last-name error | `Enter a last name (maximum 80 characters).` |
 | Required email error | `Enter the user's email address.` |
 | Invalid email | `Enter a valid email address.` |
 | Duplicate email | `This email is already in use. Enter a different email address.` |
 | Validation summary | `Check the highlighted fields.` |
+| Add loading | `Creating user…` |
 | Save loading | `Saving…`; `Saving user…` |
 | Save error | `We couldn’t save this user. Check your connection and try again.` |
 | Save success toast | `User saved` |
@@ -307,10 +313,10 @@ Block has no reason field: the project context does not require one. If product 
 ## Open questions
 
 1. Which dashboard metrics or business modules should appear beyond User Management? None are named in the current project context.
-2. What status should an Admin-created user receive, and does manual creation require approval? When exactly is the Set Password email sent relative to approval?
+2. Should Admin-created accounts be approved immediately as in the current implementation, or require separate approval? The current flow assigns the User role and requires a temporary-password change at first sign-in.
 3. Can Admins assign only User (as shown), and which roles may Superadmins assign or change? Can users edit their own profile outside User Management?
 4. In a mixed bulk selection, should ineligible records be excluded with a summary or should the whole action be blocked?
-5. Should adding a user require confirmation or email-delivery status before the dialog closes? How should a saved account with a failed email send be recovered?
+5. Should adding a user require a confirmation step? What recovery is needed if the Admin cannot securely share the temporary password after account creation?
 6. Should restoring a previously Blocked/Inactive account preserve that status, or restore it as Active?
 7. Should the 768px tablet sidebar be collapsed to 72px or use the Task 1 navigation drawer at and below 768px? The sheet follows the task-specific collapsed tablet requirement.
 8. What is the preferred default sort, and should mobile use stacked cards or horizontal scroll? This wireframe uses Last edited descending on desktop and stacked cards on mobile.

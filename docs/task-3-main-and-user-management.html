@@ -252,7 +252,7 @@
         <p>Roles are Superadmin, Admin, and User. Statuses are Active, Inactive, and Blocked. Deleted is a soft-delete view, not an account status.</p>
         <p>Superadmin manages all users. Admin manages Users and can view other Admin/Superadmin records read-only. User has no User Management access.</p>
         <p>Delete is recoverable; Deleted rows remain visible and can be restored. No permanent-delete action is shown.</p>
-        <p>Adding a user sends a Set Password email, but does not determine account status or approval. Confirm the manual-account lifecycle before implementation.</p>
+        <p>Add user follows the current Task 3 implementation: enter a temporary password, create an approved User, and require a password change at first sign-in. Confirm this approval policy with the product owner.</p>
         <p>No other business modules or dashboard metrics are named in the project context, so none are invented here.</p>
         <p>The 768px tablet preview follows this task’s collapsed-sidebar instruction. Task 1 specifies a drawer at 768px and below; confirm this breakpoint conflict.</p>
       </div>
@@ -289,10 +289,10 @@
       <h2>Open questions</h2>
       <ol>
         <li>Which dashboard metrics or business modules should appear beyond User Management?</li>
-        <li>What status and approval lifecycle apply to Admin-created users? When is the Set Password email sent?</li>
+        <li>Should Admin-created accounts be approved immediately as in the current implementation, or require a separate approval?</li>
         <li>Which roles may Superadmins assign or change? Can Admins edit their own profile elsewhere?</li>
         <li>Should ineligible records in a bulk selection be excluded with a summary or block the whole action?</li>
-        <li>How should a saved account with a failed Set Password email be recovered?</li>
+        <li>What confirmation or recovery is required if user creation succeeds but the temporary password is not shared successfully?</li>
         <li>Should Restore preserve the prior Blocked/Inactive status or make the account Active?</li>
         <li>Confirm 768px tablet navigation: collapsed 72px sidebar (shown) or Task 1 drawer at and below 768px.</li>
         <li>Confirm default sort and approved icon family.</li>
@@ -331,15 +331,15 @@
       { group: "list", id: "list-error", title: "List — Load error", role: "admin", mode: "error", note: "1. Keep filter values. 2. Try again retries the request and explains the next step." },
       { group: "list", id: "list-no-access", title: "List — No access", role: "user", mode: "noaccess", note: "1. Direct URL access returns no account rows. 2. Back to Home provides a clear next step." },
 
-      { group: "dialog", id: "dialog-add-sa", title: "Dialog — Add user, Superadmin", role: "superadmin", mode: "add", note: "1. Empty required fields with visible labels. 2. Save sends a Set Password email per assumption; status and approval lifecycle remain open questions." },
-      { group: "dialog", id: "dialog-add-admin", title: "Dialog — Add User, Admin", role: "admin", mode: "add-admin", note: "1. Admin role choices are restricted to User in this assumption. 2. Permission is enforced on the server, not only in the select." },
+      { group: "dialog", id: "dialog-add-sa", title: "Dialog — Add user, Superadmin", role: "superadmin", mode: "add", note: "1. Enter first name, last name, email, and a temporary password. 2. The current implementation creates an approved User who must change the password at first sign-in; confirm this approval policy with the product owner." },
+      { group: "dialog", id: "dialog-add-admin", title: "Dialog — Add User, Admin", role: "admin", mode: "add-admin", note: "1. Admin-created accounts are Users. 2. The user must change the temporary password at first sign-in. Permission and approval are enforced server-side." },
       { group: "dialog", id: "dialog-edit-admin", title: "Dialog — Superadmin edits Admin", role: "superadmin", mode: "edit-admin", note: "1. Superadmin can edit Admin records. 2. Show CREATED and EDITED stamps in Task 1 format." },
       { group: "dialog", id: "dialog-edit-user", title: "Dialog — Admin edits User", role: "admin", mode: "edit-user", note: "1. Admin can edit Users. 2. Keep role constrained to User and show audit stamps." },
       { group: "dialog", id: "dialog-view-readonly", title: "Dialog — Admin views Admin record (read-only)", role: "admin", mode: "view-readonly", note: "1. Read-only fields and audit stamps remain available. 2. No Edit action for Admin/Superadmin records." },
       { group: "dialog", id: "dialog-focus", title: "Dialog — Field focus", role: "superadmin", mode: "focus", note: "1. Initial focus goes to the accessible dialog title or first field. 2. Focus ring is visible and not clipped." },
       { group: "dialog", id: "dialog-validation", title: "Dialog — Validation errors", role: "superadmin", mode: "validation", note: "1. Validate on blur; after the first error, revalidate on input. 2. Keep server duplicate-email copy beside Email." },
       { group: "dialog", id: "dialog-saving", title: "Dialog — Saving", role: "admin", mode: "saving", note: "1. Disable fields during save and announce Saving user. 2. Prevent duplicate Save." },
-      { group: "dialog", id: "dialog-success", title: "Dialog — Save success", role: "superadmin", mode: "success", note: "1. Close dialog, refresh list and counts, and announce User saved through a polite live region." },
+      { group: "dialog", id: "dialog-success", title: "Dialog — Save success", role: "superadmin", mode: "success", note: "1. Close dialog, refresh list and counts, and announce that the User was created. 2. Remind the Admin to share the temporary password securely." },
       { group: "dialog", id: "dialog-error", title: "Dialog — Save error", role: "admin", mode: "save-error", note: "1. Keep the panel open and preserve values. 2. Show actionable inline error, not toast-only failure." },
       { group: "dialog", id: "dialog-unsaved", title: "Dialog — Unsaved changes warning", role: "superadmin", mode: "unsaved", note: "1. Closing with changes asks before discarding. 2. Keep editing restores focus to the last changed field." },
 
@@ -423,7 +423,7 @@
     };
     const quickActions = (role) => role === "user"
       ? `<div class="empty-note">No management shortcuts are available for your role.</div>`
-      : `<div class="quick-actions"><button class="quick-action"><strong>Add user</strong><span>${role === "admin" ? "Add a User and send a Set Password email." : "Create an account and send a Set Password email."}</span></button><button class="quick-action"><strong>View users</strong><span>${role === "admin" ? "Search and manage Users." : "Search and manage accounts."}</span></button></div>`;
+      : `<div class="quick-actions"><button class="quick-action"><strong>Add user</strong><span>Create a User account with a temporary password; they must change it at first sign-in.</span></button><button class="quick-action"><strong>View users</strong><span>${role === "admin" ? "Search and manage Users." : "Search and manage accounts."}</span></button></div>`;
     const listContent = (state) => {
       if (state.mode === "noaccess") return `<div class="page-heading"><div><h3>No access</h3></div></div><div class="alert error">You don’t have access to User Management. Ask a Superadmin if you need access.</div><button class="button primary">Back to Home</button>`;
       let special = state.mode;
@@ -464,6 +464,12 @@
         if (errors && index === 1) err = `<span class="help-error">Enter a valid email address. This email is already in use.</span>`;
         return `<div class="field ${errors && index < 2 ? "error" : ""} ${focus ? "focus" : ""}"><label>${label}${index < 2 ? " *" : ""}</label>${control}${err}</div>`;
       };
+      const addMode = state.mode.startsWith("add");
+      const addField = (label, type = "text", autocomplete = "", maxLength = "") =>
+        `<div class="field"><label>${label} *</label><input type="${type}" ${autocomplete ? `autocomplete="${autocomplete}"` : ""} ${maxLength ? `maxlength="${maxLength}"` : ""} ${label === "Temporary password" ? 'minlength="8"' : ""} aria-label="${label}" required></div>`;
+      const formFields = addMode
+        ? `${addField("First name", "text", "given-name", 80)}${addField("Last name", "text", "family-name", 80)}${addField("Email address", "email", "email", 254)}${addField("Temporary password", "password", "new-password", 128)}<p class="form-note">Creates an approved User. They must set a new password at first sign-in. Share the temporary password securely.</p>`
+        : `${field("Full name", values[0], 0)}${field("Email", values[1], 1)}${field("Role", values[2], 2)}${field("Status", values[3], 3)}`;
       const title = state.mode.startsWith("add") ? "Add user" : view ? "User details" : "Edit user";
       const stamps = view || state.mode.startsWith("edit")
         ? `<div class="stamp">CREATED · Maya Chen · 26 Oct 2026, 14:32<br>EDITED · Alex Rivera · 30 Oct 2026, 11:08</div>`
@@ -474,12 +480,12 @@
           ${state.mode === "save-error" ? '<div class="alert error">We couldn’t save this user. Check your connection and try again.</div>' : ""}
           ${errors ? '<div class="alert error" role="alert">Check the highlighted fields.</div>' : ""}
           ${state.mode === "saving" ? '<div class="alert info" role="status">Saving user…</div>' : ""}
-          ${field("Full name", values[0], 0)}${field("Email", values[1], 1)}${field("Role", values[2], 2)}${field("Status", values[3], 3)}
+          ${formFields}
           ${stamps}
         </div>
         <footer class="dialog-footer">
           ${view ? '<button class="button">Close</button>' : '<button class="button">Cancel</button>'}
-          ${view ? (state.role === "superadmin" ? '<button class="button primary">Edit</button>' : "") : `<button class="button primary" ${state.mode === "saving" ? "disabled" : ""}>${state.mode === "saving" ? "Saving…" : "Save"}</button>`}
+          ${view ? (state.role === "superadmin" ? '<button class="button primary">Edit</button>' : "") : `<button class="button primary" ${state.mode === "saving" ? "disabled" : ""}>${state.mode === "saving" ? "Saving…" : addMode ? "Create user" : "Save"}</button>`}
         </footer>
       </section></div>
       ${state.mode === "unsaved" ? `<div class="confirm-wrap"><section class="confirm" role="alertdialog" aria-modal="true" aria-labelledby="unsaved-title"><h3 id="unsaved-title">Discard your changes?</h3><p>Your edits haven’t been saved.</p><div class="confirm-actions"><button class="button">Keep editing</button><button class="button danger">Discard changes</button></div></section></div>` : ""}
