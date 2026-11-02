@@ -16,6 +16,8 @@ ON CONFLICT (name) DO NOTHING;
 
 CREATE TABLE public.app_user (
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    auth_user_id UUID NOT NULL UNIQUE
+        REFERENCES auth.users (id) ON DELETE RESTRICT,
     first_name VARCHAR(100) NOT NULL,
     last_name VARCHAR(100) NOT NULL,
     email VARCHAR(254) NOT NULL,
@@ -24,6 +26,9 @@ CREATE TABLE public.app_user (
     employee_id VARCHAR(10) UNIQUE
         REFERENCES public.employee (emp_no) ON DELETE RESTRICT,
     is_blocked BOOLEAN NOT NULL DEFAULT FALSE,
+    approval_status VARCHAR(8) NOT NULL DEFAULT 'pending'
+        CONSTRAINT app_user_approval_status_check
+            CHECK (approval_status IN ('pending', 'approved')),
     must_set_password BOOLEAN NOT NULL DEFAULT TRUE,
     failed_login_count INTEGER NOT NULL DEFAULT 0
         CONSTRAINT app_user_failed_login_count_check CHECK (failed_login_count >= 0),
@@ -36,12 +41,11 @@ CREATE TABLE public.app_user (
     CONSTRAINT app_user_email_lower_check CHECK (email = lower(btrim(email))),
     CONSTRAINT app_user_email_not_empty_check CHECK (email <> ''),
     CONSTRAINT app_user_password_hash_not_empty_check
-        CHECK (password_hash IS NULL OR btrim(password_hash) <> ''),
-    CONSTRAINT app_user_password_setup_check
-        CHECK (must_set_password OR password_hash IS NOT NULL)
+        CHECK (password_hash IS NULL OR btrim(password_hash) <> '')
 );
 
 CREATE UNIQUE INDEX app_user_email_lower_uq ON public.app_user (lower(email));
+CREATE INDEX app_user_approval_status_idx ON public.app_user (approval_status);
 CREATE INDEX app_user_role_idx ON public.app_user (role_id);
 CREATE INDEX app_user_employee_idx ON public.app_user (employee_id)
     WHERE employee_id IS NOT NULL;
@@ -248,6 +252,7 @@ LEFT JOIN public.user_permission AS permission
  AND permission.right_id = rights.id
  AND permission.status = 'Active'
 WHERE app_user.status = 'Active'
+  AND app_user.approval_status = 'approved'
   AND module.status = 'Active';
 
 CREATE VIEW public.v_rights_counts_by_module
@@ -274,10 +279,12 @@ COMMENT ON TABLE public.role IS 'Application roles; Superadmin receives all acti
 COMMENT ON COLUMN public.role.stamp IS 'Latest action, actor, and timestamp; not a full audit history.';
 
 COMMENT ON TABLE public.app_user IS 'Application login identity; separate from an employee record unless employee_id is supplied.';
+COMMENT ON COLUMN public.app_user.auth_user_id IS 'One-to-one link to the Supabase Auth identity; Supabase Auth owns credentials and sessions.';
 COMMENT ON COLUMN public.app_user.email IS 'Stored lowercase and unique; the database rejects non-lowercase values.';
-COMMENT ON COLUMN public.app_user.password_hash IS 'Nullable salted password hash only; never store plaintext passwords.';
+COMMENT ON COLUMN public.app_user.password_hash IS 'Nullable salted hash for non-Supabase authentication only; keep NULL for Supabase Auth users and never store plaintext.';
 COMMENT ON COLUMN public.app_user.employee_id IS 'Optional link to EMPLOYEE; SALES.emp_no identifies the seller and is not an app-user identity.';
 COMMENT ON COLUMN public.app_user.is_blocked IS 'Blocks sign-in without deleting or revoking the user permission rows.';
+COMMENT ON COLUMN public.app_user.approval_status IS 'Account approval is separate from blocked status; pending users receive no effective rights.';
 COMMENT ON COLUMN public.app_user.must_set_password IS 'When true, the user must set a password before normal sign-in.';
 COMMENT ON COLUMN public.app_user.failed_login_count IS 'Failed sign-in attempts used by server-side throttling.';
 COMMENT ON COLUMN public.app_user.locked_until IS 'Optional time until which sign-in attempts are locked.';

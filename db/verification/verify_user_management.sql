@@ -3,13 +3,15 @@ SELECT name, status
 FROM public.role
 ORDER BY name;
 
--- Expected: all six foreign keys are present:
+-- Expected: all seven foreign keys are present:
 -- app_user.role_id -> role.id, app_user.employee_id -> employee.emp_no,
 -- rights.module_id -> module.id, user_permission.user_id -> app_user.id,
--- user_permission.right_id -> rights.id, user_permission.granted_by -> app_user.id.
+-- user_permission.right_id -> rights.id, user_permission.granted_by -> app_user.id,
+-- app_user.auth_user_id -> auth.users.id.
 WITH expected (constraint_name) AS (
     VALUES
         ('app_user_role_id_fkey'),
+        ('app_user_auth_user_id_fkey'),
         ('app_user_employee_id_fkey'),
         ('rights_module_id_fkey'),
         ('user_permission_user_id_fkey'),
@@ -30,6 +32,11 @@ SELECT 'app_user.role_id -> role.id' AS relationship, COUNT(*) AS orphan_count
 FROM public.app_user AS app_user
 LEFT JOIN public.role AS role ON role.id = app_user.role_id
 WHERE role.id IS NULL
+UNION ALL
+SELECT 'app_user.auth_user_id -> auth.users.id', COUNT(*)
+FROM public.app_user AS app_user
+LEFT JOIN auth.users AS auth_user ON auth_user.id = app_user.auth_user_id
+WHERE auth_user.id IS NULL
 UNION ALL
 SELECT 'rights.module_id -> module.id', COUNT(*)
 FROM public.rights AS rights
