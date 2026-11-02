@@ -42,6 +42,9 @@ required, unique `auth_user_id` FK to `auth.users.id`, and its `role_id`,
 approval, blocked status, and permissions control application access.
 `app_user.password_hash` must remain NULL for Supabase-managed accounts; the
 application must never copy or verify Supabase's internal password hash.
+Because permissions and account records are soft-deleted, the Auth FK uses
+`ON DELETE RESTRICT`; deactivate/block the account instead of physically
+deleting its Auth identity while an `app_user` row exists.
 
 The existing registration feature branch creates `public.profiles` with
 `id = auth.users.id`, a text role, and `approval_status`. It is a legacy
