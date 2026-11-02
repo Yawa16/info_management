@@ -333,14 +333,14 @@
       { group: "dialog", id: "dialog-focus", title: "Dialog — Field focus", role: "superadmin", mode: "focus", note: "1. Initial focus goes to the accessible dialog title or first field. 2. Focus ring is visible and not clipped." },
       { group: "dialog", id: "dialog-validation", title: "Dialog — Validation errors", role: "superadmin", mode: "validation", note: "1. Validate on blur; after the first error, revalidate on input. 2. Keep server duplicate-email copy beside Email." },
       { group: "dialog", id: "dialog-saving", title: "Dialog — Saving", role: "admin", mode: "saving", note: "1. Disable fields during save and announce Saving user. 2. Prevent duplicate Save." },
-      { group: "dialog", id: "dialog-add-loading", title: "Dialog — Add user, creating", role: "admin", mode: "add-loading", note: "1. Keep the form visible and prevent duplicate submission. 2. Announce Creating user…." },
+      { group: "dialog", id: "dialog-add-loading", title: "Dialog — Add user, creating", role: "admin", mode: "add-loading", note: "1. Keep the form visible and prevent duplicate submission. 2. Announce Creating account…." },
       { group: "dialog", id: "dialog-add-success", title: "Dialog — Add user, success", role: "superadmin", mode: "add-success", note: "1. Close the dialog, update list and counts, and announce Account created. 2. Remind the Admin to share the temporary password securely." },
       { group: "dialog", id: "dialog-success", title: "Dialog — Edit success", role: "superadmin", mode: "success", note: "1. Close the dialog, refresh the list and counts, and announce User saved." },
       { group: "dialog", id: "dialog-error", title: "Dialog — Save error", role: "admin", mode: "save-error", note: "1. Keep the panel open and preserve values. 2. Show actionable inline error, not toast-only failure." },
       { group: "dialog", id: "dialog-unsaved", title: "Dialog — Unsaved changes warning", role: "superadmin", mode: "unsaved", note: "1. Closing with changes asks before discarding. 2. Keep editing restores focus to the last changed field." },
 
       { group: "confirm", id: "confirm-delete", title: "Confirmation — Soft delete one user", role: "superadmin", mode: "delete", note: "1. Name and email identify the target. 2. Explain soft delete and restore. 3. Cancel receives initial focus." },
-      { group: "confirm", id: "confirm-create-user", title: "Confirmation — Create user", role: "superadmin", mode: "create-user", note: "1. Confirm the selected role and immediate approval. 2. Explain first-sign-in password change and secure sharing. 3. Cancel returns to the Add form." },
+      { group: "confirm", id: "confirm-create-user", title: "Confirmation — Create account", role: "superadmin", mode: "create-user", note: "1. Confirm the selected role and immediate approval. 2. Explain first-sign-in password change and secure sharing. 3. Cancel returns to the Add form." },
       { group: "confirm", id: "confirm-delete-loading", title: "Confirmation — Delete loading", role: "superadmin", mode: "delete-loading", note: "1. Keep the dialog open, show Deleting, and prevent duplicate submission. 2. Announce progress." },
       { group: "confirm", id: "confirm-delete-error", title: "Confirmation — Delete error", role: "superadmin", mode: "delete-error", note: "1. Preserve the target and dialog. 2. Explain recovery and keep Delete available for retry." },
       { group: "confirm", id: "confirm-block", title: "Confirmation — Block one user", role: "admin", mode: "block", note: "1. Explain login impact. 2. No reason field is shown because the context does not require one. 3. Cancel receives initial focus." },
@@ -479,13 +479,13 @@
           ${state.mode === "save-error" ? '<div class="alert error">We couldn’t save this user. Check your connection and try again.</div>' : ""}
           ${errors ? '<div class="alert error" role="alert">Check the highlighted fields.</div>' : ""}
           ${state.mode === "saving" ? '<div class="alert info" role="status">Saving user…</div>' : ""}
-          ${state.mode === "add-loading" ? '<div class="alert info" role="status">Creating user…</div>' : ""}
+          ${state.mode === "add-loading" ? '<div class="alert info" role="status">Creating account…</div>' : ""}
           ${formFields}
           ${stamps}
         </div>
         <footer class="dialog-footer">
           ${view ? '<button class="button">Close</button>' : '<button class="button">Cancel</button>'}
-          ${view ? (state.role === "superadmin" ? '<button class="button primary">Edit</button>' : "") : `<button class="button primary" ${saving ? "disabled" : ""}>${state.mode === "saving" ? "Saving…" : state.mode === "add-loading" ? "Creating user…" : addMode ? "Review and create" : "Save"}</button>`}
+          ${view ? (state.role === "superadmin" ? '<button class="button primary">Edit</button>' : "") : `<button class="button primary" ${saving ? "disabled" : ""}>${state.mode === "saving" ? "Saving…" : state.mode === "add-loading" ? "Creating account…" : addMode ? "Review and create" : "Save"}</button>`}
         </footer>
       </section></div>
       ${state.mode === "unsaved" ? `<div class="confirm-wrap"><section class="confirm" role="alertdialog" aria-modal="true" aria-labelledby="unsaved-title"><h3 id="unsaved-title">Discard your changes?</h3><p>Your edits haven’t been saved.</p><div class="confirm-actions"><button class="button">Keep editing</button><button class="button danger">Discard changes</button></div></section></div>` : ""}
@@ -497,7 +497,7 @@
         block: ["Block user?", "Maria Santos (maria.santos@hope.example) won’t be able to log in until the account is unblocked.", "Block user"],
         unblock: ["Unblock user?", "Maria Santos will be able to sign in again if the account is Active.", "Unblock user"],
         restore: ["Restore user?", "Maria Santos will return to the user list with the previous account status.", "Restore user"],
-        "create-user": ["Create this account?", "The selected account will be created with the selected role and approved immediately. The new user must change the temporary password at first sign-in. Share the temporary password securely.", "Create user"],
+        "create-user": ["Create this account?", "The selected account will be created with the selected role and approved immediately. The new user must change the temporary password at first sign-in. Share the temporary password securely.", "Create account"],
         "bulk-delete": ["Delete 3 users?", "These records will be soft-deleted and can be restored from Deleted.", "Delete 3 users"],
         "bulk-block": ["Block 3 users?", "These users won’t be able to log in until their accounts are unblocked.", "Block 3 users"]
       };

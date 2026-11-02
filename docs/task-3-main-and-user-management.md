@@ -177,7 +177,7 @@ flowchart TD
 | Add — default | Required First name, Last name, Email address, Temporary password, and Role fields. Superadmin selects User or Admin; Admin creates User only. The account is approved immediately and the user must change the password at first sign-in. Footer `Cancel` / `Review and create`. Share the temporary password securely. |
 | Add — confirmation | `Create this account?` State the selected role and immediate approval, remind the Admin that the account holder must change the temporary password at first sign-in, and require confirmation before creating the account. |
 | Add — validation | `Please correct the highlighted fields.` First name: `Enter a first name (maximum 80 characters).` Last name: `Enter a last name (maximum 80 characters).` Invalid email: `Enter a valid email address.` Temporary password: `Temporary password must be between 8 and 128 characters.` |
-| Add — loading | Prevent duplicate submission; primary action shows `Creating user…` and announce `Creating user…`. |
+| Add — loading | After confirmation, prevent duplicate submission; primary action shows `Creating account…` and announce `Creating account…`. |
 | Add — success | Announce `Account created`, update list/counts, and remind the Admin to share the temporary password securely. The user must change it at first sign-in. |
 | Add — error | Keep the result explicit: `We couldn’t create that account. Check the email and password requirements.` If the account exists but profile creation fails, explain that support is needed rather than implying success. |
 | Edit — Superadmin editing Admin | Filled fields and editable role/status; footer `Cancel` / `Save`. Show CREATED and EDITED stamps. |
@@ -285,14 +285,14 @@ Block has no reason field: the project context does not require one. If product 
 | Add fields | `First name`; `Last name`; `Email address`; `Temporary password`; `Role` (Superadmin only; `User` or `Admin`) |
 | Edit/View fields | `Full name`; `Email`; `Role`; `Status` |
 | Status options | `Active`; `Inactive`; `Blocked` |
-| Dialog actions | `Cancel`; `Review and create`; `Create user`; `Save`; `Close`; `Edit` |
+| Dialog actions | `Cancel`; `Review and create`; `Create account`; `Save`; `Close`; `Edit` |
 | Required first-name error | `Enter a first name (maximum 80 characters).` |
 | Required last-name error | `Enter a last name (maximum 80 characters).` |
 | Required email error | `Enter the user's email address.` |
 | Invalid email | `Enter a valid email address.` |
 | Duplicate email | `This email is already in use. Enter a different email address.` |
 | Validation summary | `Check the highlighted fields.` |
-| Add loading | `Creating user…` |
+| Add loading | `Creating account…` |
 | Save loading | `Saving…`; `Saving user…` |
 | Save error | `We couldn’t save this user. Check your connection and try again.` |
 | Save success toast | `User saved` |
