@@ -3,10 +3,10 @@
 ## Assumptions
 
 - The project context defines the roles **Superadmin**, **Admin**, and **User**, and the statuses **Active**, **Inactive**, and **Blocked**. The design system adds a soft-deleted row state; Deleted is a list filter, not an account status.
-- Superadmins can manage all users. Admins can manage Users only; they can view but not edit Admin and Superadmin records. Users cannot use User Management: the sidebar item is disabled with an explanation, and direct access shows No access.
+- Superadmins can manage all users and can assign User or Admin. Admins can manage Users only and can create Users; they can view but not edit Admin and Superadmin records. Users cannot use User Management: the sidebar item is disabled with an explanation, and direct access shows No access.
 - Delete is a soft delete. Deleted rows remain available in the Deleted tab and can be restored. No permanent-delete action is shown.
 - The right-side panel is the Task 1 Modal / dialog pattern composed as a right-anchored form panel: Add, Edit, and View use the same accessible panel; the footer stays visible while the body scrolls.
-- Add user follows the current Task 3 implementation: an Admin enters first name, last name, email, and a temporary password; the account is created as an approved User, and the user must change the password at first sign-in. Confirm this approval policy with the product owner.
+- Add user creates an immediately approved account with an Admin-entered temporary password; the account holder must change it at first sign-in. Admin can create Users; Superadmin can create Users or Admins. The current creator only supports Users, so creating Admin accounts requires an implementation update.
 - User records have Full name, Email, Role, Status, Created, Last edited, and (when deleted) Deleted audit details. No other user fields or permission assignments are defined in the project context.
 - The project context names no business modules besides User Management. The sidebar therefore shows Home and User Management only; no speculative HR, CRM, Product, or Sales modules or dashboard metrics are added.
 - Sample identities and dates below are illustrative and not real account data.
@@ -14,9 +14,9 @@
 ## Gaps found in Task 1
 
 - No right-side drawer variant is specified for the Task 1 Modal / dialog. This wireframe anchors that existing dialog pattern to the right; it does not introduce a new component.
-- The task requests a collapsed sidebar at the 768px tablet preview, while Task 1 specifies a navigation drawer at 768px and below. The sheet follows the task-specific tablet requirement (collapsed at 768px) and shows the drawer at 375px; confirm the breakpoint before implementation.
+- At and below 768px, navigation follows the Task 1 drawer pattern. The drawer is closed by default and opens from the menu button.
 - No dashboard summaries, modules beyond User Management, or additional Quick Actions are named. Home uses only the User Management actions a role is allowed to perform.
-- No detailed authorization matrix, Admin role-assignment rules, manual-account approval lifecycle, or account-created email timing is defined. The role rules requested for this task are shown as product assumptions pending confirmation.
+- Product-owner decisions are recorded below. Admin- and Superadmin-created accounts use temporary passwords; no Set Password email is sent in this flow.
 - No bulk-action bar, responsive user-card layout, or No access screen is specified. These are compositions of the existing Data table, Buttons, Status badge and role pill, and Alert patterns.
 - Task 1 specifies audit stamps as `CREATED / EDITED / DELETED · {user} · {date}`. The wireframes use that exact pattern rather than the alternate “by/on” wording in the request.
 - The iconography section requires an established icon family, but none is included in the repository. The sheet uses simple text symbols only as wireframe placeholders; replace them with the approved icon set before implementation.
@@ -28,7 +28,7 @@
 | Home | See home and User Management quick actions | See home and User Management quick actions | See home; no management actions |
 | User Management navigation | Enabled | Enabled | Disabled with “You don’t have access to User Management.” |
 | Open User Management directly | Full list and all user records | User records; Admin/Superadmin records are view-only | No access state with a Back to Home action |
-| Add a user | Add users; role choices need confirmation | Add Users only | Not available |
+| Add a user | Add User or Admin accounts | Add User accounts only | Not available |
 | View user | All roles | All roles, including read-only Admin/Superadmin records | Not available |
 | Edit user | All users, including Admins | Users only | Not available |
 | Change status | Block / unblock users except self | Block / unblock Users except self | Not available |
@@ -36,7 +36,7 @@
 | Bulk actions | Delete or block eligible selected records | Delete or block eligible selected Users | Not available |
 | Manage own record | Cannot block or delete self | Cannot block or delete self | No User Management access |
 
-Admins never receive controls that mutate an Admin or Superadmin record. In mixed selections, bulk actions apply only to eligible Users; the selection summary names the eligible count before confirmation. Exact role assignment, mixed-selection policy, and whether an Admin can edit their own profile in another screen need product confirmation.
+Admins never receive controls that mutate an Admin or Superadmin record. In mixed selections, bulk actions apply only to eligible Users; the selection summary names the eligible count before confirmation. Users do not edit their own profile in this task. The current account-creation code supports User only, so adding an Admin as Superadmin requires an implementation follow-up.
 
 ## Flow diagram
 
@@ -50,7 +50,8 @@ flowchart TD
   List -->|Add user| Add[Right-side dialog: Add]
   List -->|Edit eligible row| Edit[Right-side dialog: Edit]
   View -->|Edit, if allowed| Edit
-  Add -->|Save success| Updated[Dialog closes; User saved toast; list refreshes]
+  Add -->|Review and create| AddConfirm[Create account confirmation]
+  AddConfirm -->|Confirm| Updated[Account created and approved; list refreshes]
   Edit -->|Save success| Updated
   Updated --> List
   List -->|Block| BlockConfirm[Block confirmation]
@@ -69,7 +70,7 @@ flowchart TD
 
 ## Screen 1 — Main page (Home)
 
-**Shell:** expanded 256px sidebar on desktop; collapsed 72px icon-only sidebar on tablet (768px, per this task); hidden behind a dismissible drawer on mobile (375px). Content is centered at max-width 1200px, with 32px desktop, 24px tablet, and 16px mobile page gutters.
+**Shell:** expanded 256px sidebar on desktop; Task 1 navigation drawer at and below 768px, closed by default and opened with a menu button. Content is centered at max-width 1200px, with 32px desktop, 24px tablet, and 16px mobile page gutters.
 
 **Shared frame:** Home title; signed-in user and role pill; Log out; greeting `Good morning, {first name}.`; Quick Actions; no dashboard metrics because none are defined in project context.
 
@@ -77,7 +78,7 @@ flowchart TD
 
 | Role | Quick Actions | Navigation |
 |---|---|---|
-| Superadmin | `Add user` — Create a User account with a temporary password; the user must change it at first sign-in. `View users` — Search and manage accounts. | Home active; User Management enabled. |
+| Superadmin | `Add user` — Create a User or Admin account with a temporary password; the user must change it at first sign-in. `View users` — Search and manage accounts. | Home active; User Management enabled. |
 | Admin | `Add user` — Create a User account with a temporary password; the user must change it at first sign-in. `View users` — Search and manage Users. | Home active; User Management enabled. |
 | User | `No management shortcuts are available for your role.` | Home active; User Management disabled with an access explanation. |
 
@@ -88,7 +89,7 @@ flowchart TD
 | Default | Greeting, role-appropriate Quick Actions, and a short `Choose an action to get started.` helper. |
 | Loading | `Loading your home page…`; skeleton greeting and two Quick Action cards; `aria-busy="true"`. |
 | Empty | `There’s nothing to show yet.` `You can still use the actions available to your role.` Preserve permitted Quick Actions. |
-| Mobile menu open | Drawer covers the page, exposes the same role-aware items, and has a `Close menu` control. Selecting a destination closes it. |
+| Tablet/mobile menu open | At and below 768px, the Task 1 drawer covers the page, exposes role-aware items, and has a `Close menu` control. Selecting a destination closes it. |
 | User opens User Management | No access page: `You don’t have access to User Management.` `Ask a Superadmin if you need access.` Action: `Back to Home`. |
 
 ### Numbered behavior callouts
@@ -96,7 +97,7 @@ flowchart TD
 1. Home is the landing page after successful sign-in; use the signed-in user’s actual name and role, never sample identity in production.
 2. Quick Action cards are whole-card links/buttons. Superadmin and Admin see only actions permitted by their role; User sees no management actions.
 3. Only Home and User Management are shown because no other product modules are documented.
-4. On desktop the sidebar is 256px; at the 768px tablet preview it is 72px and icon-only with accessible names/tooltips; at the 375px mobile preview it is behind a dismissible drawer. This follows the task-specific tablet instruction; reconcile with Task 1's 768px drawer breakpoint.
+4. On desktop the sidebar is 256px; at and below 768px the Task 1 drawer is closed by default and opens from an accessible menu button. It is dismissible and retains role-aware navigation.
 5. Disabled User Management remains readable and exposes the reason. Direct URL access returns the same No access message without rendering protected user data.
 6. Loading and empty states do not hide the navigation, role, or Log out action.
 
@@ -152,7 +153,7 @@ flowchart TD
 
 1. Search accepts name/email, debounces remote requests, and exposes a clear control and result count. `Clear filters` clears search, role, and sort filters and returns to All.
 2. Status counts refresh with authorized data after actions; Deleted is a soft-delete view, not a fourth account status.
-3. Sortable headers expose direction using a label/icon and `aria-sort`, not color alone. Default sort is Last edited, newest first; confirm this default.
+3. Sortable headers expose direction using a label/icon and `aria-sort`, not color alone. Default sort is Last edited, newest first.
 4. Selection is page-scoped, cleared on tab/filter/page changes, and never silently applies to hidden rows.
 5. Header checkbox selects eligible rows on the current page; indeterminate means some but not all eligible visible rows are selected.
 6. Actions menus are keyboard-operable and named for their row. Mobile uses the same actions without requiring hover.
@@ -163,20 +164,21 @@ flowchart TD
 
 ## Screen 3 — Right-side dialog: Add / Edit / View user
 
-**Overlay and panel:** dimmed list behind the panel; desktop panel width 480px, tablet 420px, mobile full-screen. Header remains visible, body scrolls, footer sticks to the bottom. Footer order: `Cancel`, then `Save` (single primary). View mode uses `Close` and an `Edit` action when permitted.
+**Overlay and panel:** dimmed list behind the panel; desktop panel width 480px, tablet 420px, mobile full-screen. Header remains visible, body scrolls, footer sticks to the bottom. Add uses `Cancel` / `Review and create`; Edit uses `Cancel` / `Save`. View mode uses `Close` and an `Edit` action when permitted.
 
-**Add fields:** First name; Last name; Email address; Temporary password. The current implementation creates an approved User and requires a password change at first sign-in. The Add flow does not expose Role or Status fields.
+**Add fields:** First name; Last name; Email address; Temporary password; Role. Superadmin selects User or Admin; Admin has a fixed User role. Accounts are approved immediately and require a password change at first sign-in. The current creator code supports User only; Superadmin-created Admin accounts need an implementation update.
 
-**Edit/View fields:** Full name; Email; Role; Status. Admin can edit Users only; role assignment beyond User requires product confirmation. Status choices are Active, Inactive, Blocked; deleted records use Restore rather than a status selector. No permission checkboxes are shown because no per-module permissions are required by project context.
+**Edit/View fields:** Full name; Email; Role; Status. Admin can edit Users only. Status choices are Active, Inactive, Blocked; deleted records use Restore rather than a status selector. No permission checkboxes are shown because no per-module permissions are required by project context.
 
 ### Dialog modes and states
 
 | Mode / state | Content and behavior |
 |---|---|
-| Add — default | Required First name, Last name, Email address, and Temporary password fields; note that the account is an approved User and must change the password at first sign-in; footer `Cancel` / `Create user`. Share the temporary password securely. |
+| Add — default | Required First name, Last name, Email address, Temporary password, and Role fields. Superadmin selects User or Admin; Admin creates User only. The account is approved immediately and the user must change the password at first sign-in. Footer `Cancel` / `Review and create`. Share the temporary password securely. |
+| Add — confirmation | `Create this account?` State the selected role and immediate approval, remind the Admin that the account holder must change the temporary password at first sign-in, and require confirmation before creating the account. |
 | Add — validation | `Please correct the highlighted fields.` First name: `Enter a first name (maximum 80 characters).` Last name: `Enter a last name (maximum 80 characters).` Invalid email: `Enter a valid email address.` Temporary password: `Temporary password must be between 8 and 128 characters.` |
 | Add — loading | Prevent duplicate submission; primary action shows `Creating user…` and announce `Creating user…`. |
-| Add — success | Confirm user creation, update list/counts, and remind the Admin to share the temporary password securely. The user must change it at first sign-in. |
+| Add — success | Announce `Account created`, update list/counts, and remind the Admin to share the temporary password securely. The user must change it at first sign-in. |
 | Add — error | Keep the result explicit: `We couldn’t create that account. Check the email and password requirements.` If the account exists but profile creation fails, explain that support is needed rather than implying success. |
 | Edit — Superadmin editing Admin | Filled fields and editable role/status; footer `Cancel` / `Save`. Show CREATED and EDITED stamps. |
 | Edit — Admin editing User | Filled fields; role constrained to User; status editable; footer `Cancel` / `Save`. Show CREATED and EDITED stamps. |
@@ -204,7 +206,7 @@ Add mode has no stamps until creation succeeds. Edit and View show Created and L
 4. During save, disable editable fields and duplicate Save; retain values and announce loading. On error, keep the panel open and show inline guidance.
 5. Success closes the panel, updates list data/counts, and announces `User saved` in a polite live region for long enough to read.
 6. Admin can edit Users only. When viewing an Admin/Superadmin, render read-only fields and no Edit action. Do not rely on disabled controls to protect data; enforce permissions server-side.
-7. Add user matches the current Task 3 implementation: create an approved User with a temporary password, then require a password change at first sign-in. Confirm the immediate-approval policy with the product owner.
+7. Created accounts are approved immediately and must change their temporary password at first sign-in. Superadmin may assign User or Admin; Admin may assign User only. Current creator code supports User only; Admin creation is a required implementation follow-up.
 8. Close button, Cancel, and Escape share the unsaved-changes guard. `Keep editing` restores focus to the last edited field.
 9. No permissions checkbox group is included; add one only if the product context later requires per-module access.
 
@@ -231,7 +233,7 @@ Block has no reason field: the project context does not require one. If product 
 1. Confirmation opens from the row or bulk action and names the exact person/count. The message explains the effect; Delete explicitly says soft-deleted and restorable.
 2. Initial focus is `Cancel`; focus is trapped, Escape closes, and focus returns to the invoking action.
 3. Destructive action shows progress (`Deleting…` / `Blocking…`); prevent duplicate submission. On error, keep the dialog open and say what to do next.
-4. On success, close the confirmation, update the row/status and counts, and announce the result; Delete moves the row to Deleted, Block changes Status, Restore removes the Deleted state.
+4. On success, close the confirmation, update the row/status and counts, and announce the result; Delete moves the row to Deleted, Block changes Status, Restore removes the Deleted state while preserving prior status.
 5. Self-block and self-delete are unavailable with a readable explanation, not color-only or hidden behind an error.
 6. Bulk confirmation shows the eligible affected count. Selection is cleared after completion; ineligible rows are not silently included.
 
@@ -256,7 +258,7 @@ Block has no reason field: the project context does not require one. If product 
 | Home helper | `Choose an action to get started.` |
 | Loading home | `Loading your home page…` |
 | Empty home | `There’s nothing to show yet. You can still use the actions available to your role.` |
-| Home action — add | `Add user`; `Create a User account with a temporary password; the user must change it at first sign-in.` |
+| Home action — add | Superadmin: `Create a User or Admin account with a temporary password; the user must change it at first sign-in.` Admin: `Create a User account with a temporary password; the user must change it at first sign-in.` |
 | Home action — view | `View users`; `Search and manage accounts.` |
 | Home no actions | `No management shortcuts are available for your role.` |
 | User Management helper | `View and manage Hope accounts.` |
@@ -280,10 +282,10 @@ Block has no reason field: the project context does not require one. If product 
 | Own-account restriction | `You can’t block or delete your own account.` |
 | Add/Edit dialog title | `Add user`; `Edit user` |
 | View dialog title | `User details` |
-| Add fields | `First name`; `Last name`; `Email address`; `Temporary password` |
+| Add fields | `First name`; `Last name`; `Email address`; `Temporary password`; `Role` (Superadmin only; `User` or `Admin`) |
 | Edit/View fields | `Full name`; `Email`; `Role`; `Status` |
 | Status options | `Active`; `Inactive`; `Blocked` |
-| Dialog actions | `Cancel`; `Create user`; `Save`; `Close`; `Edit` |
+| Dialog actions | `Cancel`; `Review and create`; `Create user`; `Save`; `Close`; `Edit` |
 | Required first-name error | `Enter a first name (maximum 80 characters).` |
 | Required last-name error | `Enter a last name (maximum 80 characters).` |
 | Required email error | `Enter the user's email address.` |
@@ -294,6 +296,7 @@ Block has no reason field: the project context does not require one. If product 
 | Save loading | `Saving…`; `Saving user…` |
 | Save error | `We couldn’t save this user. Check your connection and try again.` |
 | Save success toast | `User saved` |
+| Add success | `Account created`; remind the Admin to share the temporary password securely. |
 | Unsaved changes | `Discard your changes? Your edits haven’t been saved.` |
 | Unsaved actions | `Keep editing`; `Discard changes` |
 | Audit stamps | `CREATED · {user} · {date}`; `EDITED · {user} · {date}`; `DELETED · {user} · {date}` |
@@ -308,25 +311,28 @@ Block has no reason field: the project context does not require one. If product 
 | Delete loading | `Deleting…` |
 | Other confirmation loading | `Blocking…`; `Unblocking…`; `Restoring…` |
 | Confirmation error | `We couldn’t complete this action. Try again.` |
+| Add confirmation | `Create this account?`; `{name} will be created as an approved {role}. They must change the temporary password at first sign-in. Share the temporary password securely.` |
 | Mobile menu | `Open menu`; `Close menu` |
 
-## Open questions
+## Product-owner decisions
 
-1. Which dashboard metrics or business modules should appear beyond User Management? None are named in the current project context.
-2. Should Admin-created accounts be approved immediately as in the current implementation, or require separate approval? The current flow assigns the User role and requires a temporary-password change at first sign-in.
-3. Can Admins assign only User (as shown), and which roles may Superadmins assign or change? Can users edit their own profile outside User Management?
-4. In a mixed bulk selection, should ineligible records be excluded with a summary or should the whole action be blocked?
-5. Should adding a user require a confirmation step? What recovery is needed if the Admin cannot securely share the temporary password after account creation?
-6. Should restoring a previously Blocked/Inactive account preserve that status, or restore it as Active?
-7. Should the 768px tablet sidebar be collapsed to 72px or use the Task 1 navigation drawer at and below 768px? The sheet follows the task-specific collapsed tablet requirement.
-8. What is the preferred default sort, and should mobile use stacked cards or horizontal scroll? This wireframe uses Last edited descending on desktop and stacked cards on mobile.
-9. Which licensed icon family should replace the HTML sheet’s text-symbol placeholders?
+1. Accounts created by Admin or Superadmin are approved immediately. Admin can create User accounts; Superadmin can create User or Admin accounts. Created users must change the temporary password at first sign-in.
+2. Add requires a confirmation before creation. The Admin shares the temporary password securely after creation.
+3. Mixed bulk actions apply only to eligible rows and report the eligible count before confirmation.
+4. Restore preserves the account’s prior status.
+5. At and below 768px, use the Task 1 navigation drawer. Desktop sorting remains Last edited descending; mobile uses stacked cards.
+6. Users do not edit their own profiles in this task.
+
+## Deferred questions
+
+- No dashboard metrics or business modules are named in the project context; none are added.
+- Select the licensed icon family before implementation. The HTML sheet uses text-symbol placeholders only.
 
 ## Coverage checklist
 
 - [x] Home default, loading, empty, role-specific Superadmin/Admin/User, and mobile open-menu examples.
 - [x] User Management list default, hover, selected, all checkbox states, soft-deleted, blocked, loading, errors, empty states, and no-access.
-- [x] Add, Edit, View, field focus, validation, save loading/success/error, unsaved warning, and permission examples.
+- [x] Add, Edit, View, field focus, validation, save loading/success/error, unsaved warning, Add confirmation, and permission examples.
 - [x] Single and bulk Delete/Block; Unblock, Restore, and self-action restriction.
 - [x] Desktop 1440px, tablet 768px, and mobile 375px views are shown for every state in the HTML sheet.
-- [x] No new tokens, fonts, or core components; all undecided product behavior is listed above.
+- [x] No new tokens, fonts, or core components; product-owner decisions and deferred items are recorded above.

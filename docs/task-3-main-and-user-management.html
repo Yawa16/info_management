@@ -201,12 +201,8 @@
     .v-tablet.app-shot { min-width: 520px; }
     .v-mobile.app-shot { min-width: 375px; }
     .v-desktop .sidebar { width: 256px; flex: 0 0 256px; }
-    .v-tablet .sidebar { width: 72px; flex: 0 0 72px; align-items: center; padding-inline: 8px; }
-    .v-tablet .brand { justify-content: center; width: 100%; }
-    .v-tablet .brand-label, .v-tablet .side-label { display: none; }
-    .v-tablet .nav-item { width: 100%; justify-content: center; padding: 6px; }
-    .v-tablet .nav-item.disabled { opacity: 1; }
-    .v-tablet .sidebar .meta { display: none; }
+    .v-tablet .sidebar { display: none; }
+    .v-tablet .menu-trigger { display: inline-block; }
     .v-mobile .sidebar { display: none; }
     .v-mobile .menu-trigger { display: inline-block; }
     .v-mobile .profile .person { display: none; }
@@ -250,11 +246,11 @@
       <h2>Assumptions</h2>
       <div class="intro-grid">
         <p>Roles are Superadmin, Admin, and User. Statuses are Active, Inactive, and Blocked. Deleted is a soft-delete view, not an account status.</p>
-        <p>Superadmin manages all users. Admin manages Users and can view other Admin/Superadmin records read-only. User has no User Management access.</p>
+        <p>Superadmin manages all users and can assign User or Admin. Admin manages Users and can create Users only; Admin/Superadmin records are read-only. User has no User Management access.</p>
         <p>Delete is recoverable; Deleted rows remain visible and can be restored. No permanent-delete action is shown.</p>
-        <p>Add user follows the current Task 3 implementation: enter a temporary password, create an approved User, and require a password change at first sign-in. Confirm this approval policy with the product owner.</p>
+        <p>Add user creates an approved account with an Admin-entered temporary password; the account holder must change it at first sign-in. Admin can create Users; Superadmin can create Users or Admins. The current creator only supports Users, so Admin-role creation needs implementation support.</p>
         <p>No other business modules or dashboard metrics are named in the project context, so none are invented here.</p>
-        <p>The 768px tablet preview follows this task’s collapsed-sidebar instruction. Task 1 specifies a drawer at 768px and below; confirm this breakpoint conflict.</p>
+        <p>At 768px and below, navigation uses the Task 1 drawer pattern. The drawer is closed by default and opens from the menu button.</p>
       </div>
     </section>
 
@@ -286,17 +282,15 @@
     <div id="gallery"></div>
 
     <section class="section panel">
-      <h2>Open questions</h2>
+      <h2>Product-owner decisions</h2>
       <ol>
-        <li>Which dashboard metrics or business modules should appear beyond User Management?</li>
-        <li>Should Admin-created accounts be approved immediately as in the current implementation, or require a separate approval?</li>
-        <li>Which roles may Superadmins assign or change? Can Admins edit their own profile elsewhere?</li>
-        <li>Should ineligible records in a bulk selection be excluded with a summary or block the whole action?</li>
-        <li>What confirmation or recovery is required if user creation succeeds but the temporary password is not shared successfully?</li>
-        <li>Should Restore preserve the prior Blocked/Inactive status or make the account Active?</li>
-        <li>Confirm 768px tablet navigation: collapsed 72px sidebar (shown) or Task 1 drawer at and below 768px.</li>
-        <li>Confirm default sort and approved icon family.</li>
+        <li>Accounts created by Admin or Superadmin are approved immediately. Admin can create User accounts; Superadmin can create User or Admin accounts. Created users must change the temporary password at first sign-in.</li>
+        <li>Add requires a confirmation before account creation. The Admin shares the temporary password securely after creation.</li>
+        <li>Mixed bulk actions apply only to eligible rows and report the eligible count before confirmation.</li>
+        <li>Restore preserves the account’s prior status.</li>
+        <li>At and below 768px, use the Task 1 navigation drawer. Desktop sorting remains Last edited descending; mobile uses stacked cards. Users do not edit their own profiles in this task.</li>
       </ol>
+      <p>Deferred: no dashboard metrics/business modules or licensed icon family are specified by the current project context.</p>
     </section>
 
     <footer class="footer">Numbered notes below each state specify interaction and permission behavior. Task 1 component names and tokens are retained; all screenshots are static design previews. See <a href="./task-3-main-and-user-management.md">the structured Task 3 document</a> for full assumptions, microcopy, matrix, and accessibility details.</footer>
@@ -313,10 +307,10 @@
       { group: "home", id: "home-user", title: "Home — User", role: "user", mode: "default", note: "1. User sees no management shortcuts. 2. User Management navigation is disabled with an explanation, not simply hidden." },
       { group: "home", id: "home-loading", title: "Home — Loading", role: "superadmin", mode: "loading", note: "1. Keep the shell and logout available. 2. Announce loading and mark the region aria-busy." },
       { group: "home", id: "home-empty", title: "Home — Empty", role: "admin", mode: "empty", note: "1. Empty copy explains there is nothing to show. 2. Preserve the role’s available actions." },
-      { group: "home", id: "home-mobile-menu", title: "Home — Mobile navigation open", role: "user", mode: "menu", note: "1. At 375px the menu opens as a dismissible drawer. 2. User Management retains its disabled reason. 3. Close menu or choose Home." },
+      { group: "home", id: "home-mobile-menu", title: "Home — Tablet/mobile navigation open", role: "user", mode: "menu", note: "1. At and below 768px the menu opens as a dismissible Task 1 drawer. 2. User Management retains its disabled reason. 3. Close menu or choose Home." },
       { group: "home", id: "home-no-access", title: "Home → User Management — No access", role: "user", mode: "noaccess", note: "1. Direct navigation returns no protected data. 2. Explain the restriction and provide Back to Home." },
 
-      { group: "list", id: "list-default", title: "List — Default, Superadmin", role: "superadmin", mode: "default", note: "1. All status counts are illustrative. 2. Search by name/email, role filter, sortable headers, row actions, and pagination are visible. 3. Last edited descending is a proposed default." },
+      { group: "list", id: "list-default", title: "List — Default, Superadmin", role: "superadmin", mode: "default", note: "1. All status counts are illustrative. 2. Search by name/email, role filter, sortable headers, row actions, and pagination are visible. 3. Default sort is Last edited descending." },
       { group: "list", id: "list-admin", title: "List — Admin view", role: "admin", mode: "default", note: "1. Admin can mutate Users only. 2. Admin/Superadmin rows remain viewable but have no mutation controls." },
       { group: "list", id: "list-hover", title: "List — Row hover and focus", role: "superadmin", mode: "hover", note: "1. Hover does not reveal essential controls. 2. Keyboard focus has a visible 2px Task 1 ring." },
       { group: "list", id: "list-selected", title: "List — Selected rows / bulk bar", role: "admin", mode: "selected", note: "1. Show selected and eligible counts. 2. Bulk actions apply to Users only; changes in filter/tab/page clear selection." },
@@ -331,26 +325,29 @@
       { group: "list", id: "list-error", title: "List — Load error", role: "admin", mode: "error", note: "1. Keep filter values. 2. Try again retries the request and explains the next step." },
       { group: "list", id: "list-no-access", title: "List — No access", role: "user", mode: "noaccess", note: "1. Direct URL access returns no account rows. 2. Back to Home provides a clear next step." },
 
-      { group: "dialog", id: "dialog-add-sa", title: "Dialog — Add user, Superadmin", role: "superadmin", mode: "add", note: "1. Enter first name, last name, email, and a temporary password. 2. The current implementation creates an approved User who must change the password at first sign-in; confirm this approval policy with the product owner." },
-      { group: "dialog", id: "dialog-add-admin", title: "Dialog — Add User, Admin", role: "admin", mode: "add-admin", note: "1. Admin-created accounts are Users. 2. The user must change the temporary password at first sign-in. Permission and approval are enforced server-side." },
+      { group: "dialog", id: "dialog-add-sa", title: "Dialog — Add user, Superadmin", role: "superadmin", mode: "add", note: "1. Enter first name, last name, email, temporary password, and role (User or Admin). 2. The account is approved immediately and the new user must change the password at first sign-in. 3. Current creator code supports User only; Admin creation is an implementation follow-up." },
+      { group: "dialog", id: "dialog-add-admin", title: "Dialog — Add User, Admin", role: "admin", mode: "add-admin", note: "1. Admin-created accounts are approved Users. 2. The user must change the temporary password at first sign-in. 3. Share the temporary password securely." },
       { group: "dialog", id: "dialog-edit-admin", title: "Dialog — Superadmin edits Admin", role: "superadmin", mode: "edit-admin", note: "1. Superadmin can edit Admin records. 2. Show CREATED and EDITED stamps in Task 1 format." },
       { group: "dialog", id: "dialog-edit-user", title: "Dialog — Admin edits User", role: "admin", mode: "edit-user", note: "1. Admin can edit Users. 2. Keep role constrained to User and show audit stamps." },
       { group: "dialog", id: "dialog-view-readonly", title: "Dialog — Admin views Admin record (read-only)", role: "admin", mode: "view-readonly", note: "1. Read-only fields and audit stamps remain available. 2. No Edit action for Admin/Superadmin records." },
       { group: "dialog", id: "dialog-focus", title: "Dialog — Field focus", role: "superadmin", mode: "focus", note: "1. Initial focus goes to the accessible dialog title or first field. 2. Focus ring is visible and not clipped." },
       { group: "dialog", id: "dialog-validation", title: "Dialog — Validation errors", role: "superadmin", mode: "validation", note: "1. Validate on blur; after the first error, revalidate on input. 2. Keep server duplicate-email copy beside Email." },
       { group: "dialog", id: "dialog-saving", title: "Dialog — Saving", role: "admin", mode: "saving", note: "1. Disable fields during save and announce Saving user. 2. Prevent duplicate Save." },
-      { group: "dialog", id: "dialog-success", title: "Dialog — Save success", role: "superadmin", mode: "success", note: "1. Close dialog, refresh list and counts, and announce that the User was created. 2. Remind the Admin to share the temporary password securely." },
+      { group: "dialog", id: "dialog-add-loading", title: "Dialog — Add user, creating", role: "admin", mode: "add-loading", note: "1. Keep the form visible and prevent duplicate submission. 2. Announce Creating user…." },
+      { group: "dialog", id: "dialog-add-success", title: "Dialog — Add user, success", role: "superadmin", mode: "add-success", note: "1. Close the dialog, update list and counts, and announce Account created. 2. Remind the Admin to share the temporary password securely." },
+      { group: "dialog", id: "dialog-success", title: "Dialog — Edit success", role: "superadmin", mode: "success", note: "1. Close the dialog, refresh the list and counts, and announce User saved." },
       { group: "dialog", id: "dialog-error", title: "Dialog — Save error", role: "admin", mode: "save-error", note: "1. Keep the panel open and preserve values. 2. Show actionable inline error, not toast-only failure." },
       { group: "dialog", id: "dialog-unsaved", title: "Dialog — Unsaved changes warning", role: "superadmin", mode: "unsaved", note: "1. Closing with changes asks before discarding. 2. Keep editing restores focus to the last changed field." },
 
       { group: "confirm", id: "confirm-delete", title: "Confirmation — Soft delete one user", role: "superadmin", mode: "delete", note: "1. Name and email identify the target. 2. Explain soft delete and restore. 3. Cancel receives initial focus." },
+      { group: "confirm", id: "confirm-create-user", title: "Confirmation — Create user", role: "superadmin", mode: "create-user", note: "1. Confirm the selected role and immediate approval. 2. Explain first-sign-in password change and secure sharing. 3. Cancel returns to the Add form." },
       { group: "confirm", id: "confirm-delete-loading", title: "Confirmation — Delete loading", role: "superadmin", mode: "delete-loading", note: "1. Keep the dialog open, show Deleting, and prevent duplicate submission. 2. Announce progress." },
       { group: "confirm", id: "confirm-delete-error", title: "Confirmation — Delete error", role: "superadmin", mode: "delete-error", note: "1. Preserve the target and dialog. 2. Explain recovery and keep Delete available for retry." },
       { group: "confirm", id: "confirm-block", title: "Confirmation — Block one user", role: "admin", mode: "block", note: "1. Explain login impact. 2. No reason field is shown because the context does not require one. 3. Cancel receives initial focus." },
       { group: "confirm", id: "confirm-block-loading", title: "Confirmation — Block loading", role: "admin", mode: "block-loading", note: "1. Keep the dialog open and announce Blocking. 2. Prevent duplicate submission." },
       { group: "confirm", id: "confirm-block-error", title: "Confirmation — Block error", role: "admin", mode: "block-error", note: "1. Keep the dialog open and explain how to retry." },
       { group: "confirm", id: "confirm-unblock", title: "Confirmation — Unblock", role: "admin", mode: "unblock", note: "1. Confirm sign-in may resume if account is Active. 2. Cancel is the safe initial focus." },
-      { group: "confirm", id: "confirm-restore", title: "Confirmation — Restore", role: "superadmin", mode: "restore", note: "1. Explain restoration and prior status. 2. Actual restore-status policy needs product confirmation." },
+      { group: "confirm", id: "confirm-restore", title: "Confirmation — Restore", role: "superadmin", mode: "restore", note: "1. Explain restoration and prior status. 2. Restore preserves the account’s previous status." },
       { group: "confirm", id: "confirm-bulk-delete", title: "Confirmation — Bulk soft delete", role: "superadmin", mode: "bulk-delete", note: "1. Show eligible affected count. 2. Explicitly state records can be restored. 3. Clear selection after success." },
       { group: "confirm", id: "confirm-bulk-block", title: "Confirmation — Bulk block", role: "admin", mode: "bulk-block", note: "1. Show eligible User count only. 2. On completion update statuses/counts and clear selection." },
       { group: "confirm", id: "confirm-self", title: "Confirmation — Self-protection", role: "superadmin", mode: "self", note: "1. Self Block/Delete are disabled with explanation. 2. Prevent opening a confirmation through direct action or bulk selection." }
@@ -423,7 +420,7 @@
     };
     const quickActions = (role) => role === "user"
       ? `<div class="empty-note">No management shortcuts are available for your role.</div>`
-      : `<div class="quick-actions"><button class="quick-action"><strong>Add user</strong><span>Create a User account with a temporary password; they must change it at first sign-in.</span></button><button class="quick-action"><strong>View users</strong><span>${role === "admin" ? "Search and manage Users." : "Search and manage accounts."}</span></button></div>`;
+      : `<div class="quick-actions"><button class="quick-action"><strong>Add user</strong><span>${role === "admin" ? "Create a User account with a temporary password; they must change it at first sign-in." : "Create a User or Admin account with a temporary password; they must change it at first sign-in."}</span></button><button class="quick-action"><strong>View users</strong><span>${role === "admin" ? "Search and manage Users." : "Search and manage accounts."}</span></button></div>`;
     const listContent = (state) => {
       if (state.mode === "noaccess") return `<div class="page-heading"><div><h3>No access</h3></div></div><div class="alert error">You don’t have access to User Management. Ask a Superadmin if you need access.</div><button class="button primary">Back to Home</button>`;
       let special = state.mode;
@@ -450,7 +447,8 @@
         "save-error": ["Maria Santos", "maria.santos@hope.example", "User", "Inactive"],
         unsaved: ["Maria Santos", "maria.santos@hope.example", "User", "Active"]
       }[state.mode];
-      const disabled = view || state.mode === "saving";
+      const saving = state.mode === "saving" || state.mode === "add-loading";
+      const disabled = view || saving;
       const errors = state.mode === "validation";
       const field = (label, value, index, error = "") => {
         if (view) return `<div class="field"><label>${label}</label><div class="readonly-value">${value || "—"}</div></div>`;
@@ -466,9 +464,9 @@
       };
       const addMode = state.mode.startsWith("add");
       const addField = (label, type = "text", autocomplete = "", maxLength = "") =>
-        `<div class="field"><label>${label} *</label><input type="${type}" ${autocomplete ? `autocomplete="${autocomplete}"` : ""} ${maxLength ? `maxlength="${maxLength}"` : ""} ${label === "Temporary password" ? 'minlength="8"' : ""} aria-label="${label}" required></div>`;
+        `<div class="field"><label>${label} *</label><input type="${type}" ${autocomplete ? `autocomplete="${autocomplete}"` : ""} ${maxLength ? `maxlength="${maxLength}"` : ""} ${label === "Temporary password" ? 'minlength="8"' : ""} ${saving ? "disabled" : ""} aria-label="${label}" required></div>`;
       const formFields = addMode
-        ? `${addField("First name", "text", "given-name", 80)}${addField("Last name", "text", "family-name", 80)}${addField("Email address", "email", "email", 254)}${addField("Temporary password", "password", "new-password", 128)}<p class="form-note">Creates an approved User. They must set a new password at first sign-in. Share the temporary password securely.</p>`
+        ? `${addField("First name", "text", "given-name", 80)}${addField("Last name", "text", "family-name", 80)}${addField("Email address", "email", "email", 254)}${addField("Temporary password", "password", "new-password", 128)}${state.role === "superadmin" ? `<div class="field"><label>Role *</label><select aria-label="Role" ${saving ? "disabled" : ""} required><option>User</option><option>Admin</option></select></div>` : '<div class="field"><label>Role</label><div class="readonly-value">User</div></div>'}<p class="form-note">The account is approved immediately. The new user must set a new password at first sign-in. Share the temporary password securely.</p>`
         : `${field("Full name", values[0], 0)}${field("Email", values[1], 1)}${field("Role", values[2], 2)}${field("Status", values[3], 3)}`;
       const title = state.mode.startsWith("add") ? "Add user" : view ? "User details" : "Edit user";
       const stamps = view || state.mode.startsWith("edit")
@@ -477,19 +475,21 @@
       return `<div class="scrim"><section class="dialog-panel" role="dialog" aria-modal="true" aria-labelledby="dialog-title">
         <header class="dialog-header"><h3 id="dialog-title">${title}</h3><button class="button" aria-label="Close dialog">×</button></header>
         <div class="dialog-body">
+          ${state.mode === "add-error" ? '<div class="alert error" role="alert">We couldn’t create that account. Check the email and password requirements.</div>' : ""}
           ${state.mode === "save-error" ? '<div class="alert error">We couldn’t save this user. Check your connection and try again.</div>' : ""}
           ${errors ? '<div class="alert error" role="alert">Check the highlighted fields.</div>' : ""}
           ${state.mode === "saving" ? '<div class="alert info" role="status">Saving user…</div>' : ""}
+          ${state.mode === "add-loading" ? '<div class="alert info" role="status">Creating user…</div>' : ""}
           ${formFields}
           ${stamps}
         </div>
         <footer class="dialog-footer">
           ${view ? '<button class="button">Close</button>' : '<button class="button">Cancel</button>'}
-          ${view ? (state.role === "superadmin" ? '<button class="button primary">Edit</button>' : "") : `<button class="button primary" ${state.mode === "saving" ? "disabled" : ""}>${state.mode === "saving" ? "Saving…" : addMode ? "Create user" : "Save"}</button>`}
+          ${view ? (state.role === "superadmin" ? '<button class="button primary">Edit</button>' : "") : `<button class="button primary" ${saving ? "disabled" : ""}>${state.mode === "saving" ? "Saving…" : state.mode === "add-loading" ? "Creating user…" : addMode ? "Review and create" : "Save"}</button>`}
         </footer>
       </section></div>
       ${state.mode === "unsaved" ? `<div class="confirm-wrap"><section class="confirm" role="alertdialog" aria-modal="true" aria-labelledby="unsaved-title"><h3 id="unsaved-title">Discard your changes?</h3><p>Your edits haven’t been saved.</p><div class="confirm-actions"><button class="button">Keep editing</button><button class="button danger">Discard changes</button></div></section></div>` : ""}
-      ${state.mode === "success" ? '<div class="toast" role="status" aria-live="polite">✓ User saved</div>' : ""}`;
+      `;
     };
     const confirmMarkup = (state) => {
       const configs = {
@@ -497,6 +497,7 @@
         block: ["Block user?", "Maria Santos (maria.santos@hope.example) won’t be able to log in until the account is unblocked.", "Block user"],
         unblock: ["Unblock user?", "Maria Santos will be able to sign in again if the account is Active.", "Unblock user"],
         restore: ["Restore user?", "Maria Santos will return to the user list with the previous account status.", "Restore user"],
+        "create-user": ["Create this account?", "The selected account will be created with the selected role and approved immediately. The new user must change the temporary password at first sign-in. Share the temporary password securely.", "Create user"],
         "bulk-delete": ["Delete 3 users?", "These records will be soft-deleted and can be restored from Deleted.", "Delete 3 users"],
         "bulk-block": ["Block 3 users?", "These users won’t be able to log in until their accounts are unblocked.", "Block 3 users"]
       };
@@ -520,9 +521,18 @@
       let body = "";
       if (state.group === "home") body = homeContent(state);
       if (state.group === "list") body = listContent(state);
-      if (state.group === "dialog") body = listHeader({ role: state.role }) + tableMarkup("default") + dialogFields(state);
+      if (state.group === "dialog") {
+        if (state.mode === "success" || state.mode === "add-success") {
+          const message = state.mode === "add-success"
+            ? "✓ Account created. Share the temporary password securely; first sign-in requires a change."
+            : "✓ User saved";
+          body = listHeader({ role: state.role }) + tableMarkup("default") + `<div class="toast" role="status" aria-live="polite">${message}</div>`;
+        } else {
+          body = listHeader({ role: state.role }) + tableMarkup("default") + dialogFields(state);
+        }
+      }
       if (state.group === "confirm") body = listHeader({ role: state.role }) + tableMarkup(state.mode === "self" ? "default" : "selected") + confirmMarkup(state);
-      const mobileMenu = state.mode === "menu" && size === "mobile"
+      const mobileMenu = state.mode === "menu" && size !== "desktop"
         ? `<div class="scrim"><nav class="drawer" aria-label="Main navigation"><button class="button" style="align-self:end">Close menu</button>${nav(state.role)}</nav></div>`
         : "";
       return `<div class="app-shot v-${size}" aria-label="${size} wireframe">
@@ -536,7 +546,7 @@
       </div>`;
     };
     const groupLabels = {
-      home: ["Screen 1 — Main page (Home)", "Shell: 256px desktop sidebar, 72px collapsed tablet sidebar, mobile drawer. Only documented navigation and role-allowed Quick Actions are shown."],
+      home: ["Screen 1 — Main page (Home)", "Shell: 256px desktop sidebar; Task 1 navigation drawer at and below 768px. Only documented navigation and role-allowed Quick Actions are shown."],
       list: ["Screen 2 — User Management list", "Columns, status counts, search/filter, row menus, selection, pagination, responsive cards, and all requested empty/error/access states."],
       dialog: ["Screen 3 — Right-side dialog", "Add / Edit / View user with scrollable body, sticky footer, validation, audit stamps, focus, permission, and save states."],
       confirm: ["Screen 4 — Centered confirmations", "Delete, Block, Unblock, Restore, bulk actions, and own-account protection. Cancel is the initial safe action."]
