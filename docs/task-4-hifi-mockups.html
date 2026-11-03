@@ -1,0 +1,823 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Hope, Inc. ERP Task 4 high-fidelity mockups and responsive developer handoff previews.">
+  <title>Hope ERP — Task 4 Hi-Fi Mockups</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --color-primary-600: #397e68;
+      --color-primary-700: #2f6d58;
+      --color-primary-800: #245b4b;
+      --color-sidebar: #263d34;
+      --color-sidebar-text: #ffffff;
+      --color-sidebar-text-secondary: #d4ded7;
+      --color-sidebar-text-disabled: #bbc8bf;
+      --color-page: #faf9f5;
+      --color-surface: #fffefa;
+      --color-border: #8d9188;
+      --color-text-primary: #202c29;
+      --color-text-secondary: #58635d;
+      --color-text-disabled: #626b65;
+      --color-success-50: #e7f1e8;
+      --color-success-800: #285d3e;
+      --color-danger-50: #fbeae7;
+      --color-danger-700: #a63232;
+      --color-danger-800: #9f3029;
+      --color-danger-800-solid: #842727;
+      --color-warning-50: #fff2d7;
+      --color-warning-800: #754900;
+      --color-info-50: #e6f0f7;
+      --color-info-800: #205b75;
+      --color-role-superadmin-bg: #efeaFA;
+      --color-role-superadmin-fg: #55418b;
+      --color-role-admin-bg: #e7eef8;
+      --color-role-admin-fg: #315581;
+      --color-role-user-bg: #e8f1e9;
+      --color-role-user-fg: #315d3e;
+      --color-row-deleted: #f1f0ec;
+      --color-row-deleted-secondary: #58635d;
+      --color-focus: #245b4b;
+      --space-1: 4px;
+      --space-2: 8px;
+      --space-3: 12px;
+      --space-4: 16px;
+      --space-5: 20px;
+      --space-6: 24px;
+      --space-8: 32px;
+      --space-10: 40px;
+      --space-12: 48px;
+      --space-16: 64px;
+      --radius-sm: 4px;
+      --radius-md: 6px;
+      --radius-lg: 10px;
+      --radius-pill: 999px;
+      --shadow-card: 0 2px 8px rgb(32 44 41 / 6%), 0 1px 2px rgb(32 44 41 / 5%);
+      --shadow-popover: 0 8px 24px rgb(32 44 41 / 12%), 0 2px 6px rgb(32 44 41 / 6%);
+      --shadow-dialog: 0 20px 56px rgb(20 32 27 / 22%);
+      font-family: Inter, Arial, Helvetica, sans-serif;
+      color: var(--color-text-primary);
+      background: var(--color-page);
+      font-synthesis: none;
+      text-rendering: optimizeLegibility;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; scroll-padding-top: 88px; }
+    body { margin: 0; font-size: 14px; line-height: 1.45; }
+    button, input, select { font: inherit; }
+    button { color: inherit; cursor: pointer; }
+    a { color: var(--color-primary-800); text-underline-offset: 2px; }
+    :focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+    .top-menu { position: sticky; z-index: 20; top: 0; display: flex; min-height: 56px; align-items: center; gap: var(--space-4); overflow-x: auto; padding: var(--space-2) max(var(--space-4), calc((100vw - 1360px) / 2)); border-bottom: 1px solid var(--color-border); background: var(--color-surface); box-shadow: var(--shadow-card); }
+    .wordmark { flex: 0 0 auto; color: var(--color-sidebar); font-size: 18px; font-weight: 600; letter-spacing: -0.5px; text-decoration: none; }
+    .wordmark b { color: var(--color-primary-600); }
+    .menu-links { display: flex; flex: 1 0 auto; align-items: center; gap: var(--space-2); }
+    .menu-links a { min-height: 40px; display: inline-flex; align-items: center; padding: 0 var(--space-3); border-radius: var(--radius-md); color: var(--color-text-secondary); font-size: 12px; font-weight: 600; text-decoration: none; }
+    .menu-links a:hover, .menu-links a:focus-visible { color: var(--color-primary-800); background: var(--color-row-deleted); }
+    .top-note { flex: 0 0 auto; color: var(--color-text-secondary); font-size: 12px; }
+    main { width: min(1600px, 100%); margin: 0 auto; padding: var(--space-10) var(--space-8) var(--space-16); }
+    .hero { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: var(--space-6); padding: var(--space-8) 0; border-bottom: 1px solid var(--color-border); }
+    .eyebrow { margin-bottom: var(--space-2); color: var(--color-primary-800); font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
+    h1 { margin: 0; font-size: 28px; font-weight: 600; line-height: 36px; }
+    h2 { margin: 0 0 var(--space-2); font-size: 20px; font-weight: 600; line-height: 28px; }
+    h3 { margin: 0; font-size: 16px; font-weight: 600; line-height: 22px; }
+    p { margin: 0; }
+    .lead { max-width: 720px; margin-top: var(--space-2); color: var(--color-text-secondary); }
+    .hero-stamp { color: var(--color-text-secondary); font-size: 12px; text-align: right; }
+    .page-intro-copy { margin-top: var(--space-2); color: var(--color-text-secondary); }
+    section { scroll-margin-top: 76px; margin-top: var(--space-10); }
+    .section-heading { display: flex; align-items: end; justify-content: space-between; gap: var(--space-4); margin-bottom: var(--space-2); }
+    .section-intro { max-width: 780px; margin-bottom: var(--space-4); color: var(--color-text-secondary); }
+    .panel { min-width: 0; padding: var(--space-5); border: 1px solid var(--color-border); border-radius: var(--radius-lg); background: var(--color-surface); box-shadow: var(--shadow-card); }
+    .scope-note { padding: var(--space-4); border-left: 4px solid var(--color-warning-800); border-radius: var(--radius-sm); color: var(--color-warning-800); background: var(--color-warning-50); }
+    .state { margin-top: var(--space-5); padding: var(--space-4); border: 1px solid var(--color-border); border-radius: var(--radius-lg); background: var(--color-surface); box-shadow: var(--shadow-card); }
+    .state-heading { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: var(--space-2); margin-bottom: var(--space-3); }
+    .state-heading p { color: var(--color-text-secondary); font-size: 12px; }
+    .views { display: grid; gap: var(--space-4); }
+    .viewport { min-width: 0; margin: 0 auto; }
+    .viewport-label { display: flex; justify-content: space-between; gap: var(--space-3); margin-bottom: var(--space-2); color: var(--color-text-secondary); font-size: 12px; }
+    .viewport-label strong { color: var(--color-text-primary); }
+    .viewport-clip { position: relative; overflow: hidden; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-page); }
+    .artboard { width: var(--target-width); min-height: 440px; transform: scale(var(--scale, 1)); transform-origin: top left; overflow: hidden; border-radius: var(--radius-md); background: var(--color-page); }
+    .viewport[data-size="desktop"] { width: 100%; }
+    .viewport[data-size="tablet"] { width: min(770px, 100%); }
+    .viewport[data-size="mobile"] { width: min(377px, 100%); }
+    .viewport[data-size="mobile"] .artboard { min-height: 560px; }
+    .viewport[data-size="tablet"] .artboard { min-height: 500px; }
+    .viewport[data-size="desktop"] .artboard { min-height: 480px; }
+    .caption { margin-top: var(--space-2); color: var(--color-text-secondary); font-size: 12px; }
+    .artboard.auth { display: grid; min-height: 660px; place-items: center; padding: var(--space-8); background: var(--color-page); }
+    .auth-card { width: min(440px, 100%); padding: var(--space-6); border: 1px solid var(--color-border); border-radius: var(--radius-lg); background: var(--color-surface); box-shadow: var(--shadow-card); }
+    .auth-brand { margin-bottom: var(--space-6); color: var(--color-sidebar); font-size: 18px; font-weight: 600; letter-spacing: -.4px; }
+    .auth-brand b { color: var(--color-primary-600); }
+    .auth-title { margin: 0; font-size: 28px; line-height: 36px; }
+    .auth-copy { margin-top: var(--space-2); color: var(--color-text-secondary); }
+    .form { display: grid; gap: var(--space-4); margin-top: var(--space-5); }
+    .grid-two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-3); }
+    .field-group { min-width: 0; }
+    .label { display: block; margin-bottom: var(--space-2); font-size: 12px; font-weight: 600; }
+    .input-wrap { position: relative; }
+    .field { width: 100%; min-height: 44px; padding: var(--space-2) var(--space-3); border: 1px solid var(--color-border); border-radius: var(--radius-md); color: var(--color-text-primary); background: var(--color-surface); font-size: 14px; }
+    .field::placeholder { color: var(--color-text-secondary); opacity: 1; }
+    .field[readonly], .field:disabled { color: var(--color-text-disabled); background: var(--color-row-deleted); }
+    .field.invalid { border-color: var(--color-danger-800); }
+    .field.with-action { padding-right: 88px; }
+    .password-toggle { position: absolute; top: 4px; right: 4px; min-height: 36px; padding: 0 var(--space-2); border: 0; border-radius: var(--radius-sm); color: var(--color-primary-800); background: transparent; font-size: 12px; font-weight: 600; }
+    .help, .error-copy { margin-top: var(--space-1); font-size: 12px; }
+    .help { color: var(--color-text-secondary); }
+    .error-copy { color: var(--color-danger-800); }
+    .action { display: inline-flex; min-height: 40px; align-items: center; justify-content: center; gap: var(--space-2); padding: 0 var(--space-4); border: 1px solid transparent; border-radius: var(--radius-md); font-size: 14px; font-weight: 600; text-decoration: none; white-space: normal; transition: color 160ms ease-out, background-color 160ms ease-out, border-color 160ms ease-out, box-shadow 160ms ease-out; }
+    .action.primary { color: var(--color-sidebar-text); background: var(--color-primary-600); }
+    .action.secondary { border-color: var(--color-border); color: var(--color-primary-800); background: var(--color-surface); }
+    .action.ghost { color: var(--color-primary-800); background: transparent; }
+    .action.danger { color: var(--color-sidebar-text); background: var(--color-danger-700); }
+    .action.disabled { border-color: var(--color-border); color: var(--color-text-disabled); background: var(--color-row-deleted); cursor: not-allowed; }
+    .action.primary:hover:not(.disabled) { background: var(--color-primary-700); }
+    .action.primary:active:not(.disabled) { background: var(--color-primary-800); }
+    .action.secondary:hover { border-color: var(--color-primary-800); background: var(--color-page); }
+    .action.ghost:hover { background: var(--color-row-deleted); }
+    .action.danger:hover { background: var(--color-danger-800-solid); }
+    .action.full { width: 100%; }
+    .action.large { min-height: 48px; }
+    .auth-links, .auth-bottom { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-3); }
+    .auth-links { font-size: 12px; }
+    .auth-bottom { justify-content: center; padding-top: var(--space-2); color: var(--color-text-secondary); font-size: 12px; }
+    .register-success-copy { margin-top: var(--space-2); }
+    .auth-bottom a, .auth-links a { font-weight: 600; }
+    .checkbox-line { display: flex; min-height: 44px; align-items: center; gap: var(--space-2); }
+    .checkbox-line input, .check-control { width: 18px; height: 18px; flex: 0 0 18px; accent-color: var(--color-primary-600); }
+    .check-control { display: inline-grid; padding: 0; place-items: center; border: 1px solid var(--color-border); border-radius: var(--radius-sm); color: var(--color-sidebar-text); background: var(--color-surface); font-size: 12px; }
+    .check-control.checked { border-color: var(--color-primary-600); background: var(--color-primary-600); }
+    .check-control.mixed { border-color: var(--color-primary-600); color: var(--color-primary-800); background: var(--color-info-50); }
+    .notice { display: flex; gap: var(--space-2); margin-top: var(--space-4); padding: var(--space-3); border: 1px solid currentColor; border-radius: var(--radius-md); font-size: 12px; }
+    .notice.error { color: var(--color-danger-800); background: var(--color-danger-50); }
+    .notice.success { color: var(--color-success-800); background: var(--color-success-50); }
+    .notice.info { color: var(--color-info-800); background: var(--color-info-50); }
+    .notice.warning { color: var(--color-warning-800); background: var(--color-warning-50); }
+    .notice-icon { flex: 0 0 18px; }
+    .focused-demo { outline: 2px solid var(--color-focus) !important; outline-offset: 2px; }
+    .google-action { border-color: var(--color-border); color: var(--color-text-primary); background: var(--color-surface); }
+    .password-rules { display: grid; gap: var(--space-2); padding: var(--space-3); border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-page); }
+    .rule { display: flex; align-items: center; gap: var(--space-2); color: var(--color-text-secondary); font-size: 12px; }
+    .rule.pass { color: var(--color-success-800); }
+    .strength { display: flex; align-items: center; gap: var(--space-2); font-size: 12px; font-weight: 600; }
+    .strength-track { height: 6px; flex: 1; overflow: hidden; border-radius: var(--radius-pill); background: var(--color-row-deleted); }
+    .strength-fill { width: 0; height: 100%; border-radius: inherit; background: var(--color-warning-800); }
+    .strength-fill.good { width: 75%; background: var(--color-success-800); }
+    .mock-app { display: flex; min-height: inherit; background: var(--color-page); }
+    .sidebar { display: flex; width: 256px; flex: 0 0 256px; flex-direction: column; gap: var(--space-2); padding: var(--space-5) var(--space-3); color: var(--color-sidebar-text); background: var(--color-sidebar); }
+    .brand { display: flex; align-items: center; gap: var(--space-2); margin-bottom: var(--space-5); padding: 0 var(--space-2) var(--space-4); border-bottom: 1px solid var(--color-sidebar-text-secondary); font-size: 18px; font-weight: 600; }
+    .brand-mark { display: inline-grid; width: 24px; height: 24px; place-items: center; border: 1px solid var(--color-sidebar-text); border-radius: var(--radius-sm); }
+    .nav-item { display: flex; min-height: 44px; align-items: center; gap: var(--space-3); padding: 0 var(--space-3); border-radius: var(--radius-md); color: var(--color-sidebar-text-secondary); font-size: 14px; text-decoration: none; transition: color 160ms ease-out, background-color 160ms ease-out, border-color 160ms ease-out, box-shadow 160ms ease-out; }
+    .nav-item.active { color: var(--color-sidebar-text); background: var(--color-primary-600); box-shadow: inset 3px 0 0 var(--color-sidebar-text); }
+    .nav-item:not(.disabled):hover { color: var(--color-sidebar-text); background: var(--color-primary-700); }
+    .nav-item.disabled { color: var(--color-sidebar-text-disabled); text-decoration: underline dotted; text-underline-offset: 3px; cursor: not-allowed; }
+    .nav-item.focused-demo { outline-color: var(--color-sidebar-text) !important; }
+    .nav-icon { display: inline-grid; width: 20px; height: 20px; flex: 0 0 20px; place-items: center; }
+    .nav-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .sidebar-footer { margin-top: auto; padding: var(--space-3); color: var(--color-sidebar-text-secondary); font-size: 12px; }
+    .app-main { min-width: 0; flex: 1; }
+    .topbar { display: flex; min-height: 64px; align-items: center; justify-content: space-between; gap: var(--space-4); padding: var(--space-2) var(--space-6); border-bottom: 1px solid var(--color-border); background: var(--color-surface); }
+    .topbar-title { font-weight: 600; }
+    .topbar-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); }
+    .profile-line { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); font-size: 12px; }
+    .menu-trigger { display: none; }
+    .app-content { width: min(1200px, 100%); margin: 0 auto; padding: var(--space-8); }
+    .page-title-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-4); margin-bottom: var(--space-6); }
+    .page-title-row h2 { margin-bottom: var(--space-1); }
+    .greeting { margin: var(--space-8) 0 var(--space-3); font-size: 28px; line-height: 36px; }
+    .quick-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-4); margin-top: var(--space-6); }
+    .quick-card { display: flex; min-height: 140px; flex-direction: column; gap: var(--space-3); padding: var(--space-5); border: 1px solid var(--color-border); border-radius: var(--radius-md); color: var(--color-text-primary); background: var(--color-surface); box-shadow: var(--shadow-card); text-align: left; transition: color 160ms ease-out, background-color 160ms ease-out, border-color 160ms ease-out, box-shadow 160ms ease-out; }
+    .quick-card:hover { background: var(--color-row-deleted); }
+    .quick-card strong { font-size: 16px; }
+    .quick-card span { color: var(--color-text-secondary); }
+    .quick-icon { color: var(--color-primary-800); }
+    .skeleton { border-radius: var(--radius-sm); background: var(--color-row-deleted); animation: skeleton-pulse 1200ms ease-in-out infinite; }
+    @keyframes skeleton-pulse { 50% { opacity: .55; } }
+    .skeleton-line { height: 16px; margin: var(--space-3) 0; }
+    .skeleton-line.short { width: 42%; }
+    .skeleton-line.medium { width: 68%; }
+    .skeleton-card { min-height: 140px; }
+    .avatar { display: inline-grid; width: 36px; height: 36px; flex: 0 0 36px; place-items: center; border-radius: var(--radius-pill); color: var(--color-role-admin-fg); background: var(--color-role-admin-bg); font-weight: 600; }
+    .role-pill, .status-badge { display: inline-flex; min-height: 28px; align-items: center; gap: var(--space-1); padding: 0 var(--space-2); border-radius: var(--radius-pill); font-size: 12px; font-weight: 600; white-space: nowrap; }
+    .role-superadmin { color: var(--color-role-superadmin-fg); background: var(--color-role-superadmin-bg); }
+    .role-admin { color: var(--color-role-admin-fg); background: var(--color-role-admin-bg); }
+    .role-user { color: var(--color-role-user-fg); background: var(--color-role-user-bg); }
+    .status-active { color: var(--color-success-800); background: var(--color-success-50); }
+    .status-inactive, .status-blocked { color: var(--color-danger-800); background: var(--color-danger-50); }
+    .status-deleted { border: 1px solid var(--color-border); color: var(--color-text-primary); background: var(--color-row-deleted); }
+    .action.small { min-height: 32px; padding-inline: var(--space-3); font-size: 14px; }
+    .list-toolbar { display: flex; flex-wrap: wrap; align-items: end; gap: var(--space-3); margin: var(--space-4) 0; }
+    .search-field { display: flex; min-width: 260px; flex: 1; align-items: center; gap: var(--space-2); }
+    .search-field .input-wrap { display: block; width: 100%; min-width: 0; }
+    .search-field .field { padding-left: 42px; }
+    .search-symbol { position: absolute; left: var(--space-3); top: 11px; color: var(--color-text-secondary); }
+    .tabs { display: flex; gap: var(--space-2); overflow-x: auto; border-bottom: 1px solid var(--color-border); }
+    .tab { flex: 0 0 auto; min-height: 44px; padding: 0 var(--space-3); border: 0; border-bottom: 3px solid transparent; color: var(--color-text-secondary); background: transparent; font-size: 12px; font-weight: 600; white-space: nowrap; transition: color 160ms ease-out, background-color 160ms ease-out, border-color 160ms ease-out; }
+    .tab.selected { border-bottom-color: var(--color-primary-800); color: var(--color-primary-800); }
+    .tab:hover { color: var(--color-primary-800); background: var(--color-row-deleted); }
+    .table-wrap { overflow: auto; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface); }
+    table.users { width: 100%; min-width: 1080px; table-layout: fixed; border-collapse: collapse; text-align: left; }
+    .users th, .users td { padding: var(--space-3); border-bottom: 1px solid var(--color-border); vertical-align: middle; }
+    .users th:nth-child(1), .users td:nth-child(1) { width: 44px; }
+    .users th:nth-child(2), .users td:nth-child(2) { width: 180px; }
+    .users th:nth-child(3), .users td:nth-child(3) { width: 220px; }
+    .users th:nth-child(4), .users td:nth-child(4) { width: 120px; }
+    .users th:nth-child(5), .users td:nth-child(5) { width: 120px; }
+    .users th:nth-child(6), .users td:nth-child(6) { width: 150px; }
+    .users th:nth-child(7), .users td:nth-child(7) { width: 160px; }
+    .users th:last-child, .users td:last-child { width: 64px; padding-inline: var(--space-2); }
+    .sort-button { display: inline-flex; align-items: center; gap: var(--space-1); padding: 0; border: 0; color: inherit; background: transparent; font: inherit; white-space: nowrap; }
+    .users th { color: var(--color-text-secondary); background: var(--color-page); font-size: 12px; font-weight: 600; }
+    .users td { font-size: 14px; }
+    .users tbody tr:hover, .users tbody tr.hovered { background: var(--color-row-deleted); }
+    .users tbody tr.selected { background: var(--color-info-50); }
+    .users tbody tr.deleted { background: var(--color-row-deleted); }
+    .user-cell { display: flex; align-items: center; gap: var(--space-2); }
+    .user-cell small { display: block; color: var(--color-text-secondary); font-size: 12px; }
+    .deleted-stamp { margin-top: var(--space-1); color: var(--color-row-deleted-secondary); font-size: 12px; font-weight: 600; }
+    .row-action { width: 44px; height: 44px; display: inline-grid; place-items: center; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface); }
+    .mobile-cards { display: none; }
+    .mobile-user-card { display: grid; gap: var(--space-3); padding: var(--space-4); border-bottom: 1px solid var(--color-border); }
+    .mobile-user-card.hovered { background: var(--color-row-deleted); }
+    .mobile-user-card.selected { background: var(--color-info-50); }
+    .mobile-user-card.deleted { background: var(--color-row-deleted); }
+    .mobile-select-all { display: none; }
+    .mobile-sort { display: none; }
+    .mobile-user-head { display: flex; align-items: center; gap: var(--space-2); }
+    .mobile-user-head .user-text { min-width: 0; flex: 1; }
+    .mobile-user-head strong, .mobile-user-head small { display: block; overflow-wrap: anywhere; }
+    .mobile-user-meta { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-2); font-size: 12px; }
+    .mobile-user-meta b { display: block; color: var(--color-text-secondary); font-size: 12px; }
+    .bulk-bar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); margin: var(--space-3) 0; padding: var(--space-3); border: 1px solid var(--color-info-800); border-radius: var(--radius-md); background: var(--color-info-50); }
+    .pagination { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-3); padding-top: var(--space-4); color: var(--color-text-secondary); font-size: 12px; }
+    .rows-per-page { width: auto; min-height: 40px; }
+    .empty-state { padding: var(--space-8); border: 1px dashed var(--color-border); border-radius: var(--radius-md); background: var(--color-surface); text-align: center; }
+    .empty-state .empty-icon { margin-bottom: var(--space-3); color: var(--color-primary-800); }
+    .empty-state h3 { margin-bottom: var(--space-2); }
+    .empty-state p { margin: 0 auto var(--space-4); max-width: 560px; color: var(--color-text-secondary); }
+    .overlay { position: absolute; z-index: 2; inset: 0; background: color-mix(in srgb, var(--color-sidebar) 58%, transparent); }
+    .dialog-stage { position: relative; min-height: 640px; overflow: hidden; background: var(--color-page); }
+    .behind-content { width: 100%; padding: var(--space-6); }
+    .panel-dialog { position: absolute; z-index: 3; top: 0; right: 0; display: flex; width: 480px; max-width: 100%; height: 100%; flex-direction: column; border-left: 1px solid var(--color-border); background: var(--color-surface); box-shadow: var(--shadow-dialog); }
+    .dialog-header { display: flex; align-items: start; justify-content: space-between; gap: var(--space-4); padding: var(--space-5) var(--space-6); border-bottom: 1px solid var(--color-border); }
+    .dialog-header p { margin-top: var(--space-1); color: var(--color-text-secondary); font-size: 12px; }
+    .dialog-close { width: 44px; height: 44px; display: inline-grid; flex: 0 0 44px; place-items: center; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface); }
+    .dialog-body { min-height: 0; flex: 1; overflow: auto; padding: var(--space-5) var(--space-6); }
+    .dialog-form { display: grid; gap: var(--space-4); }
+    .dialog-footer { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--space-3); padding: var(--space-4) var(--space-6); border-top: 1px solid var(--color-border); background: var(--color-surface); }
+    .audit-list { display: grid; gap: var(--space-2); margin-top: var(--space-6); padding-top: var(--space-4); border-top: 1px solid var(--color-border); }
+    .audit-stamp { color: var(--color-text-secondary); font-size: 12px; }
+    .audit-stamp strong { color: var(--color-text-primary); }
+    .menu-popover { position: absolute; z-index: 4; right: 0; top: 44px; min-width: 200px; padding: var(--space-2); border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface); box-shadow: var(--shadow-popover); }
+    .row-action-wrap { position: relative; display: inline-flex; }
+    .menu-popover button { width: 100%; min-height: 40px; padding: 0 var(--space-3); border: 0; border-radius: var(--radius-sm); background: transparent; text-align: left; }
+    .menu-popover button:hover { background: var(--color-row-deleted); }
+    .confirmation { position: absolute; z-index: 3; top: 50%; left: 50%; width: min(440px, calc(100% - var(--space-8))); padding: var(--space-6); transform: translate(-50%, -50%); border: 1px solid var(--color-border); border-radius: var(--radius-lg); background: var(--color-surface); box-shadow: var(--shadow-dialog); }
+    .confirmation p { margin: var(--space-3) 0 var(--space-5); color: var(--color-text-secondary); }
+    .confirmation-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--space-3); }
+    .toast { position: sticky; z-index: 7; top: 72px; display: flex; width: fit-content; max-width: min(480px, calc(100% - var(--space-8))); align-items: start; gap: var(--space-2); margin: var(--space-3) var(--space-4) 0 auto; padding: var(--space-3) var(--space-4); border: 1px solid currentColor; border-radius: var(--radius-md); background: var(--color-surface); box-shadow: var(--shadow-popover); font-size: 12px; }
+    .toast.success { color: var(--color-success-800); background: var(--color-success-50); }
+    .toast.info { color: var(--color-info-800); background: var(--color-info-50); }
+    .toast.error { color: var(--color-danger-800); background: var(--color-danger-50); }
+    .toast button { min-width: 32px; min-height: 32px; border: 0; border-radius: var(--radius-sm); color: inherit; background: transparent; }
+    .note-card { margin-top: var(--space-4); padding: var(--space-4); border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface); }
+    .note-card h3 { margin-bottom: var(--space-2); }
+    .note-card p { color: var(--color-text-secondary); }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+    .artboard.tablet .sidebar { width: 72px; flex-basis: 72px; padding-inline: var(--space-2); }
+    .artboard.tablet .brand { justify-content: center; padding-inline: 0; }
+    .artboard.tablet .brand-word, .artboard.tablet .nav-label, .artboard.tablet .sidebar-footer { display: none; }
+    .artboard.tablet .nav-item { justify-content: center; padding-inline: 0; }
+    .artboard.tablet .app-content { padding: var(--space-6); }
+    .artboard.tablet .topbar { padding-inline: var(--space-4); }
+    .artboard.tablet .panel-dialog { width: 420px; }
+    .artboard.tablet .table-wrap { overflow-x: auto; }
+    .artboard.mobile .sidebar { display: none; }
+    .artboard.mobile.drawer-open .sidebar { position: absolute; z-index: 5; inset: 0 auto 0 0; display: flex; width: 280px; min-height: 100%; }
+    .artboard.mobile .menu-trigger { display: inline-flex; min-height: 44px; min-width: 44px; align-items: center; justify-content: center; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface); }
+    .artboard.mobile .app-content { padding: var(--space-4); }
+    .artboard.mobile .grid-two { grid-template-columns: 1fr; }
+    .artboard.mobile .topbar { min-height: 60px; padding: var(--space-2) var(--space-3); }
+    .artboard.mobile .topbar-title { display: none; }
+    .artboard.mobile .action { min-height: 44px; }
+    .artboard.mobile .action.small { min-height: 44px; }
+    .artboard.mobile .menu-popover button { min-height: 44px; }
+    .artboard.mobile .check-control { width: 44px; height: 44px; flex-basis: 44px; }
+    .artboard.mobile .auth-links a, .artboard.mobile .auth-bottom a { display: inline-flex; min-height: 44px; align-items: center; }
+    .artboard.mobile .password-toggle { top: 0; min-height: 44px; }
+    .artboard.mobile .toast button { min-width: 44px; min-height: 44px; }
+    .artboard.mobile .quick-grid { grid-template-columns: 1fr; }
+    .artboard.mobile .list-toolbar { align-items: stretch; }
+    .artboard.mobile .search-field { min-width: 100%; }
+    .artboard.mobile .list-toolbar .field-group { width: 100%; }
+    .artboard.mobile .list-toolbar > .action { width: 100%; }
+    .artboard.mobile .table-wrap { display: none; }
+    .artboard.mobile .mobile-cards { display: block; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface); }
+    .artboard.mobile .mobile-select-all { display: flex; min-height: 44px; align-items: center; gap: var(--space-2); margin: var(--space-2) 0; color: var(--color-text-secondary); font-size: 12px; }
+    .artboard.mobile .mobile-sort { display: block; min-width: 100%; }
+    .artboard.mobile .bulk-bar { align-items: stretch; }
+    .artboard.mobile .bulk-bar .action { flex: 1; }
+    .artboard.mobile .pagination { align-items: start; }
+    .artboard.mobile .panel-dialog { position: absolute; inset: 0; width: 100%; height: 100%; max-width: none; border: 0; }
+    .artboard.mobile .dialog-header, .artboard.mobile .dialog-body, .artboard.mobile .dialog-footer { padding-inline: var(--space-4); }
+    .artboard.mobile .dialog-footer { display: grid; grid-template-columns: 1fr 1fr; }
+    .artboard.mobile .dialog-footer .action { min-width: 0; }
+    .artboard.mobile .confirmation { width: calc(100% - var(--space-6)); padding: var(--space-4); }
+    .artboard.mobile .confirmation-actions { display: grid; grid-template-columns: 1fr 1fr; }
+    .artboard.mobile .confirmation-actions .action { padding-inline: var(--space-2); }
+    .artboard.mobile.auth { min-height: 660px; padding: var(--space-4); }
+    .artboard.mobile .auth-card { padding: var(--space-4); }
+    .artboard.mobile .auth-title { font-size: 24px; line-height: 32px; }
+    .artboard.mobile .dialog-stage { min-height: 640px; }
+    @media (max-width: 768px) {
+      main { padding: var(--space-6) var(--space-4) var(--space-10); }
+      .hero { grid-template-columns: 1fr; }
+      .hero-stamp { text-align: left; }
+      .top-note { display: none; }
+      .menu-links { gap: 0; }
+      .menu-links a { padding-inline: var(--space-2); }
+      .artboard.tablet .sidebar { width: 72px; flex-basis: 72px; padding-inline: var(--space-2); }
+      .artboard.tablet .brand { justify-content: center; padding-inline: 0; }
+      .artboard.tablet .brand-word, .artboard.tablet .nav-label, .artboard.tablet .sidebar-footer { display: none; }
+      .artboard.tablet .nav-item { justify-content: center; padding-inline: 0; }
+      .artboard.tablet .app-content { padding: var(--space-6); }
+      .artboard.tablet .topbar { padding-inline: var(--space-4); }
+      .artboard.tablet .panel-dialog { width: 420px; }
+      .artboard.tablet .table-wrap { overflow-x: auto; }
+    }
+    @media (max-width: 480px) {
+      main { padding: var(--space-4) var(--space-4) var(--space-8); }
+      .top-menu { gap: var(--space-2); padding-inline: var(--space-2); }
+      .wordmark { font-size: 16px; }
+      .menu-links a { min-height: 44px; padding-inline: var(--space-2); font-size: 12px; }
+      .hero { padding-block: var(--space-5); }
+      .hero h1 { font-size: 24px; line-height: 32px; }
+      .panel { padding: var(--space-4); }
+      .state { padding: var(--space-3); }
+      .artboard.mobile.auth { min-height: 660px; padding: var(--space-4); }
+      .artboard.mobile .auth-card { padding: var(--space-4); }
+      .artboard.mobile .auth-title { font-size: 24px; line-height: 32px; }
+      .artboard.mobile .mock-app { position: relative; }
+      .artboard.mobile .sidebar { display: none; }
+      .artboard.mobile.drawer-open .sidebar { position: absolute; z-index: 5; inset: 0 auto 0 0; display: flex; width: 280px; min-height: 100%; }
+      .artboard.mobile .menu-trigger { display: inline-flex; min-height: 44px; min-width: 44px; align-items: center; justify-content: center; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface); }
+      .artboard.mobile .app-content { padding: var(--space-4); }
+      .artboard.mobile .topbar { min-height: 60px; padding: var(--space-2) var(--space-3); }
+      .artboard.mobile .topbar-title { display: none; }
+      .artboard.mobile .quick-grid { grid-template-columns: 1fr; }
+      .artboard.mobile .list-toolbar { align-items: stretch; }
+      .artboard.mobile .search-field { min-width: 100%; }
+      .artboard.mobile .list-toolbar > .action { width: 100%; }
+      .artboard.mobile .table-wrap { display: none; }
+      .artboard.mobile .mobile-cards { display: block; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface); }
+      .artboard.mobile .bulk-bar { align-items: stretch; }
+      .artboard.mobile .bulk-bar .action { flex: 1; }
+      .artboard.mobile .pagination { align-items: start; }
+      .artboard.mobile .panel-dialog { position: absolute; inset: 0; width: 100%; height: 100%; max-width: none; border: 0; }
+      .artboard.mobile .dialog-header, .artboard.mobile .dialog-body, .artboard.mobile .dialog-footer { padding-inline: var(--space-4); }
+      .artboard.mobile .dialog-footer { display: grid; grid-template-columns: 1fr 1fr; }
+      .artboard.mobile .dialog-footer .action { min-width: 0; }
+      .artboard.mobile .confirmation { width: calc(100% - var(--space-6)); padding: var(--space-4); }
+      .artboard.mobile .confirmation-actions { display: grid; grid-template-columns: 1fr 1fr; }
+      .artboard.mobile .confirmation-actions .action { padding-inline: var(--space-2); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; animation: none !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="top-menu" aria-label="Mockup sections">
+    <a class="wordmark" href="#top" aria-label="Hope home">hope<b>.</b></a>
+    <div class="menu-links">
+      <a href="#login">Login</a>
+      <a href="#register">Register</a>
+      <a href="#home">Main page</a>
+      <a href="#users">User management</a>
+      <a href="#dialog">Side panel</a>
+      <a href="#handoff">Handoff</a>
+    </div>
+    <span class="top-note">TASK 4 · HI-FI REVIEW SHEET</span>
+  </nav>
+  <main id="top">
+    <header class="hero">
+      <div>
+        <p class="eyebrow">Hope, Inc. ERP · Task 4</p>
+        <h1>Hi-fi mockups and developer handoff</h1>
+        <p class="lead">Approved Task 1 tokens, Task 2 auth states, and Task 3 home/user-management structure, rendered as responsive final-visual previews. All data is fictional.</p>
+      </div>
+      <p class="hero-stamp">1440px desktop · 768px tablet · 375px mobile<br>Self-contained HTML · no server</p>
+    </header>
+
+    <section aria-labelledby="scope-heading">
+      <div class="scope-note">
+        <strong id="scope-heading">Task 4 scope note:</strong>
+        The requested Register password form conflicts with Task 2's approved name/email-only access request. This sheet follows Task 4's requested visual fields and preserves the pending User access request outcome. Confirm the authoritative flow before development.
+      </div>
+    </section>
+
+    <section id="login" aria-labelledby="login-heading">
+      <div class="section-heading"><h2 id="login-heading">1. Login</h2><span class="meta">9 states · 3 viewports each</span></div>
+      <p class="section-intro">Sign-in methods retain the approved privacy-safe credential error. Pending/Blocked notices follow verified identity; all interactive elements use the Task 1 focus ring.</p>
+      <div id="login-states"></div>
+    </section>
+
+    <section id="register" aria-labelledby="register-heading">
+      <div class="section-heading"><h2 id="register-heading">2. Register · request access</h2><span class="meta">8 states · 3 viewports each</span></div>
+      <p class="section-intro">Fictional Maria Santos account details. The password checklist reflects the approved eight-character minimum only; it does not add an unapproved password policy.</p>
+      <div id="register-states"></div>
+    </section>
+
+    <section id="home" aria-labelledby="home-heading">
+      <div class="section-heading"><h2 id="home-heading">3. Main page · Home</h2><span class="meta">6 variants/states · 3 viewports each</span></div>
+      <p class="section-intro">Role-specific Quick Actions, dark sidebar, user/role top bar, and mobile drawer. No unspecified dashboard metrics or business modules are added.</p>
+      <div id="home-states"></div>
+    </section>
+
+    <section id="users" aria-labelledby="users-heading">
+      <div class="section-heading"><h2 id="users-heading">4. User Management list</h2><span class="meta">20 states · 3 viewports each</span></div>
+      <p class="section-intro">Desktop/tablet use a semantic wide table; mobile uses Task 3 stacked cards. Statuses and roles always have visible labels, not color alone.</p>
+      <div id="users-states"></div>
+    </section>
+
+    <section id="dialog" aria-labelledby="dialog-heading">
+      <div class="section-heading"><h2 id="dialog-heading">5. Right-side dialog · Add / Edit / View</h2><span class="meta">17 states · 3 viewports each</span></div>
+      <p class="section-intro">Right-anchored Task 1 dialog pattern with scrollable content, persistent footer, audit stamps, focus/error/loading examples, and safe-first confirmations.</p>
+      <div id="dialog-states"></div>
+    </section>
+
+    <section id="handoff" aria-labelledby="handoff-heading">
+      <div class="section-heading"><h2 id="handoff-heading">Developer handoff quick reference</h2><span class="meta"><a href="./task-4-developer-handoff.md">Full handoff Markdown</a></span></div>
+      <div class="panel">
+        <h3>Token and implementation guardrails</h3>
+        <p class="page-intro-copy">Color, type, spacing, radius, elevation, focus, and component patterns use Task 1 tokens. Use the complete token map, permission matrix, data fields, microcopy, acceptance checks, changes, gaps, and questions in the companion handoff.</p>
+        <div class="quick-grid">
+          <div class="note-card"><h3>Persistent sign-in</h3><p>Invalid credentials stay neutral. Inactive and Blocked are announced only after identity is verified.</p></div>
+          <div class="note-card"><h3>Request vs. Add</h3><p>Public registration stays User/Inactive pending Admin or Superadmin approval. Staff Add creates an approved account with a temporary password.</p></div>
+          <div class="note-card"><h3>Role gate</h3><p>Admins manage Users; Superadmins manage Users and Admins. Users have no User Management access.</p></div>
+          <div class="note-card"><h3>Soft delete</h3><p>Deleted is recoverable, stamped, and separate from Active/Inactive/Blocked status.</p></div>
+        </div>
+      </div>
+    </section>
+  </main>
+  <script>
+    const iconPaths = {
+      home: '<path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
+      users: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>',
+      menu: '<path d="M4 6h16M4 12h16M4 18h16"/>',
+      close: '<path d="m18 6-12 12M6 6l12 12"/>',
+      search: '<circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/>',
+      filter: '<path d="M4 6h16M7 12h10m-7 6h4"/>',
+      sort: '<path d="m7 10 5-5 5 5M7 14l5 5 5-5"/>',
+      "sort-up": '<path d="m7 14 5-5 5 5"/>',
+      "sort-down": '<path d="m7 10 5 5 5-5"/>',
+      plus: '<path d="M12 5v14M5 12h14"/>',
+      left: '<path d="m15 18-6-6 6-6"/>',
+      right: '<path d="m9 18 6-6-6-6"/>',
+      more: '<circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/>',
+      check: '<path d="m5 12 4 4L19 6"/>',
+      minus: '<path d="M5 12h14"/>',
+      lock: '<rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 1 1 8 0v3"/>',
+      trash: '<path d="M3 6h18M8 6V4h8v2m3 0-1 14H6L5 6m4 4v6m6-6v6"/>',
+      undo: '<path d="M3 7v6h6M4 13a8 8 0 1 0 2-6"/>',
+      alert: '<path d="M12 3 2 21h20L12 3Z"/><path d="M12 9v4m0 4h.01"/>',
+      info: '<circle cx="12" cy="12" r="10"/><path d="M12 11v5m0-8h.01"/>',
+      success: '<circle cx="12" cy="12" r="10"/><path d="m8 12 3 3 5-6"/>',
+      eye: '<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/>',
+      mail: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/>',
+      key: '<circle cx="8" cy="15" r="4"/><path d="m11 12 9-9m-4 4 3 3m-6-1 3 3"/>',
+      user: '<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
+      clock: '<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>',
+      logout: '<path d="M10 17l5-5-5-5m5 5H3"/><path d="M12 3h7a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-7"/>',
+      spinner: '<path d="M12 3a9 9 0 1 0 9 9"/>'
+    };
+    const icon = (name, size = 18) => `<svg aria-hidden="true" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">${iconPaths[name] || iconPaths.info}</svg>`;
+    const esc = (value) => String(value).replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[char]));
+    const rolePill = (role) => `<span class="role-pill role-${role.toLowerCase()}">${icon("user", 14)}${esc(role)}</span>`;
+    const statusBadge = (status) => {
+      const map = { Active: ["success", "Active"], Inactive: ["minus", "Inactive"], Blocked: ["lock", "Blocked"], Deleted: ["trash", "Deleted"] };
+      const [glyph, label] = map[status] || map.Active;
+      return `<span class="status-badge status-${status.toLowerCase()}">${icon(glyph, 14)}${label}</span>`;
+    };
+    const button = (label, variant = "secondary", extra = "") => {
+      const disabled = extra.split(/\s+/).includes("disabled");
+      return `<button type="button" class="action ${variant} ${extra}"${disabled ? " disabled aria-disabled=\"true\"" : ""}>${label}</button>`;
+    };
+    let fieldSequence = 0;
+    const field = (label, value, options = {}) => {
+      const { error = "", focused = false, type = "text", readonly = false, placeholder = "" } = options;
+      const invalid = error ? " invalid" : "";
+      const focus = focused ? " focused-demo" : "";
+      const attrs = readonly ? " readonly" : "";
+      const id = `f-${label.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-${++fieldSequence}`;
+      const pass = type === "password";
+      return `<div class="field-group"><label class="label" for="${id}">${esc(label)}</label><div class="input-wrap"><input id="${id}" class="field${invalid}${focus}${pass ? " with-action" : ""}" type="${pass ? "password" : type}" value="${esc(value || "")}" placeholder="${esc(placeholder)}"${attrs} aria-invalid="${Boolean(error)}" ${error ? `aria-describedby="${id}-error"` : ""}>${pass ? `<button type="button" class="password-toggle" aria-label="Show password">${icon("eye", 16)} Show</button>` : ""}</div>${error ? `<p class="error-copy" id="${id}-error">${icon("alert", 14)} ${esc(error)}</p>` : ""}</div>`;
+    };
+    const roleFor = (role) => role === "Superadmin" ? "Superadmin" : role === "Admin" ? "Admin" : "User";
+    const toast = (kind, message) => `<div class="toast ${kind}" role="${kind === "error" ? "alert" : "status"}" aria-live="${kind === "error" ? "assertive" : "polite"}">${icon(kind === "success" ? "success" : kind === "info" ? "info" : "alert", 18)}<span>${esc(message)}</span><button type="button" aria-label="Dismiss notification" title="Dismiss notification">×</button></div>`;
+
+    function preview(state, screen, size, render) {
+      const width = { desktop: 1440, tablet: 768, mobile: 375 }[size];
+      return `<figure class="viewport" data-size="${size}"><figcaption class="viewport-label"><strong>${size[0].toUpperCase() + size.slice(1)}</strong><span>${width}px</span></figcaption><div class="viewport-clip"><div class="artboard ${size} ${screen}" data-target="${width}">${render(state, size)}</div></div></figure>`;
+    }
+    function stateSection(state, screen, render, target) {
+      const id = `${target}-${state.id}`;
+      return `<article class="state" id="${id}"><header class="state-heading"><h3>${esc(state.name)}</h3><p>${esc(state.note || "All controls and copy are shown at the three labeled viewport sizes.")}</p></header><div class="views">${["desktop", "tablet", "mobile"].map(size => preview(state, screen, size, render)).join("")}</div></article>`;
+    }
+    function mountStates(target, states, screen, render) {
+      document.getElementById(target).innerHTML = states.map(state => stateSection(state, screen, render, target)).join("");
+    }
+
+    const loginStates = [
+      { id: "default", name: "Default" },
+      { id: "focus", name: "Field focus", focused: "Email", note: "Initial focus is Email; the visible focus ring is shown." },
+      { id: "validation", name: "Validation errors", message: "Check the highlighted fields.", kind: "error", emailError: "Enter a valid email address.", passwordError: "Enter your password." },
+      { id: "credentials", name: "Invalid credentials", message: "We couldn't sign you in with those details. Check your email and password, then try again.", kind: "error" },
+      { id: "inactive", name: "Account Inactive · pending approval", message: "Your account is pending Admin or Superadmin approval. You can sign in after it is approved.", kind: "info" },
+      { id: "blocked", name: "Account Blocked", message: "This account can't sign in right now. Contact your administrator for help.", kind: "error" },
+      { id: "lockout", name: "Temporary lockout", message: "Sign-in is temporarily locked. Try again later or contact support.", kind: "warning", locked: true },
+      { id: "loading", name: "Loading", loading: true },
+      { id: "expired", name: "Session expired", message: "Your session expired. Sign in again to continue.", kind: "info" }
+    ];
+    function renderLogin(state) {
+      const focusedEmail = state.focused === "Email";
+      const buttonState = state.loading || state.locked ? "disabled" : "";
+      return `<div class="auth-card" aria-busy="${Boolean(state.loading)}">
+        <div class="auth-brand">hope<b>.</b></div>
+        <h2 class="auth-title">Sign in to Hope</h2>
+        <p class="auth-copy">Welcome back. Sign in to continue.</p>
+        ${state.message ? `<div class="notice ${state.kind}" role="${state.kind === "error" ? "alert" : "status"}">${icon(state.kind === "info" ? "info" : state.kind === "warning" ? "clock" : "alert", 18)}<span>${esc(state.message)}</span></div>` : ""}
+        <form class="form">
+          ${field("Email", state.emailError ? "maria@" : "maria.santos@hope.example", { focused: focusedEmail, error: state.emailError || "" })}
+          ${field("Password", state.loading ? "••••••••••••" : "", { type: "password", focused: state.focused === "Password", error: state.passwordError || "", placeholder: "Enter your password" })}
+          <div class="auth-links"><label class="checkbox-line"><input type="checkbox" checked aria-label="Remember me"><span>Remember me</span></label><a href="#handoff">Forgot password?</a></div>
+          ${button(state.loading ? `${icon("spinner", 16)} Signing in…` : "Sign in", "primary", `full large ${buttonState}`)}
+          ${button("Continue with Google", "google-action", `full ${buttonState}`)}
+        </form>
+        <div class="auth-bottom">New to Hope? <a href="#register">Request access</a></div>
+      </div>`;
+    }
+    mountStates("login-states", loginStates, "auth", renderLogin);
+
+    const registerStates = [
+      { id: "default", name: "Default" },
+      { id: "focus", name: "Field focus", focused: "First name", note: "Initial focus is First name; visible keyboard focus example." },
+      { id: "validation", name: "Validation errors", errors: true },
+      { id: "rules", name: "Password rules checklist and strength", password: "Maria2026!", validPass: true },
+      { id: "email-used", name: "Email already in use", message: "We couldn't complete this request. If you already have an account, sign in or reset your password. Otherwise check the email and try again.", kind: "error" },
+      { id: "mismatch", name: "Passwords do not match", password: "Hope2026!", confirm: "Hope2025!", mismatch: true },
+      { id: "loading", name: "Loading", loading: true },
+      { id: "success", name: "Success · Request submitted", success: true }
+    ];
+    function renderRegister(state) {
+      if (state.success) return `<div class="auth-card"><div class="auth-brand">hope<b>.</b></div><div class="notice success" role="status" aria-live="polite">${icon("success", 20)}<div><h3>Request submitted</h3><p class="register-success-copy">Your request is pending Admin or Superadmin approval. We’ll email you after it’s reviewed.</p></div></div>${button("Back to sign in", "primary", "full")}</div>`;
+      const pass = state.password || "";
+      const passOkay = pass.length >= 8;
+      const match = state.validPass;
+      return `<div class="auth-card" aria-busy="${Boolean(state.loading)}"><div class="auth-brand">hope<b>.</b></div><h2 class="auth-title">Request access</h2><p class="auth-copy">Create your Hope account. New requests need Admin or Superadmin approval.</p>${state.message ? `<div class="notice ${state.kind}" role="alert">${icon("alert", 18)}<span>${esc(state.message)}</span></div>` : ""}<form class="form"><div class="grid-two">${field("First name", state.errors ? "" : "Maria", { focused: state.focused === "First name", error: state.errors ? "Enter your first name." : "" })}${field("Last name", state.errors ? "" : "Santos", { error: state.errors ? "Enter your last name." : "" })}</div>${field("Email", state.errors ? "maria@" : "maria.santos@hope.example", { error: state.errors ? "Enter a valid email address." : "" })}${field("Password", pass, { type: "password", focused: state.focused === "Password", error: state.errors && !passOkay ? "Password must be at least 8 characters." : "" })}${field("Confirm password", state.confirm || (state.validPass ? pass : ""), { type: "password", error: state.mismatch ? "Passwords don't match." : "" })}<div class="password-rules" aria-label="Password rules"><p class="label">Password requirements</p><p class="rule ${passOkay ? "pass" : ""}">${icon(passOkay ? "check" : "minus", 16)} At least 8 characters</p><p class="rule ${match ? "pass" : ""}">${icon(match ? "check" : "minus", 16)} Passwords match</p><div class="strength"><span>Strength</span><span class="strength-track"><span class="strength-fill ${passOkay ? "good" : ""}"></span></span><span>${passOkay ? "Good" : "Add a password"}</span></div></div><p class="help">New accounts are created as User and remain pending approval. This request does not grant access.</p>${button(state.loading ? `${icon("spinner", 16)} Submitting request…` : "Register", "primary", `full large ${state.loading ? "disabled" : ""}`)}</form><div class="auth-bottom">Already have an account? <a href="#login">Sign in</a></div></div>`;
+    }
+    mountStates("register-states", registerStates, "auth", renderRegister);
+
+    const homeStates = [
+      { id: "superadmin", name: "Superadmin view", role: "Superadmin", user: "Maya Chen", focus: true },
+      { id: "admin", name: "Admin view", role: "Admin", user: "Rafael Cruz" },
+      { id: "user", name: "User view · no management actions", role: "User", user: "Lea Dizon" },
+      { id: "loading", name: "Loading" },
+      { id: "empty", name: "Empty state", empty: true, role: "Admin", user: "Rafael Cruz" },
+      { id: "menu-open", name: "Mobile menu open", role: "User", user: "Lea Dizon", drawer: true }
+    ];
+    function renderHome(state) {
+      state.role ||= "Admin";
+      state.user ||= "Rafael Cruz";
+      const role = roleFor(state.role);
+      const canManage = role !== "User";
+      const actions = state.loading
+        ? `<div class="quick-grid"><div class="panel skeleton-card"><div class="skeleton skeleton-line medium"></div><div class="skeleton skeleton-line"></div></div><div class="panel skeleton-card"><div class="skeleton skeleton-line medium"></div><div class="skeleton skeleton-line short"></div></div></div>`
+        : state.empty
+          ? `<div class="empty-state"><div class="empty-icon">${icon("info", 24)}</div><h3>There’s nothing to show yet.</h3><p>You can still use the actions available to your role.</p>${button("Add user", "primary")}</div>`
+          : canManage
+            ? `<div class="quick-grid"><button class="quick-card ${state.focus ? "focused-demo" : ""}"><span class="quick-icon">${icon("plus", 24)}</span><strong>Add user</strong><span>${role === "Superadmin" ? "Create a User or Admin account with a temporary password." : "Create a User account with a temporary password."}</span></button><button class="quick-card"><span class="quick-icon">${icon("users", 24)}</span><strong>View users</strong><span>Search and manage ${role === "Superadmin" ? "accounts" : "Users"}.</span></button></div>`
+            : `<div class="empty-state"><div class="empty-icon">${icon("lock", 24)}</div><h3>No management shortcuts are available for your role.</h3><p>You can use Home. You don’t have access to User Management.</p></div>`;
+      const navMgmt = canManage ? "nav-item" : "nav-item disabled";
+      const navMgmtAttrs = canManage ? 'href="#users"' : 'aria-disabled="true" tabindex="-1"';
+      return `<div class="mock-app ${state.drawer ? "drawer-open" : ""}" aria-busy="${Boolean(state.loading)}">${state.drawer ? `<div class="overlay drawer-scrim"></div>` : ""}<aside class="sidebar"><div class="brand"><span class="brand-mark">${icon("home", 16)}</span><span class="brand-word">hope ERP</span></div><a class="nav-item active" href="#home" aria-current="page"><span class="nav-icon">${icon("home", 18)}</span><span class="nav-label">Home</span></a><a class="${navMgmt}" ${navMgmtAttrs} aria-label="${canManage ? "User Management" : "User Management, disabled: You don’t have access"}"><span class="nav-icon">${icon("users", 18)}</span><span class="nav-label">User Management</span></a><div class="sidebar-footer">Hope, Inc. ERP</div></aside><div class="app-main"><header class="topbar"><button class="menu-trigger" aria-label="Open menu">${icon("menu", 20)}</button><span class="topbar-title">Home</span><div class="topbar-actions"><div class="profile-line"><span class="avatar">${state.user.split(" ").map(part => part[0]).join("")}</span><strong>${esc(state.user)}</strong>${rolePill(role)}</div><button type="button" class="action ghost">${icon("logout", 16)} Log out</button></div></header><div class="app-content"><div class="page-title-row"><div><h2>Home</h2><p class="meta">Choose an action to get started.</p></div></div>${state.loading ? `<h2 class="greeting skeleton skeleton-line medium" aria-label="Loading greeting"></h2><p class="meta">Loading your home page…</p>` : `<h2 class="greeting">Good morning, ${esc(state.user.split(" ")[0])}.</h2>`}${actions}</div></div></div>`;
+    }
+    mountStates("home-states", homeStates, "app-home", renderHome);
+
+    const sampleUsers = [
+      { name: "Maria Santos", email: "maria.santos@hope.example", role: "User", status: "Active", created: "26 Oct 2026", edited: "Today, 09:14" },
+      { name: "Carlo Reyes", email: "carlo.reyes@hope.example", role: "User", status: "Inactive", created: "25 Oct 2026", edited: "Yesterday" },
+      { name: "Ana Dela Cruz", email: "ana.delacruz@hope.example", role: "Admin", status: "Active", created: "18 Oct 2026", edited: "30 Oct 2026" },
+      { name: "Paolo Garcia", email: "paolo.garcia@hope.example", role: "User", status: "Blocked", created: "12 Oct 2026", edited: "28 Oct 2026" }
+    ];
+    const listStates = [
+      { id: "default", name: "Default list", total: 24 },
+      { id: "hover", name: "Row hover", rowIndex: 0, hover: true },
+      { id: "focus", name: "Keyboard focus · row actions", focus: true },
+      { id: "selected", name: "Selected row", rowIndex: 0, selected: true },
+      { id: "deleted", name: "Soft-deleted row", deleted: true },
+      { id: "blocked", name: "Blocked row", blocked: true },
+      { id: "menu", name: "Row actions menu open", rowIndex: 0, menu: true },
+      { id: "blocked-menu", name: "Blocked row actions menu", blocked: true, menu: true },
+      { id: "deleted-menu", name: "Deleted row actions menu", deleted: true, menu: true },
+      { id: "bulk", name: "Bulk action bar · eligible selection", selected: true, bulk: true },
+      { id: "unchecked", name: "Header checkbox · unchecked", check: "unchecked" },
+      { id: "checked", name: "Header checkbox · checked", check: "checked" },
+      { id: "mixed", name: "Header checkbox · indeterminate", check: "mixed" },
+      { id: "loading", name: "Loading · skeleton rows", loading: true },
+      { id: "no-users", name: "Empty · no users yet", empty: "none" },
+      { id: "no-search", name: "Empty · no search results", empty: "search" },
+      { id: "no-tab", name: "Empty · no results in tab", empty: "tab" },
+      { id: "error", name: "Error · list failed to load", error: true },
+      { id: "info-toast", name: "Info toast · selection cleared", info: true },
+      { id: "no-access", name: "No access · User role", noAccess: true }
+    ];
+    function checkbox(state = "", label = "Select row") {
+      const cls = state ? `check-control ${state}` : "check-control";
+      const glyph = state === "checked" ? icon("check", 14) : state === "mixed" ? icon("minus", 14) : "";
+      return `<button type="button" class="${cls}" role="checkbox" aria-label="${esc(label)}" title="${esc(label)}" aria-checked="${state === "mixed" ? "mixed" : state === "checked"}">${glyph}</button>`;
+    }
+    function rowActionMenu(name, status, deleted) {
+      const actions = deleted
+        ? ["View", "Restore"]
+        : status === "Blocked"
+          ? ["View", "Edit", "Unblock", "Delete"]
+          : ["View", "Edit", "Block", "Delete"];
+      return `<div class="menu-popover" role="menu" aria-label="Actions for ${esc(name)}">${actions.map(action => `<button role="menuitem">${action}</button>`).join("")}</div>`;
+    }
+    function userRow(user, state, index) {
+      const deleted = state.deleted || user.status === "Deleted";
+      const status = state.blocked && index === 0 ? "Blocked" : deleted ? "Deleted" : user.status;
+      const trClass = `${state.selected && index === 0 ? "selected " : ""}${state.hover && index === 0 ? "hovered " : ""}${deleted ? "deleted" : ""}`;
+      const name = deleted ? "Liza Mendoza" : user.name;
+      const email = deleted ? "liza.mendoza@hope.example" : user.email;
+      const menu = state.menu && index === 0 ? rowActionMenu(name, status, deleted) : "";
+      return `<tr class="${trClass}">
+        <td>${checkbox(state.selected && index === 0 ? "checked" : "", `Select ${name}`)}</td>
+        <td><div class="user-cell"><span class="avatar">${name.split(" ").map(part => part[0]).join("")}</span><span><strong>${esc(name)}</strong>${deleted ? `<span class="deleted-stamp">DELETED · Maya Chen · 28 Oct 2026, 09:20</span>` : ""}</span></div></td>
+        <td>${esc(email)}</td><td>${rolePill(user.role)}</td><td>${statusBadge(status)}</td>
+        <td>${deleted ? "18 Oct 2026" : user.created}</td><td>${deleted ? "28 Oct 2026" : user.edited}</td>
+        <td><div class="row-action-wrap"><button class="row-action ${state.focus ? "focused-demo" : ""}" aria-label="Actions for ${esc(name)}">${icon("more", 18)}</button>${menu}</div></td>
+      </tr>`;
+    }
+    function mobileUserCard(user, state, index) {
+      const deleted = state.deleted || user.status === "Deleted";
+      const status = state.blocked && index === 0 ? "Blocked" : deleted ? "Deleted" : user.status;
+      const name = deleted ? "Liza Mendoza" : user.name;
+      const email = deleted ? "liza.mendoza@hope.example" : user.email;
+      const menu = state.menu && index === 0 ? rowActionMenu(name, status, deleted) : "";
+      return `<article class="mobile-user-card ${state.selected && index === 0 ? "selected " : ""}${state.hover && index === 0 ? "hovered " : ""}${deleted ? "deleted" : ""}">
+        <div class="mobile-user-head">${checkbox(state.selected && index === 0 ? "checked" : "", `Select ${name}`)}<span class="avatar">${name.split(" ").map(part => part[0]).join("")}</span><span class="user-text"><strong>${esc(name)}</strong><small>${esc(email)}</small></span><span class="row-action-wrap"><button class="row-action" aria-label="Actions for ${esc(name)}">${icon("more", 18)}</button>${menu}</span></div>
+        <div class="mobile-user-meta"><span><b>Role</b>${rolePill(user.role)}</span><span><b>Status</b>${statusBadge(status)}</span><span><b>Created</b>${user.created}</span><span><b>Last edited</b>${user.edited}</span></div>
+        ${deleted ? `<p class="deleted-stamp">DELETED · Maya Chen · 28 Oct 2026, 09:20</p>` : ""}
+      </article>`;
+    }
+    function renderList(state) {
+      if (state.noAccess) {
+        return `<div class="mock-app"><aside class="sidebar"><div class="brand"><span class="brand-mark">${icon("home", 16)}</span><span class="brand-word">hope ERP</span></div><a class="nav-item" href="#home"><span class="nav-icon">${icon("home", 18)}</span><span class="nav-label">Home</span></a><a class="nav-item disabled" aria-disabled="true" tabindex="-1" aria-label="User Management, disabled: You don’t have access"><span class="nav-icon">${icon("users", 18)}</span><span class="nav-label">User Management</span></a><div class="sidebar-footer">Hope, Inc. ERP</div></aside><div class="app-main"><header class="topbar"><button class="menu-trigger" aria-label="Open menu">${icon("menu", 20)}</button><span class="topbar-title">User Management</span><div class="profile-line"><span class="avatar">LD</span><strong>Lea Dizon</strong>${rolePill("User")}${button(`${icon("logout", 16)} Log out`, "ghost", "small")}</div></header><div class="app-content"><div class="page-title-row"><div><h2>User Management</h2><p class="meta">View and manage Hope accounts.</p></div></div><div class="notice warning" role="status">${icon("lock", 18)}<div><strong>You don’t have access to User Management.</strong><p>Ask a Superadmin if you need access.</p>${button("Back to Home", "secondary")}</div></div></div></div></div>`;
+      }
+
+      const rows = state.deleted ? [sampleUsers[0]] : state.blocked ? [sampleUsers[3], sampleUsers[1]] : sampleUsers;
+      const count = state.total || 24;
+      const activeTab = state.empty === "tab" ? "Blocked" : "All";
+      const tabs = ["All", "Active", "Inactive", "Blocked", "Deleted"].map((tab, i) => `<button class="tab ${tab === activeTab ? "selected" : ""}" aria-pressed="${tab === activeTab}">${tab} <span>${[count, 16, 4, 2, 2][i]}</span></button>`).join("");
+      const mobileSort = `<label class="field-group mobile-sort"><span class="label">Sort by</span><select class="field" aria-label="Sort by"><option>Last edited, newest first</option><option>Created, newest first</option><option>Name, A to Z</option></select></label>`;
+      const loadingRows = [1, 2, 3].map(() => `<tr><td>${checkbox()}</td>${[1, 2, 3, 4, 5, 6, 7].map(() => `<td><div class="skeleton skeleton-line medium"></div></td>`).join("")}</tr>`).join("");
+      const headers = `<tr><th>${checkbox(state.check || "", "Select all eligible rows")}</th><th aria-sort="none"><button class="sort-button" aria-label="Sort by Name">Name ${icon("sort", 16)}</button></th><th aria-sort="none"><button class="sort-button" aria-label="Sort by Email">Email ${icon("sort", 16)}</button></th><th aria-sort="none"><button class="sort-button" aria-label="Sort by Role">Role ${icon("sort", 16)}</button></th><th aria-sort="none"><button class="sort-button" aria-label="Sort by Status">Status ${icon("sort", 16)}</button></th><th aria-sort="none"><button class="sort-button" aria-label="Sort by Created">Created ${icon("sort", 16)}</button></th><th aria-sort="descending"><button class="sort-button" aria-label="Sort by Last edited, newest first">Last edited ${icon("sort-down", 16)}</button></th><th>Actions</th></tr>`;
+      const table = `<div class="table-wrap"><table class="users"><thead>${headers}</thead><tbody>${rows.map((user, index) => userRow(user, state, index)).join("")}</tbody></table></div>`;
+      const mobileSelection = state.check ? `<div class="mobile-select-all">${checkbox(state.check, "Select all eligible rows")}<span>Select all eligible rows</span></div>` : "";
+      const cards = `${mobileSelection}<div class="mobile-cards">${rows.map((user, index) => mobileUserCard(user, state, index)).join("")}</div>`;
+      const content = state.loading
+        ? `<div class="table-wrap"><table class="users"><thead>${headers}</thead><tbody>${loadingRows}</tbody></table></div><div class="mobile-cards">${[1, 2].map(() => `<article class="mobile-user-card"><div class="skeleton skeleton-line medium"></div><div class="skeleton skeleton-line"></div></article>`).join("")}</div><p class="help" role="status">Loading users…</p>`
+        : state.empty
+          ? `<div class="empty-state">${icon(state.empty === "search" ? "search" : state.empty === "tab" ? "users" : "user", 28)}<h3>${state.empty === "none" ? "No users yet." : state.empty === "search" ? "No users match your search." : "No Blocked users."}</h3><p>${state.empty === "none" ? "Add a user to get started." : state.empty === "search" ? "Try a different name or email, or clear your filters." : "Choose another status or clear your filters."}</p>${state.empty === "none" ? button("Add user", "primary") : button("Clear filters", "secondary")}</div>`
+          : state.error
+            ? `<div class="notice error" role="alert">${icon("alert", 18)}<div><strong>We couldn’t load users.</strong><p>Check your connection and try again.</p>${button("Try again", "secondary", "small")}</div></div>`
+            : `${table}${cards}${state.bulk || state.selected ? `<div class="bulk-bar">${checkbox("checked", "Selected eligible users")}<strong>${state.bulk ? "3 selected · 2 eligible Users" : "1 selected"}</strong>${button("Block", "secondary", "small")}${button("Delete", "danger", "small")}${button("Clear selection", "ghost", "small")}</div>` : ""}<div class="pagination"><span>Showing 1 to ${Math.min(rows.length, 10)} of ${count}</span><div class="topbar-actions"><label>Rows per page <select class="field rows-per-page"><option>10</option><option>25</option><option>50</option></select></label>${button(`${icon("left", 14)} Previous`, "secondary", "small")}${button("1", "primary", "small")}${button("2", "secondary", "small")}${button(`Next ${icon("right", 14)}`, "secondary", "small")}</div></div>`;
+      return `<div class="mock-app">
+        <aside class="sidebar">
+          <div class="brand"><span class="brand-mark">${icon("home", 16)}</span><span class="brand-word">hope ERP</span></div>
+          <a class="nav-item" href="#home"><span class="nav-icon">${icon("home", 18)}</span><span class="nav-label">Home</span></a>
+          <a class="nav-item active" href="#users" aria-current="page"><span class="nav-icon">${icon("users", 18)}</span><span class="nav-label">User Management</span></a>
+          <div class="sidebar-footer">Hope, Inc. ERP</div>
+        </aside>
+        <div class="app-main">
+          <header class="topbar">
+            <button class="menu-trigger" aria-label="Open menu">${icon("menu", 20)}</button>
+            <span class="topbar-title">User Management</span>
+            <div class="profile-line"><span class="avatar">MC</span><strong>Maya Chen</strong>${rolePill("Superadmin")}${button(`${icon("logout", 16)} Log out`, "ghost", "small")}</div>
+          </header>
+          <div class="app-content">
+            ${state.info ? toast("info", "Selection cleared because the list changed.") : ""}
+            <div class="page-title-row"><div><h2>User Management</h2><p class="meta">View and manage Hope accounts.</p></div>${button(`${icon("plus", 16)} Add user`, "primary", "large")}</div>
+            <div class="list-toolbar">
+              <label class="search-field"><span class="sr-only">Search users</span><span class="input-wrap"><span class="search-symbol">${icon("search", 18)}</span><input class="field" value="${state.empty === "search" ? "nobody@hope.example" : ""}" placeholder="Search by name or email" aria-label="Search users"></span></label>
+              <label class="field-group"><span class="label">Role</span><select class="field"><option>All roles</option><option>User</option><option>Admin</option></select></label>
+              ${mobileSort}
+              ${button(`${icon("filter", 16)} Clear filters`, "secondary")}
+            </div>
+            <div class="tabs" role="tablist" aria-label="Account status">${tabs}</div>
+            ${content}
+          </div>
+        </div>
+      </div>`;
+    }
+    mountStates("users-states", listStates, "app-list", renderList);
+
+    const dialogStates = [
+      { id: "add", name: "Add user · default", mode: "add" },
+      { id: "add-admin", name: "Add user · Admin creates User only", mode: "add", actorRole: "Admin" },
+      { id: "focus", name: "Add user · field focus", mode: "add", focus: "First name" },
+      { id: "validation", name: "Add user · validation errors", mode: "add", validation: true },
+      { id: "confirmation", name: "Add user · review and create confirmation", mode: "confirm-add" },
+      { id: "saving", name: "Saving", mode: "add", saving: true },
+      { id: "saving-edit", name: "Saving edits", mode: "edit", saving: true },
+      { id: "save-error", name: "Save error", mode: "edit", saveError: true },
+      { id: "saved", name: "Save success", mode: "edit", saved: true },
+      { id: "unsaved", name: "Unsaved-changes warning", mode: "unsaved" },
+      { id: "edit", name: "Edit user · Superadmin", mode: "edit" },
+      { id: "view", name: "View user · permitted", mode: "view" },
+      { id: "readonly", name: "Read-only · Admin viewing Superadmin", mode: "readonly" },
+      { id: "delete", name: "Confirmation · Delete", mode: "delete" },
+      { id: "block", name: "Confirmation · Block", mode: "block" },
+      { id: "unblock", name: "Confirmation · Unblock", mode: "unblock" },
+      { id: "restore", name: "Confirmation · Restore", mode: "restore" }
+    ];
+    function dialogFields(state) {
+      const add = state.mode === "add";
+      const view = ["view", "readonly"].includes(state.mode);
+      const readonly = view || state.mode === "unsaved";
+      const actorRole = state.actorRole || "Superadmin";
+      const names = add ? ["First name", "Last name"] : ["Full name"];
+      const content = names.map(name => field(name, add ? (state.validation ? "" : name === "First name" ? "Rafael" : "Cruz") : "Rafael Cruz", { focused: state.focus === name, error: state.validation && !view && !state.saveError ? `Enter ${name.toLowerCase()}.` : "", readonly })).join("");
+      const email = field(add ? "Email address" : "Email", add ? (state.validation ? "invalid" : "rafael.cruz@hope.example") : "rafael.cruz@hope.example", { error: state.validation && !view ? "Enter a valid email address." : "", readonly });
+      if (view) return `${content}${email}${field("Role", "User", { readonly })}${field("Status", "Active", { readonly })}<div class="audit-list"><p class="audit-stamp"><strong>CREATED</strong> · Maya Chen · 26 Oct 2026, 14:32</p><p class="audit-stamp"><strong>EDITED</strong> · Alex Rivera · 30 Oct 2026, 11:08</p></div>`;
+      if (add) {
+        const roleField = actorRole === "Admin"
+          ? `<label class="field-group"><span class="label">Role</span><input class="field" value="User" readonly><span class="help">Admins can create User accounts only.</span></label>`
+          : `<label class="field-group"><span class="label">Role</span><select class="field"><option>User</option><option>Admin</option></select><span class="help">Superadmins may create Users or Admins.</span></label>`;
+        return `${content}${email}${field("Temporary password", state.validation ? "" : "••••••••••", { type: "password", error: state.validation ? "Temporary password must be between 8 and 128 characters." : "" })}${roleField}<div class="notice info">${icon("info", 18)}The account is approved immediately. The user must change the temporary password at first sign-in.</div>`;
+      }
+      return `${content}${email}<label class="field-group"><span class="label">Role</span><select class="field" ${state.mode !== "edit" ? "disabled" : ""}><option>User</option></select></label><label class="field-group"><span class="label">Status</span><select class="field"><option>Active</option><option>Inactive</option><option>Blocked</option></select></label>${state.saveError ? `<div class="notice error" role="alert">${icon("alert", 18)}We couldn’t save this user. Check your connection and try again.</div>` : ""}<div class="audit-list"><p class="audit-stamp"><strong>CREATED</strong> · Maya Chen · 26 Oct 2026, 14:32</p><p class="audit-stamp"><strong>EDITED</strong> · Alex Rivera · 30 Oct 2026, 11:08</p></div>`;
+    }
+    function confirmContent(state, size) {
+      const data = {
+        "confirm-add": ["Create this account?", "Rafael Cruz will be created as an approved User. They must change the temporary password at first sign-in. Share the temporary password securely.", "Create account"],
+        delete: ["Delete user?", "Maria Santos (maria.santos@hope.example) will be soft-deleted. The record stays in Deleted and can be restored.", "Delete user"],
+        block: ["Block user?", "Maria Santos (maria.santos@hope.example) won’t be able to log in until the account is unblocked.", "Block user"],
+        unblock: ["Unblock user?", "Maria Santos will be able to sign in again if the account is Active.", "Unblock user"],
+        restore: ["Restore user?", "Maria Santos will return to the user list with the previous account status.", "Restore user"]
+      }[state.mode];
+      const titleId = `confirm-title-${state.id}-${size}`;
+      const copyId = `confirm-copy-${state.id}-${size}`;
+      return `<div class="confirmation" role="alertdialog" aria-labelledby="${titleId}" aria-describedby="${copyId}"><h3 id="${titleId}">${data[0]}</h3><p id="${copyId}">${data[1]}</p><div class="confirmation-actions">${button("Cancel", "secondary", "focused-demo")}${button(data[2], state.mode === "delete" || state.mode === "block" ? "danger" : "primary")}</div></div>`;
+    }
+    function renderDialog(state, size) {
+      const title = state.mode === "add" || state.mode === "confirm-add" ? "Add user" : state.mode === "edit" || state.mode === "unsaved" ? "Edit user" : "User details";
+      const titleId = `dialog-title-${state.id}-${size}`;
+      const isConfirm = ["confirm-add", "delete", "block", "unblock", "restore"].includes(state.mode);
+      const footer = state.mode === "add" ? `${button("Cancel", "secondary")}${button(state.saving ? `${icon("spinner", 16)} Creating account…` : "Review and create", "primary", state.saving ? "disabled" : "")}` : state.mode === "edit" ? `${button("Cancel", "secondary")}${button(state.saving ? `${icon("spinner", 16)} Saving…` : "Save", "primary", state.saving ? "disabled" : "")}` : state.mode === "view" ? `${button("Close", "secondary")}${button("Edit", "primary")}` : state.mode === "readonly" ? `${button("Close", "secondary")}` : state.mode === "unsaved" ? `${button("Keep editing", "secondary", "focused-demo")}${button("Discard changes", "danger")}` : "";
+      const body = state.mode === "unsaved" ? `<div class="notice warning">${icon("alert", 18)}Discard your changes? Your edits haven’t been saved.</div>` : state.mode === "readonly" ? `${dialogFields(state)}<div class="notice info">${icon("info", 18)}You can view this Admin account, but only a Superadmin may edit it.</div>` : dialogFields(state);
+      const feedback = state.saveError
+        ? toast("error", "We couldn’t save this user. Check your connection and try again.")
+        : state.saved
+          ? toast("success", "User saved")
+          : "";
+      const actorRole = state.actorRole || (state.mode === "readonly" ? "Admin" : "Superadmin");
+      const actorName = actorRole === "Admin" ? "Rafael Cruz" : "Maya Chen";
+      return `<div class="dialog-stage">${feedback}<div class="behind-content"><h2>User Management</h2><p>View and manage Hope accounts.</p><div class="profile-line">${esc(actorName)} ${rolePill(actorRole)}</div>${statusBadge("Active")}</div>${isConfirm ? `<div class="overlay"></div>${confirmContent(state, size)}` : `<div class="overlay"></div><section class="panel-dialog" role="dialog" aria-modal="true" aria-labelledby="${titleId}" aria-busy="${Boolean(state.saving)}"><header class="dialog-header"><div><h2 id="${titleId}">${title}</h2><p>${state.mode === "add" ? "Create an approved account with a temporary password." : state.mode === "edit" ? "Update this account's details." : "Account details and audit history."}</p></div><button class="dialog-close" aria-label="Close dialog">${icon("close", 18)}</button></header><div class="dialog-body">${state.validation ? `<div class="notice error" role="alert">${icon("alert", 18)}Check the highlighted fields.</div>` : ""}${state.mode === "unsaved" ? body : `<form class="dialog-form">${body}</form>`}</div><footer class="dialog-footer">${footer}</footer></section>`}</div>`;
+    }
+    mountStates("dialog-states", dialogStates, "dialog", renderDialog);
+
+    document.querySelectorAll(".drawer-open .menu-trigger").forEach((element) => {
+      element.setAttribute("aria-label", "Close menu");
+    });
+    document.querySelectorAll("[aria-label]").forEach((element) => {
+      if (!element.hasAttribute("title")) element.setAttribute("title", element.getAttribute("aria-label"));
+    });
+
+    function fitArtboards() {
+      document.querySelectorAll(".viewport").forEach((viewport) => {
+        const artboard = viewport.querySelector(".artboard");
+        const clip = viewport.querySelector(".viewport-clip");
+        const target = Number(artboard.dataset.target);
+        const scale = Math.min(1, clip.clientWidth / target);
+        artboard.style.setProperty("--target-width", `${target}px`);
+        artboard.style.setProperty("--scale", scale);
+        requestAnimationFrame(() => {
+          clip.style.height = `${Math.ceil(artboard.scrollHeight * scale)}px`;
+        });
+      });
+    }
+    fitArtboards();
+    window.addEventListener("resize", fitArtboards);
+    if ("ResizeObserver" in window) {
+      const observer = new ResizeObserver(fitArtboards);
+      observer.observe(document.querySelector("main"));
+    }
+  </script>
+</body>
+</html>
