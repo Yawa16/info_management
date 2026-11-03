@@ -119,14 +119,14 @@ settings, including the Google OAuth client ID and secret. Copy the Supabase
 provider callback URL into the Google OAuth client's authorized redirect URIs,
 and allow the development app's `/auth/callback` URL in Supabase's redirect
 URL settings. First-time Google sign-ups create regular User profiles with
-pending approval; they do not grant access until a Superadmin
+pending approval; they do not grant access until an approved Admin or Superadmin
 approves the account.
 
 The login flow checks the profile on the server and rejects users whose
-approval status is pending. Approved Superadmins can open `/users` to approve
-pending regular User accounts. The server verifies the approver's authenticated
-profile and only updates a target row whose role is `user` and status is
-`pending`. Admins cannot approve accounts. Protected pages must be placed under
+approval status is pending. Approved Admins and Superadmins can open `/users`
+to approve pending regular User accounts. The server verifies the approver's
+authenticated profile and only updates a target row whose role is `user` and
+status is `pending`. Protected pages must be placed under
 `app/(protected)/` so its server layout checks the current Supabase user and
 approval status on every request. Server actions and route handlers that
 access protected data must also check approval status before doing work; the

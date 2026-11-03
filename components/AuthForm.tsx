@@ -100,8 +100,8 @@ export default function AuthForm({
         <div className="register-success" role="status" aria-live="polite">
           <p>{registerState.message}</p>
           <span>
-            A Superadmin must approve your account before you can use the
-            system. If prompted, confirm your email before signing in.
+            An Admin or Superadmin must approve your account before you can use
+            the system. If prompted, confirm your email before signing in.
           </span>
         </div>
       ) : (
@@ -243,8 +243,8 @@ export default function AuthForm({
 
           {isRegister && (
             <p className="form-note">
-              New accounts are created as a User. A Superadmin must approve
-              your account before you can use the system.
+              New accounts are created as a User. An Admin or Superadmin must
+              approve your account before you can use the system.
             </p>
           )}
 
