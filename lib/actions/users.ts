@@ -56,7 +56,7 @@ export async function approvePendingUser(
   if (!actor) {
     return {
       status: "error",
-      message: "Sign in with an Admin or Superadmin account to approve users.",
+      message: "Sign in with a Superadmin account to approve users.",
     };
   }
 
@@ -82,11 +82,11 @@ export async function approvePendingUser(
   if (
     !actorResult.data ||
     actorResult.data.approval_status !== "approved" ||
-    !["admin", "superadmin"].includes(actorResult.data.role)
+    actorResult.data.role !== "superadmin"
   ) {
     return {
       status: "error",
-      message: "Only an approved Admin or Superadmin can approve users.",
+      message: "Only an approved Superadmin can approve users.",
     };
   }
 

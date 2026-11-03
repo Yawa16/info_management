@@ -2,10 +2,10 @@
 
 ## Assumptions and decisions
 
-- **Approved role/status requirement:** every account created by Register or first created through Google is assigned the `User` role and `Inactive` (pending approval). A **Superadmin** reviews the request, and both a Superadmin and Admin must approve access. Registration and Google account creation do not grant application access. Only an approved, `Active` account may continue into the ERP.
+- **Approved role/status requirement:** every account created by Register or first created through Google is assigned the `User` role and `Inactive` (pending approval). A **Superadmin** reviews and approves the request. Registration and Google account creation do not grant application access. Only an approved, `Active` account may continue into the ERP.
 - The project context defines roles `superadmin`, `admin`, and `user`, and statuses Active, Inactive, and Blocked. Existing global DEV instructions say signups default to Superadmin; that conflicts with this Task 2 requirement. The account lifecycle in these wireframes follows the explicit Task 2 review correction: new accounts are User/Inactive in all environments. Resolve/update that DEV instruction before implementation; do not silently grant Superadmin to a public signup.
 - Register collects First name, Last name, and Email only. After submission, show a generic request-received confirmation. A Superadmin reviews the request. If approved, the user receives a first-password setup link, sets a password, then returns to Sign In. Approval/rejection notification content is not defined; rejection must not activate the account.
-- Continue with Google creates/links an identity only after a provider callback. A newly created Google identity receives `User` + `Inactive`; it sees a pending-approval notice and cannot access protected ERP data until a Superadmin and Admin approve access. Existing Google-linked accounts must also pass the same Active-status gate. Account linking, duplicate-email handling, and provider verification are security decisions still to confirm.
+- Continue with Google creates/links an identity only after a provider callback. A newly created Google identity receives `User` + `Inactive`; it sees a pending-approval notice and cannot access protected ERP data until a Superadmin approves access. Existing Google-linked accounts are routed by status after identity verification: Active accounts may continue, Inactive accounts see the pending-approval notice, and Blocked accounts see the blocked-account notice. Account linking, duplicate-email handling, and provider verification are security decisions still to confirm.
 - Sign In uses email/password or Continue with Google. Remember me is a persistent-session preference; its lifetime and device policy need product/security approval.
 - Password creation occurs only on Set Password and Reset Password, not on Register. The approved password requirement for both screens is at least 8 characters.
 - Lockout thresholds/duration, invite/reset token lifetime and one-time semantics, resend cooldown, registration availability, and approval notification behavior are **pending product/security decisions**, not settled requirements. Values for these unresolved decisions are not settled policy.
@@ -36,7 +36,7 @@ flowchart TD
   Login -->|Valid credentials, Active| App[ERP]
   Login -->|Invalid email/password| Generic[Neutral sign-in error; same wording]
   Generic --> Login
-  Login -->|Valid identity, Inactive| Pending[Pending Superadmin and Admin approval]
+  Login -->|Valid identity, Inactive| Pending[Pending Superadmin approval]
   Pending --> Login
   Login -->|Valid identity, Blocked| Blocked[Blocked account notice]
   Blocked --> Support[Contact administrator]
@@ -54,7 +54,7 @@ flowchart TD
   Register -->|Accepted| Submitted[Request received: User / Inactive]
   Submitted --> Superadmin[Superadmin review]
   Superadmin -->|Denied / needs follow-up| Decision[Neutral review-update message / contact route]
-  Superadmin -->|Superadmin and Admin approve| Invite[Email first-password setup link]
+  Superadmin -->|Approve| Invite[Email first-password setup link]
   Invite --> SetPassword[Set Password]
   SetPassword -->|Validation error| SetPassword
   SetPassword -->|Save success| Login
@@ -65,7 +65,8 @@ flowchart TD
   OAuth -->|New identity| GooglePending[Create User / Inactive; show pending notice]
   GooglePending --> Superadmin
   OAuth -->|Existing Active identity| App
-  OAuth -->|Existing Inactive or Blocked identity| Pending
+  OAuth -->|Existing Inactive identity| Pending
+  OAuth -->|Existing Blocked identity| Blocked
   Register -->|Continue with Google| OAuth
 ```
 
@@ -103,7 +104,7 @@ Show a visible pass/fail text and icon for this requirement. Reevaluate as the u
 | Email focus | Visible Task 1 focus ring. Initial focus is Email. |
 | Empty/invalid fields | Summary `Check the highlighted fields.` Email `Enter your email address.` or `Enter a valid email address.` Password `Enter your password.` |
 | Invalid credentials | Neutral summary and field-level message: `We couldn't sign you in with those details. Check your email and password, then try again.` Same message for unknown email and incorrect password; do not reveal registration status. |
-| Pending account | Only after valid credentials/provider callback: `Your account is pending Superadmin and Admin approval. You can sign in after it is approved.` This confirms status after identity verification, not from an unverified email. |
+| Pending account | Only after valid credentials/provider callback: `Your account is pending Superadmin approval. You can sign in after it is approved.` This confirms status after identity verification, not from an unverified email. |
 | Blocked account | Only after valid credentials/provider callback: `This account can't sign in right now. Contact your administrator for help.` Avoid status disclosure before identity proof. |
 | Loading | Password submit: `Signing in…`; Google: `Connecting to Google…`. Disable form controls relevant to the in-flight action; preserve the other method only if safe. |
 | Success | `Signed in. Opening Hope…` then navigate to ERP only for Active accounts. |
@@ -116,7 +117,7 @@ Show a visible pass/fail text and icon for this requirement. Reevaluate as the u
 2. Remember me is optional and its persistence duration is pending security/product approval.
 3. Generic invalid-credentials message is identical regardless of whether email exists.
 4. Pending/blocked notice occurs after valid identity proof. Neither state reaches the ERP.
-5. OAuth callback must enforce the same User/Inactive approval policy for new Google accounts and require Active status for existing accounts.
+5. OAuth callback assigns new Google accounts User/Inactive and routes existing identities by status: Active to the ERP, Inactive to pending approval, and Blocked to the blocked-account notice.
 
 ## Screen 2 — Register
 
@@ -134,12 +135,12 @@ Show a visible pass/fail text and icon for this requirement. Reevaluate as the u
 | Loading | `Submitting request…`; disable fields and duplicate request. |
 | Success | Heading `Request received`; `Your request is pending Superadmin approval. We’ll email you after it’s reviewed. If approved, we’ll send a link to set your password.` Link `Back to Sign In`. Account is User/Inactive; no ERP access yet. |
 | Google loading/error | `Connecting to Google…`; on failure `Google sign-in didn't finish. Try again or use the registration form.` |
-| Google success: new account | Create role User/status Inactive; heading `Request received`; `Your Google account is linked. A Superadmin and Admin must approve your access before you can use Hope.` |
-| Google success: existing status | Active: continue to ERP. Inactive: show pending approval message. Blocked: show neutral blocked message only after provider identity is verified. |
+| Google success: new account | Create role User/status Inactive; heading `Request received`; `Your Google account is linked. A Superadmin must approve your access before you can use Hope.` |
+| Google success: existing status | Active: continue to ERP. Inactive: show pending approval message. Blocked: route to the blocked-account message, never the pending state; disclose status only after provider identity is verified. |
 
 **What happens after registration**
 
-The request does not set a password or grant access. A Superadmin and Admin approve the User/Inactive account. On approval, email registration receives a first-password setup link; the user sets a password, then signs in. Google registration uses the verified Google identity instead of a password-setting step; after Superadmin and Admin approval, the user signs in with Google. Rejected requests stay inactive and do not receive access. Approval/rejection email wording and a follow-up route are pending product decisions.
+The request does not set a password or grant access. A Superadmin approves the User/Inactive account. On approval, email registration receives a first-password setup link; the user sets a password, then signs in. Google registration uses the verified Google identity instead of a password-setting step; after Superadmin approval, the user signs in with Google. Rejected requests stay inactive and do not receive access. Approval/rejection email wording and a follow-up route are pending product decisions.
 
 **Numbered behavior callouts**
 
@@ -147,7 +148,7 @@ The request does not set a password or grant access. A Superadmin and Admin appr
 2. Names use `given-name` and `family-name`; email uses `email`.
 3. Duplicate response stays neutral to avoid email enumeration; do not return account-existence-specific timing or copy.
 4. Assign `User`/`Inactive` atomically for both email and Google-created identities. Never honor client-supplied role/status.
-5. Superadmin and Admin approval is required before protected access; email users receive the setup link after approval; Google users return via Google after approval.
+5. Superadmin approval is required before protected access; email users receive the setup link after approval; Google users return via Google after approval.
 
 ## Screen 3 — Set Password (approved email account)
 
@@ -162,14 +163,14 @@ The request does not set a password or grant access. A Superadmin and Admin appr
 | Validation errors | Summary `Check the highlighted fields.` New password `Error: Meet each password requirements below.` Confirm password `These passwords don't match. Check both fields and try again.` |
 | Loading | `Saving password…`; disable form and duplicate submission. |
 | Success | Heading `Password set`; `Your password is ready. Sign in to continue.` Action `Back to Sign In`. |
-| Expired/invalid link | `This setup link can't be used. Ask your Superadmin and Admin to send a new one.` Distinguish expired from malformed only if doing so does not disclose identity. Link `Back to Sign In`. |
+| Expired/invalid link | `This setup link can't be used. Ask your Superadmin to send a new one.` Distinguish expired from malformed only if doing so does not disclose identity. Link `Back to Sign In`. |
 
 **Numbered behavior callouts**
 
 1. Initial focus New password; tab sequence: New password → Show/Hide → Confirm password → Show/Hide → Save → Back to Sign In.
 2. Email is visibly labeled/read-only and bound to the approved account.
 3. Link validity, single use, and expiry are pending security approval; server owns token validity.
-4. Superadmin and Admin approval is the only transition from Inactive to Active; even after approval, an email account cannot sign in until password setup completes.
+4. Superadmin approval is the only transition from Inactive to Active; even after approval, an email account cannot sign in until password setup completes.
 
 ## Screen 4 — Reset-Password: Request Reset
 
@@ -254,14 +255,14 @@ The request does not set a password or grant access. A Superadmin and Admin appr
 | Password mismatch | `These passwords don't match. Check both fields and try again.` |
 | Submission summary | `Check the highlighted fields.` |
 | Generic sign-in error | `We couldn't sign you in with those details. Check your email and password, then try again.` |
-| Pending account | `Your account is pending Superadmin and Admin approval. You can sign in after it is approved.` |
+| Pending account | `Your account is pending Superadmin approval. You can sign in after it is approved.` |
 | Blocked account | `This account can't sign in right now. Contact your administrator for help.` |
 | Session expired | `Your session expired. Sign in again to continue.` |
 | Google error | `Google sign-in didn't finish. Try again or use your email and password.` |
 | Google loading | `Connecting to Google…` |
 | Password sign-in loading | `Signing in…` |
 | Registration received | `Your request is pending Superadmin approval. We’ll email you after it’s reviewed. If approved, we’ll send a link to set your password.` |
-| Google pending | `Your Google account is linked. A Superadmin and Admin must approve your access before you can use Hope.` |
+| Google pending | `Your Google account is linked. A Superadmin must approve your access before you can use Hope.` |
 | Registration loading | `Submitting request…` |
 | Reset heading/helper | `Reset-Password?`; `Enter your email address. If an account matches, we'll send reset instructions.` |
 | Reset actions | `Send Reset Link`; `Back to Sign In` |
@@ -275,7 +276,7 @@ The request does not set a password or grant access. A Superadmin and Admin appr
 | Password save | `Save`; `Saving password…` |
 | Set password success | `Your password is ready. Sign in to continue.` |
 | Reset success | `Your password has been updated. Sign in with your new password.` |
-| Setup-link error | `This setup link can't be used. Ask your Superadmin and Admin to send a new one.` |
+| Setup-link error | `This setup link can't be used. Ask your Superadmin to send a new one.` |
 | Setup-link action | `Request a new setup link` |
 | Reset-link expired | `Request a new link to reset your password.` |
 | Reset-link invalid/used | `Request a new link to continue.` |
@@ -297,7 +298,7 @@ The request does not set a password or grant access. A Superadmin and Admin appr
 
 ## Review checklist
 
-- [x] New email and Google accounts are User/Inactive and require Superadmin and Admin approval.
+- [x] New email and Google accounts are User/Inactive and require Superadmin approval.
 - [x] Register has First name, Last name, Email, Register, Google option, and Sign In link; no password fields.
 - [x] Login has Email, password show/hide, Remember me, Reset-Password?, Sign In, Google option, and Register link.
 - [x] Reset confirmation and errors are privacy-safe; login credential error is identical for unknown email and wrong password.

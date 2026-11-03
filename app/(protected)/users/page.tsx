@@ -22,7 +22,7 @@ export default async function UsersPage() {
   const access = await getProfileAccess(user.id);
   if (
     access.status !== "approved" ||
-    !["admin", "superadmin"].includes(access.role ?? "")
+    access.role !== "superadmin"
   ) {
     redirect("/dashboard");
   }
@@ -55,7 +55,7 @@ export default async function UsersPage() {
   return (
     <main className="container" style={{ paddingBlock: "4rem" }}>
       <h1>Pending user approvals</h1>
-      <p>Admins and Superadmins can approve regular User accounts.</p>
+      <p>Only Superadmins can approve regular User accounts.</p>
       {pendingUsers?.length ? (
         <ul>
           {pendingUsers.map((pendingUser) => (

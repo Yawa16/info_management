@@ -20,18 +20,21 @@ export type AuthMode = "login" | "register" | "reset";
 
 const content = {
   login: {
+    eyebrow: "WELCOME BACK",
     title: "Welcome back",
     description: "Sign in to your Hope, Inc. ERP account",
     action: "Sign In",
     footer: <>Don’t have an account? <Link href="/register">Register</Link></>,
   },
   register: {
+    eyebrow: "YOUR NEXT CHAPTER",
     title: "Create your account",
     description: "Join Hope, Inc. ERP",
     action: "Register",
     footer: <>Already have an account? <Link href="/login">Sign in</Link></>,
   },
   reset: {
+    eyebrow: "WE'VE GOT YOU",
     title: "Reset password",
     description: "We’ll send you a secure link to reset it",
     action: "Send Reset Link",
@@ -39,7 +42,13 @@ const content = {
   },
 } satisfies Record<
   AuthMode,
-  { title: string; description: string; action: string; footer: React.ReactNode }
+  {
+    eyebrow: string;
+    title: string;
+    description: string;
+    action: string;
+    footer: React.ReactNode;
+  }
 >;
 
 export default function AuthForm({
@@ -76,6 +85,9 @@ export default function AuthForm({
     <section className="auth-card" aria-labelledby="auth-title">
       <header className="auth-card-header">
         <div>
+          <span className="auth-eyebrow">
+            <i /> {current.eyebrow}
+          </span>
           <h1 id="auth-title">{current.title}</h1>
           <p className="auth-description">{current.description}</p>
         </div>
@@ -88,8 +100,8 @@ export default function AuthForm({
         <div className="register-success" role="status" aria-live="polite">
           <p>{registerState.message}</p>
           <span>
-            An Admin or Superadmin must approve your account before you can use
-            the system. If prompted, confirm your email before signing in.
+            A Superadmin must approve your account before you can use the
+            system. If prompted, confirm your email before signing in.
           </span>
         </div>
       ) : (
@@ -231,8 +243,8 @@ export default function AuthForm({
 
           {isRegister && (
             <p className="form-note">
-              New accounts are created as a User. An Admin or Superadmin must
-              approve your account before you can use the system.
+              New accounts are created as a User. A Superadmin must approve
+              your account before you can use the system.
             </p>
           )}
 
