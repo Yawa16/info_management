@@ -59,7 +59,7 @@ export default async function UsersPage() {
   return (
     <main className="container" style={{ paddingBlock: "4rem" }}>
       <h1>Pending user approvals</h1>
-      <p>Admins and Superadmins can approve regular User accounts.</p>
+      <p>Only approved Admins and Superadmins can approve regular User accounts.</p>
       {pendingUsers?.length ? (
         <ul>
           {pendingUsers.map((pendingUser) => (

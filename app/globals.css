@@ -204,6 +204,7 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .auth-help span { margin-right: 5px; }
 .auth-help a { color: #4d8068; font-weight: 600; }
 .auth-mobile-brand { display: none; }
+.auth-mobile-brand .brand-light { color: #2d493d; }
 .register-form { gap: 13px; }
 .register-field-error { display: block; margin-top: -4px; color: #a33b35; font-size: 11px; line-height: 1.4; }
 .register-form [aria-invalid="true"] { border-color: #a33b35 !important; }

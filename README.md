@@ -34,6 +34,23 @@ development project after confirmation from the DB Admin.
    Visit `http://localhost:3000` for the landing page and
    `http://localhost:3000/api/health` to check Supabase connectivity.
 
+## Authentication screen preview
+
+Start the app with `npm run dev`, then open:
+
+- `http://localhost:3000/login` — Sign in
+- `http://localhost:3000/register` — Register
+- `http://localhost:3000/reset-password` — Request a password reset
+- `http://localhost:3000/reset-password/update` — Set a new password after
+  opening a valid password-reset link. Without a valid Supabase session, this
+  route safely redirects to the reset screen.
+
+The PR does not have a hosted preview deployment. Supabase URL and anon key
+configuration is required to run the interactive app because middleware
+refreshes sessions. To review every documented state and the desktop, tablet,
+and mobile wireframes without setting up Supabase, open
+`docs/task-2-auth-wireframes.html` in a browser.
+
 Use `npm run typecheck` and `npm run build` to verify the project.
 
 ## Supabase scaffold
@@ -102,15 +119,14 @@ settings, including the Google OAuth client ID and secret. Copy the Supabase
 provider callback URL into the Google OAuth client's authorized redirect URIs,
 and allow the development app's `/auth/callback` URL in Supabase's redirect
 URL settings. First-time Google sign-ups create regular User profiles with
-pending approval; they do not grant access until an Admin or Superadmin
+pending approval; they do not grant access until an approved Admin or Superadmin
 approves the account.
 
 The login flow checks the profile on the server and rejects users whose
-approval status is pending. Approved Admins and Superadmins can open
-`/users` to approve pending regular User accounts. The server verifies the
-approver's authenticated profile and only updates a target row whose role is
-`user` and status is `pending`; Admins cannot view or modify Superadmin
-accounts. Protected pages must be placed under
+approval status is pending. Approved Admins and Superadmins can open `/users`
+to approve pending regular User accounts. The server verifies the approver's
+authenticated profile and only updates a target row whose role is `user` and
+status is `pending`. Protected pages must be placed under
 `app/(protected)/` so its server layout checks the current Supabase user and
 approval status on every request. Server actions and route handlers that
 access protected data must also check approval status before doing work; the
