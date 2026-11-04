@@ -50,7 +50,19 @@ export async function GET(request: NextRequest) {
     requestUrl.searchParams.get("next"),
     siteOrigin,
   );
-  const isPasswordRecovery = nextPath === "/reset-password/update";
+  const errorCode = requestUrl.searchParams.get("error_code")?.toLowerCase();
+  const errorDescription =
+    requestUrl.searchParams.get("error_description")?.toLowerCase() ?? "";
+  const isExpiredRecoveryLink =
+    errorCode === "otp_expired" ||
+    errorCode === "otp_disabled" ||
+    (errorDescription.includes("email link") &&
+      (errorDescription.includes("invalid") ||
+        errorDescription.includes("expired")));
+  const isPasswordRecovery =
+    nextPath === "/reset-password/update" ||
+    requestUrl.searchParams.get("type") === "recovery" ||
+    (googleFlow === "recovery" && isExpiredRecoveryLink);
   const errorPath = isPasswordRecovery
     ? "/reset-password?notice=invalid-link"
     : isGoogleRegistration || isGoogleLogin
