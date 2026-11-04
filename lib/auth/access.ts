@@ -13,7 +13,8 @@ type ProfileAccess =
     }
   | { status: "pending"; role?: undefined }
   | { status: "blocked"; role?: undefined }
-  | { status: "unavailable"; role?: undefined };
+    | { status: "rejected"; role?: undefined }
+    | { status: "unavailable"; role?: undefined };
 
 export async function getProfileAccess(userId: string): Promise<ProfileAccess> {
   let data;
@@ -52,6 +53,10 @@ export async function getProfileAccess(userId: string): Promise<ProfileAccess> {
     return { status: "blocked" };
   }
 
+  if (data.approval_status === "rejected") {
+    return { status: "rejected" };
+  }
+
   if (
     data.approval_status === "pending" &&
     ["superadmin", "admin", "user"].includes(data.role)
@@ -60,7 +65,7 @@ export async function getProfileAccess(userId: string): Promise<ProfileAccess> {
   }
 
   if (
-    data.approval_status !== "approved" ||
+    !["approved", "active"].includes(data.approval_status) ||
     !["superadmin", "admin", "user"].includes(data.role)
   ) {
     console.error("Profile has an unsupported role or approval status.", {
@@ -79,7 +84,7 @@ export async function getProfileAccess(userId: string): Promise<ProfileAccess> {
 }
 
 async function redirectAfterAccessFailure(
-  status: "pending" | "blocked" | "unavailable",
+  status: "pending" | "blocked" | "rejected" | "unavailable",
   userId: string,
 ): Promise<never> {
   const supabase = await createSupabaseServerClient();
@@ -97,6 +102,8 @@ async function redirectAfterAccessFailure(
       ? "/login?notice=pending"
       : status === "blocked"
         ? "/login?notice=blocked"
+        : status === "rejected"
+          ? "/login?notice=rejected"
         : "/login?notice=unavailable",
   );
 }
@@ -131,6 +138,9 @@ export async function redirectSignedInUser() {
   }
   if (access.status === "blocked") {
     return await redirectAfterAccessFailure("blocked", user.id);
+  }
+  if (access.status === "rejected") {
+    return await redirectAfterAccessFailure("rejected", user.id);
   }
   if (access.status === "unavailable") {
     return await redirectAfterAccessFailure("unavailable", user.id);
@@ -174,6 +184,9 @@ export async function requireApprovedUser() {
   if (access.status === "blocked") {
     return await redirectAfterAccessFailure("blocked", user.id);
   }
+  if (access.status === "rejected") {
+    return await redirectAfterAccessFailure("rejected", user.id);
+  }
   if (access.status === "unavailable") {
     return await redirectAfterAccessFailure("unavailable", user.id);
   }
@@ -206,6 +219,9 @@ export async function requirePasswordChangeUser() {
   }
   if (access.status === "blocked") {
     return await redirectAfterAccessFailure("blocked", user.id);
+  }
+  if (access.status === "rejected") {
+    return await redirectAfterAccessFailure("rejected", user.id);
   }
   if (access.status === "unavailable") {
     return await redirectAfterAccessFailure("unavailable", user.id);

@@ -184,3 +184,36 @@ server-only service-role client; passwords remain managed by Supabase Auth.
 The SQL migration is committed but has not been applied to any Supabase
 project. Verify against the approved development project before deployment;
 do not apply it to production without explicit approval.
+
+## Task 6: Superadmin controls and last-Superadmin protection
+
+The Superadmin-only Pending approvals section on `/users` lists pending
+regular User registrations with Approve and Reject actions. Admins and regular
+Users do not see the section and cannot invoke its actions.
+Approve sets `approval_status = 'active'` and requires first-time password
+setup. Reject sets `approval_status = 'rejected'`; it keeps the Auth/profile
+records for auditability, but rejected profiles cannot sign in to protected
+ERP pages.
+The Superadmin can also promote an active User to Admin or demote an active
+Admin to User in User Management. Every action re-reads the authenticated
+caller and target on the server; Admins cannot invoke these actions.
+
+Before blocking an active Superadmin, the server checks that another active,
+unblocked Superadmin remains. The Task 6 database migration adds a
+`BEFORE UPDATE OF role, approval_status, is_blocked OR DELETE` trigger that
+repeats this invariant inside the database, serializes competing
+demotion/block/delete attempts with a
+transaction-scoped advisory lock, and raises a clear error if an action would
+remove the last active Superadmin. This also protects deletes through the
+`auth.users` foreign-key cascade. RLS stays enabled; the existing manager
+update policy limits role updates to Superadmins and regular User targets for
+Admins, and authenticated clients are not granted direct updates to
+`approval_status`.
+
+The DB Admin should apply
+`supabase/migrations/20261104210000_task6_superadmin_controls.sql` only to
+the approved development project after reviewing it. Confirm whether the DB
+Admin has already applied this exact version. The migration extends
+the status constraint for `active` and `rejected`, refreshes the Task 5 RLS
+authorization functions to accept active Superadmins/Admins, and installs the
+last-Superadmin trigger.

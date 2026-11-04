@@ -3,6 +3,7 @@ import ApproveUserForm from "@/components/ApproveUserForm";
 import BlockManagedUserForm from "@/components/BlockManagedUserForm";
 import CreateManagedUserForm from "@/components/CreateManagedUserForm";
 import EditManagedUserForm from "@/components/EditManagedUserForm";
+import ManageUserRoleForm from "@/components/ManageUserRoleForm";
 import { getProfileAccess } from "@/lib/auth/access";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -20,6 +21,7 @@ type ManagedProfile = {
 function displayStatus(profile: ManagedProfile) {
   if (profile.is_blocked) return "Blocked";
   if (profile.approval_status === "pending") return "Pending";
+  if (profile.approval_status === "rejected") return "Rejected";
   return "Active";
 }
 
@@ -57,16 +59,19 @@ export default async function UsersPage() {
     usersQuery = usersQuery.neq("role", "superadmin");
   }
 
-  const [{ data: users, error: usersError }, { data: pendingUsers, error: pendingError }] =
-    await Promise.all([
-      usersQuery,
-      adminClient
-        .from("profiles")
-        .select("id, first_name, last_name, email")
-        .eq("role", "user")
-        .eq("approval_status", "pending")
-        .order("first_name"),
-    ]);
+  const [{ data: users, error: usersError }, pendingResult] = await Promise.all([
+    usersQuery,
+    access.role === "superadmin"
+      ? adminClient
+          .from("profiles")
+          .select("id, first_name, last_name, email")
+          .eq("role", "user")
+          .eq("approval_status", "pending")
+          .order("first_name")
+      : Promise.resolve({ data: null, error: null }),
+  ]);
+  const pendingUsers = pendingResult.data;
+  const pendingError = pendingResult.error;
 
   if (usersError) {
     console.error("Unable to load managed user accounts.", {
@@ -80,14 +85,13 @@ export default async function UsersPage() {
       message: pendingError.message,
     });
   }
-
   return (
     <main className="container user-management-page">
       <header className="user-management-header">
         <div>
           <p className="eyebrow">HOPE, INC. ERP</p>
           <h1>User Management</h1>
-          <p>Manage account details, access status, and pending approvals.</p>
+          <p>Manage accounts, access status, and pending approvals.</p>
         </div>
         <CreateManagedUserForm />
       </header>
@@ -162,6 +166,18 @@ export default async function UsersPage() {
                               Rights
                             </button>
                             <EditManagedUserForm user={managedUser} />
+                            {access.role === "superadmin" &&
+                              !managedUser.is_blocked &&
+                              ["active", "approved"].includes(
+                                managedUser.approval_status,
+                              ) &&
+                              (managedUser.role === "admin" ||
+                                managedUser.role === "user") && (
+                                <ManageUserRoleForm
+                                  userId={managedUser.id}
+                                  role={managedUser.role}
+                                />
+                              )}
                           </div>
                         ) : (
                           <span aria-label="No actions available">—</span>
@@ -178,33 +194,46 @@ export default async function UsersPage() {
         )}
       </section>
 
-      <section className="user-management-section" aria-labelledby="pending-title">
-        <div className="user-section-heading">
-          <div>
-            <h2 id="pending-title">Pending approvals</h2>
-            <p>Approve regular User registrations before they can access the ERP.</p>
+      {access.role === "superadmin" && (
+        <section
+          className="user-management-section"
+          aria-labelledby="pending-title"
+        >
+          <div className="user-section-heading">
+            <div>
+              <h2 id="pending-title">Pending approvals</h2>
+              <p>
+                Approve or reject regular User registrations before they can
+                access the ERP.
+              </p>
+            </div>
+            <span className="user-count">
+              {pendingUsers?.length ?? 0} pending
+            </span>
           </div>
-        </div>
-        {pendingError ? (
-          <p className="user-load-error" role="alert">
-            We couldn’t load pending accounts. Please refresh or contact support.
-          </p>
-        ) : pendingUsers?.length ? (
-          <ul className="user-pending-list">
-            {pendingUsers.map((pendingUser) => (
-              <li key={pendingUser.id}>
-                <span>
-                  {pendingUser.first_name} {pendingUser.last_name}
-                  <small>{pendingUser.email}</small>
-                </span>
-                <ApproveUserForm userId={pendingUser.id} />
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="user-empty-state">No pending User accounts.</p>
-        )}
-      </section>
+          {pendingError ? (
+            <p className="user-load-error" role="alert">
+              We couldn’t load pending accounts. Please refresh or contact
+              support.
+            </p>
+          ) : pendingUsers?.length ? (
+            <ul className="user-pending-list">
+              {pendingUsers.map((pendingUser) => (
+                <li key={pendingUser.id}>
+                  <span>
+                    {pendingUser.first_name} {pendingUser.last_name}
+                    <small>{pendingUser.email}</small>
+                  </span>
+                  <ApproveUserForm userId={pendingUser.id} />
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="user-empty-state">No pending User accounts.</p>
+          )}
+        </section>
+      )}
+
     </main>
   );
 }
