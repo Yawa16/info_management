@@ -1,0 +1,578 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hope ERP — Task 3 Main Page and User Management Wireframes</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --color-primary-600: #397e68;
+      --color-primary-700: #2f6d58;
+      --color-primary-800: #245b4b;
+      --color-sidebar: #263d34;
+      --color-sidebar-text: #fff;
+      --color-sidebar-text-secondary: #d4ded7;
+      --color-sidebar-text-disabled: #bbc8bf;
+      --color-page: #faf9f5;
+      --color-surface: #fffefa;
+      --color-border: #8d9188;
+      --color-text-primary: #202c29;
+      --color-text-secondary: #58635d;
+      --color-text-disabled: #626b65;
+      --color-success-50: #e7f1e8;
+      --color-success-800: #285d3e;
+      --color-danger-50: #fbeae7;
+      --color-danger-800: #9f3029;
+      --color-danger-700: #a63232;
+      --color-danger-800-solid: #842727;
+      --color-warning-50: #fff2d7;
+      --color-warning-800: #754900;
+      --color-info-50: #e6f0f7;
+      --color-info-800: #205b75;
+      --color-role-superadmin-bg: #efeafa;
+      --color-role-superadmin-fg: #55418b;
+      --color-role-admin-bg: #e7eef8;
+      --color-role-admin-fg: #315581;
+      --color-role-user-bg: #e8f1e9;
+      --color-role-user-fg: #315d3e;
+      --color-row-deleted: #f1f0ec;
+      --color-focus: #245b4b;
+      --space-1: 4px;
+      --space-2: 8px;
+      --space-3: 12px;
+      --space-4: 16px;
+      --space-5: 20px;
+      --space-6: 24px;
+      --space-8: 32px;
+      --space-10: 40px;
+      --radius-sm: 4px;
+      --radius-md: 6px;
+      --radius-lg: 10px;
+      --radius-pill: 999px;
+      --shadow-card: 0 2px 8px rgb(32 44 41 / 6%), 0 1px 2px rgb(32 44 41 / 5%);
+      --shadow-popover: 0 8px 24px rgb(32 44 41 / 12%), 0 2px 6px rgb(32 44 41 / 6%);
+      --shadow-dialog: 0 20px 56px rgb(20 32 27 / 22%);
+      font-family: Inter, Arial, Helvetica, sans-serif;
+      color: var(--color-text-primary);
+      background: var(--color-page);
+      font-synthesis: none;
+      text-rendering: optimizeLegibility;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-size: 14px; line-height: 1.45; }
+    button, input, select { font: inherit; }
+    button { color: inherit; }
+    a { color: var(--color-primary-800); text-underline-offset: 2px; }
+    :focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+    .sheet { width: min(1440px, 100%); margin: 0 auto; padding: 32px; }
+    .masthead { display: flex; align-items: end; justify-content: space-between; gap: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--color-border); }
+    .logo { display: inline-flex; min-height: 32px; align-items: center; padding: 0 8px; border: 1px dashed var(--color-border); border-radius: var(--radius-sm); color: var(--color-text-secondary); font-size: 12px; }
+    h1 { margin: 10px 0 4px; font-size: 28px; line-height: 36px; font-weight: 600; }
+    h2 { margin: 0 0 12px; font-size: 20px; line-height: 28px; font-weight: 600; }
+    h3 { margin: 0; font-size: 16px; line-height: 22px; font-weight: 600; }
+    p { margin: 0; }
+    .muted, .meta { color: var(--color-text-secondary); }
+    .meta { font-size: 12px; line-height: 16px; }
+    .masthead > p { max-width: 500px; color: var(--color-text-secondary); }
+    .section { margin-top: 28px; }
+    .panel { padding: 20px; border: 1px solid var(--color-border); border-radius: var(--radius-lg); background: var(--color-surface); box-shadow: var(--shadow-card); }
+    .intro-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 24px; }
+    .role-table, .micro-table { width: 100%; border-collapse: collapse; text-align: left; }
+    .role-table th, .role-table td, .micro-table th, .micro-table td { padding: 8px; border-bottom: 1px solid var(--color-border); vertical-align: top; }
+    .role-table th, .micro-table th { font-size: 12px; }
+    .flow { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+    .flow-node { padding: 7px 10px; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-page); }
+    .arrow { color: var(--color-text-secondary); font-weight: 600; }
+    .screen { margin-top: 36px; scroll-margin-top: 16px; }
+    .screen-heading { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 20px; margin-bottom: 6px; }
+    .screen-intro { margin-bottom: 10px; color: var(--color-text-secondary); }
+    .state { margin-top: 18px; padding: 16px; border: 1px solid var(--color-border); border-radius: var(--radius-lg); background: var(--color-surface); }
+    .state-title { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
+    .state-title strong { font-size: 14px; }
+    .state-title span { color: var(--color-text-secondary); font-size: 12px; }
+    .views { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
+    .viewport { min-width: 0; margin: 0; padding: 8px; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-page); }
+    .viewport-label { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 8px; font-size: 12px; font-weight: 600; }
+    .viewport-label span:last-child { color: var(--color-text-secondary); font-weight: 400; }
+    .scene { position: relative; height: 370px; overflow-x: auto; overflow-y: hidden; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-page); }
+    .frame-caption { margin: 5px 2px 0; color: var(--color-text-secondary); font-size: 10px; line-height: 14px; }
+    .app-shot { position: relative; display: flex; width: 100%; min-width: 0; min-height: 100%; overflow: hidden; background: var(--color-page); }
+    .sidebar { display: flex; width: 256px; flex: 0 0 256px; flex-direction: column; gap: 8px; overflow: hidden; padding: 10px 12px; color: var(--color-sidebar-text); background: var(--color-sidebar); }
+    .brand { display: flex; min-width: 0; align-items: center; gap: 8px; margin: 0 0 8px; padding: 5px 2px; overflow: hidden; border-bottom: 1px solid rgb(255 255 255 / 28%); font-size: 12px; font-weight: 600; }
+    .brand-icon { display: inline-grid; width: 20px; height: 20px; flex: 0 0 20px; place-items: center; border: 1px solid currentColor; border-radius: 4px; }
+    .brand-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .nav-item { display: flex; min-width: 0; min-height: 36px; align-items: center; gap: 8px; overflow: hidden; padding: 6px 8px; border-radius: var(--radius-sm); color: var(--color-sidebar-text-secondary); font-size: 12px; text-decoration: none; }
+    .nav-item.active { color: var(--color-sidebar-text); background: rgb(255 255 255 / 16%); box-shadow: inset 3px 0 0 var(--color-sidebar-text); }
+    .nav-item.disabled { color: var(--color-sidebar-text-disabled); background: transparent; text-decoration: underline dotted; text-underline-offset: 3px; }
+    .nav-icon { display: inline-grid; width: 20px; height: 20px; flex: 0 0 20px; place-items: center; border: 1px solid currentColor; border-radius: 3px; font-size: 10px; }
+    .side-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .shot-main { min-width: 0; flex: 1; }
+    .topbar { display: flex; min-height: 42px; align-items: center; justify-content: space-between; gap: 5px; padding: 5px 8px; border-bottom: 1px solid var(--color-border); background: var(--color-surface); }
+    .topbar-title { font-size: 12px; font-weight: 600; }
+    .topbar-right { display: flex; align-items: center; gap: 5px; }
+    .profile { display: flex; align-items: center; gap: 4px; font-size: 8px; }
+    .role-pill, .status { display: inline-flex; align-items: center; gap: 3px; padding: 2px 5px; border-radius: var(--radius-pill); font-size: 8px; font-weight: 600; white-space: nowrap; }
+    .role-superadmin { color: var(--color-role-superadmin-fg); background: var(--color-role-superadmin-bg); }
+    .role-admin { color: var(--color-role-admin-fg); background: var(--color-role-admin-bg); }
+    .role-user { color: var(--color-role-user-fg); background: var(--color-role-user-bg); }
+    .status-active { color: var(--color-success-800); background: var(--color-success-50); }
+    .status-inactive, .status-blocked { color: var(--color-danger-800); background: var(--color-danger-50); }
+    .status-deleted { color: var(--color-text-primary); background: var(--color-row-deleted); border: 1px solid var(--color-border); }
+    .topbar button, .menu-trigger { min-height: 28px; padding: 3px 6px; border: 1px solid var(--color-border); border-radius: var(--radius-sm); background: var(--color-surface); font-size: 9px; }
+    .menu-trigger { display: none; }
+    .content { height: 326px; overflow: hidden; padding: 10px; }
+    .page-heading { display: flex; align-items: start; justify-content: space-between; gap: 6px; margin-bottom: 8px; }
+    .page-heading h3 { font-size: 15px; }
+    .page-heading p { margin-top: 2px; color: var(--color-text-secondary); font-size: 9px; }
+    .button { display: inline-flex; min-height: 28px; align-items: center; justify-content: center; padding: 4px 8px; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface); font-size: 9px; font-weight: 600; white-space: nowrap; }
+    .button.primary { border-color: var(--color-primary-600); color: #fff; background: var(--color-primary-600); }
+    .button.danger { border-color: var(--color-danger-700); color: #fff; background: var(--color-danger-700); }
+    .button.ghost { border-color: transparent; background: transparent; }
+    .button.disabled { color: var(--color-text-disabled); background: var(--color-row-deleted); }
+    .home-greeting { margin: 10px 0; font-size: 13px; font-weight: 600; }
+    .quick-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; margin-top: 10px; }
+    .quick-action { display: flex; height: 84px; min-width: 0; flex-direction: column; align-items: flex-start; justify-content: flex-start; gap: 6px; overflow: hidden; padding: 12px; border: 1px solid var(--color-border); border-radius: var(--radius-md); color: var(--color-text-primary); background: var(--color-surface); text-align: left; }
+    .quick-action strong { font-size: 10px; }
+    .quick-action span { display: -webkit-box; overflow: hidden; color: var(--color-text-secondary); font-size: 8px; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+    .empty-note, .alert { margin: 10px 0; padding: 8px; border: 1px solid var(--color-border); border-radius: var(--radius-sm); background: var(--color-surface); font-size: 9px; }
+    .alert.error { border-color: var(--color-danger-800); color: var(--color-danger-800); background: var(--color-danger-50); }
+    .alert.info { border-color: var(--color-info-800); color: var(--color-info-800); background: var(--color-info-50); }
+    .alert.warning { border-color: var(--color-warning-800); color: var(--color-warning-800); background: var(--color-warning-50); }
+    .loading-line { height: 12px; margin: 7px 0; border-radius: var(--radius-sm); background: var(--color-row-deleted); }
+    .loading-line.short { width: 48%; }
+    .loading-line.medium { width: 72%; }
+    .toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; margin: 7px 0; }
+    .search { display: flex; min-width: 112px; min-height: 27px; flex: 1; align-items: center; padding: 3px 6px; border: 1px solid var(--color-border); border-radius: var(--radius-sm); color: var(--color-text-secondary); background: var(--color-surface); font-size: 8px; }
+    .select-mock { min-height: 27px; padding: 3px 6px; border: 1px solid var(--color-border); border-radius: var(--radius-sm); background: var(--color-surface); font-size: 8px; }
+    .tabs { display: flex; overflow-x: auto; overflow-y: hidden; gap: 3px; margin: 6px 0; border-bottom: 1px solid var(--color-border); }
+    .tab { flex: 0 0 auto; padding: 5px 4px; border: 0; border-bottom: 2px solid transparent; background: transparent; font-size: 7px; white-space: nowrap; }
+    .tab.selected { border-bottom-color: var(--color-primary-800); font-weight: 700; }
+    .bulk-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin: 6px 0; padding: 5px; border: 1px solid var(--color-border); border-radius: var(--radius-sm); background: var(--color-info-50); font-size: 8px; }
+    .table-wrap { overflow: auto; border: 1px solid var(--color-border); border-radius: var(--radius-sm); background: var(--color-surface); }
+    table.users { width: 100%; min-width: 690px; border-collapse: collapse; font-size: 7px; }
+    .users th, .users td { padding: 5px 4px; border-bottom: 1px solid var(--color-border); text-align: left; white-space: nowrap; }
+    .users th { position: sticky; top: 0; z-index: 1; background: var(--color-page); font-size: 7px; }
+    .users th:first-child, .users td:first-child { position: sticky; left: 0; z-index: 2; background: var(--color-surface); }
+    .users th:first-child { z-index: 3; background: var(--color-page); }
+    .users tr.hover td { background: var(--color-row-deleted); }
+    .users tr.selected td { background: var(--color-info-50); }
+    .users tr.deleted td { background: var(--color-row-deleted); }
+    .users tr.deleted td:first-child { background: var(--color-row-deleted); }
+    .checkbox-mock { display: inline-grid; width: 12px; height: 12px; place-items: center; border: 1px solid var(--color-border); border-radius: 2px; color: #fff; background: var(--color-surface); font-size: 9px; line-height: 1; }
+    .checkbox-mock.checked { color: #fff; background: var(--color-primary-800); }
+    .checkbox-mock.mixed { color: #fff; background: var(--color-primary-800); }
+    .row-menu { padding: 2px 4px; border: 1px solid var(--color-border); border-radius: var(--radius-sm); background: var(--color-surface); font-size: 7px; }
+    .mobile-cards { display: none; }
+    .mobile-card { margin: 5px 0; padding: 7px; border: 1px solid var(--color-border); border-radius: var(--radius-sm); background: var(--color-surface); font-size: 8px; }
+    .mobile-card.deleted { background: var(--color-row-deleted); }
+    .mobile-card-top { display: flex; align-items: center; justify-content: space-between; gap: 4px; margin-bottom: 4px; }
+    .mobile-card strong { font-size: 9px; }
+    .field { display: block; margin: 6px 0; }
+    .field label { display: block; margin-bottom: 2px; font-size: 8px; font-weight: 600; }
+    .field input, .field select { width: 100%; min-height: 29px; padding: 4px 6px; border: 1px solid var(--color-border); border-radius: var(--radius-sm); color: var(--color-text-primary); background: var(--color-surface); font-size: 9px; }
+    .field.error input { border-color: var(--color-danger-800); }
+    .field.focus input { outline: 2px solid var(--color-focus); outline-offset: 1px; }
+    .field .help-error { display: block; margin-top: 2px; color: var(--color-danger-800); font-size: 8px; }
+    .scrim { position: absolute; z-index: 5; inset: 0; display: flex; justify-content: flex-end; background: rgb(32 44 41 / 38%); }
+    .drawer { display: flex; width: min(78%, 250px); flex-direction: column; gap: 7px; padding: 10px; color: var(--color-sidebar-text); background: var(--color-sidebar); }
+    .drawer .nav-item { min-height: 34px; font-size: 10px; }
+    .dialog-panel { display: flex; width: 79%; height: 100%; flex-direction: column; border-left: 1px solid var(--color-border); background: var(--color-surface); box-shadow: var(--shadow-dialog); }
+    .dialog-header, .dialog-footer { display: flex; min-height: 37px; align-items: center; justify-content: space-between; gap: 6px; padding: 6px 8px; background: var(--color-surface); }
+    .dialog-header { border-bottom: 1px solid var(--color-border); }
+    .dialog-footer { justify-content: flex-end; border-top: 1px solid var(--color-border); }
+    .dialog-body { flex: 1; overflow: auto; padding: 8px; }
+    .dialog-body .meta { font-size: 8px; }
+    .stamp { margin-top: 7px; padding: 6px; border-top: 1px solid var(--color-border); color: var(--color-text-secondary); font-size: 8px; }
+    .readonly-value { min-height: 28px; padding: 5px 6px; border: 1px solid var(--color-border); border-radius: var(--radius-sm); background: var(--color-row-deleted); font-size: 9px; }
+    .confirm-wrap { position: absolute; z-index: 6; inset: 0; display: grid; place-items: center; padding: 10px; background: rgb(32 44 41 / 38%); }
+    .confirm { width: min(88%, 330px); padding: 12px; border: 1px solid var(--color-border); border-radius: var(--radius-lg); background: var(--color-surface); box-shadow: var(--shadow-dialog); }
+    .confirm h3 { font-size: 13px; }
+    .confirm p { margin: 6px 0 10px; color: var(--color-text-secondary); font-size: 9px; }
+    .confirm-actions { display: flex; justify-content: flex-end; gap: 5px; }
+    .pagination { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px; margin-top: 6px; color: var(--color-text-secondary); font-size: 7px; }
+    .toast { position: absolute; z-index: 9; top: 7px; right: 7px; max-width: 180px; padding: 7px; border: 1px solid var(--color-success-800); border-radius: var(--radius-md); color: var(--color-success-800); background: var(--color-success-50); font-size: 9px; box-shadow: var(--shadow-popover); }
+    .state-note { margin: 10px 0 0; padding-left: 20px; color: var(--color-text-secondary); font-size: 12px; }
+    .state-note li { margin: 3px 0; }
+    .legend { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+    .legend .role-pill, .legend .status { font-size: 10px; }
+    .footer { margin-top: 36px; padding-top: 16px; border-top: 1px solid var(--color-border); color: var(--color-text-secondary); font-size: 12px; }
+    .v-desktop.app-shot { min-width: 720px; }
+    .v-tablet.app-shot { min-width: 520px; }
+    .v-mobile.app-shot { min-width: 375px; }
+    .v-desktop .sidebar { width: 256px; flex: 0 0 256px; }
+    .v-tablet .sidebar { display: none; }
+    .v-tablet .menu-trigger { display: inline-block; }
+    .v-mobile .sidebar { display: none; }
+    .v-mobile .menu-trigger { display: inline-block; }
+    .v-mobile .profile .person { display: none; }
+    .v-mobile .content { padding: 8px; }
+    .v-mobile .quick-actions { grid-template-columns: 1fr; }
+    .v-mobile .quick-action { height: 84px; }
+    .v-mobile .table-wrap { display: none; }
+    .v-mobile .mobile-cards { display: block; }
+    .v-mobile .tabs { overflow-x: auto; }
+    .v-mobile .tab { font-size: 8px; }
+    .v-mobile .dialog-panel { width: 100%; border-left: 0; }
+    .v-mobile .dialog-body { padding: 10px; }
+    .v-mobile .field input, .v-mobile .field select, .v-mobile .dialog-footer .button { min-height: 36px; }
+    .v-mobile .dialog-footer .button { min-width: 70px; }
+    .v-mobile .confirm { width: 96%; }
+    @media (max-width: 760px) {
+      .sheet { padding: 16px; }
+      .masthead { align-items: start; flex-direction: column; }
+      .intro-grid { grid-template-columns: 1fr; }
+      .views { grid-template-columns: 1fr; }
+      .scene { height: 370px; }
+      .role-table { font-size: 12px; }
+      .panel { padding: 14px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <main class="sheet">
+    <header class="masthead">
+      <div>
+        <div class="logo">HOPE ERP · WIREFRAME SHEET</div>
+        <h1>Main page and User Management</h1>
+      </div>
+      <p>Task 3 · Mid-fidelity · Static previews at desktop 1440px, tablet 768px, and mobile 375px. Uses Task 1 tokens and component patterns. Sample records are illustrative; this sheet is not functional authentication or account-management software.</p>
+    </header>
+
+    <section class="section panel">
+      <h2>Assumptions</h2>
+      <div class="intro-grid">
+        <p>Roles are Superadmin, Admin, and User. Statuses are Active, Inactive, and Blocked. Deleted is a soft-delete view, not an account status.</p>
+        <p>Superadmin manages all users and can assign User or Admin. Admin manages Users and can create Users only; Admin/Superadmin records are read-only. User has no User Management access.</p>
+        <p>Delete is recoverable; Deleted rows remain visible and can be restored. No permanent-delete action is shown.</p>
+        <p>Add user creates an approved account with an Admin-entered temporary password; the account holder must change it at first sign-in. Admin can create Users; Superadmin can create Users or Admins. The current creator only supports Users, so Admin-role creation needs implementation support.</p>
+        <p>No other business modules or dashboard metrics are named in the project context, so none are invented here.</p>
+        <p>At 768px and below, navigation uses the Task 1 drawer pattern. The drawer is closed by default and opens from the menu button.</p>
+      </div>
+    </section>
+
+    <section class="section panel">
+      <h2>Role permission matrix</h2>
+      <div style="overflow:auto">
+        <table class="role-table">
+          <thead><tr><th>Screen / action</th><th>Superadmin</th><th>Admin</th><th>User</th></tr></thead>
+          <tbody>
+            <tr><th>Home</th><td>Home, Add user, View users</td><td>Home, Add User, View Users</td><td>Home; no management actions</td></tr>
+            <tr><th>User Management</th><td>Full access</td><td>Manage Users; view Admin/Superadmin read-only</td><td>Disabled navigation; direct access is No access</td></tr>
+            <tr><th>Block / Delete / Restore</th><td>Any user except self</td><td>Users except self</td><td>Not available</td></tr>
+            <tr><th>Bulk actions</th><td>Eligible selected records</td><td>Eligible Users only</td><td>Not available</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section panel">
+      <h2>Flow overview</h2>
+      <div class="flow">
+        <span class="flow-node">Login</span><span class="arrow">→</span><span class="flow-node">Home</span><span class="arrow">→</span><span class="flow-node">User Management</span><span class="arrow">→</span><span class="flow-node">View / Add / Edit dialog</span><span class="arrow">→ Save</span><span class="flow-node">List updates + User saved</span>
+        <span class="flow-node">Block / Delete</span><span class="arrow">→ confirmation →</span><span class="flow-node">Updated status / Deleted tab</span>
+        <span class="flow-node">Restore</span><span class="arrow">→ confirmation →</span><span class="flow-node">Restored row</span>
+        <span class="flow-node">User role → No access → Back to Home</span>
+      </div>
+    </section>
+
+    <div id="gallery"></div>
+
+    <section class="section panel">
+      <h2>Product-owner decisions</h2>
+      <ol>
+        <li>Accounts created by Admin or Superadmin are approved immediately. Admin can create User accounts; Superadmin can create User or Admin accounts. Created users must change the temporary password at first sign-in.</li>
+        <li>Add requires a confirmation before account creation. The Admin shares the temporary password securely after creation.</li>
+        <li>Mixed bulk actions apply only to eligible rows and report the eligible count before confirmation.</li>
+        <li>Restore preserves the account’s prior status.</li>
+        <li>At and below 768px, use the Task 1 navigation drawer. Desktop sorting remains Last edited descending; mobile uses stacked cards. Users do not edit their own profiles in this task.</li>
+      </ol>
+      <p>Deferred: no dashboard metrics/business modules or licensed icon family are specified by the current project context.</p>
+    </section>
+
+    <footer class="footer">Numbered notes below each state specify interaction and permission behavior. Task 1 component names and tokens are retained; all screenshots are static design previews. See <a href="./task-3-main-and-user-management.md">the structured Task 3 document</a> for full assumptions, microcopy, matrix, and accessibility details.</footer>
+  </main>
+  <script>
+    const roles = {
+      superadmin: { label: "Superadmin", name: "Maya Chen", className: "role-superadmin" },
+      admin: { label: "Admin", name: "Ana Dela Cruz", className: "role-admin" },
+      user: { label: "User", name: "Nica Ramos", className: "role-user" }
+    };
+    const states = [
+      { group: "home", id: "home-superadmin", title: "Home — Superadmin", role: "superadmin", mode: "default", note: "1. Welcome uses the signed-in name. 2. Add user and View users are permitted shortcuts. 3. No undocumented business module or dashboard metric is added." },
+      { group: "home", id: "home-admin", title: "Home — Admin", role: "admin", mode: "default", note: "1. Admin shortcuts apply to Users only. 2. Role pill and accessible navigation label remain visible." },
+      { group: "home", id: "home-user", title: "Home — User", role: "user", mode: "default", note: "1. User sees no management shortcuts. 2. User Management navigation is disabled with an explanation, not simply hidden." },
+      { group: "home", id: "home-loading", title: "Home — Loading", role: "superadmin", mode: "loading", note: "1. Keep the shell and logout available. 2. Announce loading and mark the region aria-busy." },
+      { group: "home", id: "home-empty", title: "Home — Empty", role: "admin", mode: "empty", note: "1. Empty copy explains there is nothing to show. 2. Preserve the role’s available actions." },
+      { group: "home", id: "home-mobile-menu", title: "Home — Tablet/mobile navigation open", role: "user", mode: "menu", note: "1. At and below 768px the menu opens as a dismissible Task 1 drawer. 2. User Management retains its disabled reason. 3. Close menu or choose Home." },
+      { group: "home", id: "home-no-access", title: "Home → User Management — No access", role: "user", mode: "noaccess", note: "1. Direct navigation returns no protected data. 2. Explain the restriction and provide Back to Home." },
+
+      { group: "list", id: "list-default", title: "List — Default, Superadmin", role: "superadmin", mode: "default", note: "1. All status counts are illustrative. 2. Search by name/email, role filter, sortable headers, row actions, and pagination are visible. 3. Default sort is Last edited descending." },
+      { group: "list", id: "list-admin", title: "List — Admin view", role: "admin", mode: "default", note: "1. Admin can mutate Users only. 2. Admin/Superadmin rows remain viewable but have no mutation controls." },
+      { group: "list", id: "list-hover", title: "List — Row hover and focus", role: "superadmin", mode: "hover", note: "1. Hover does not reveal essential controls. 2. Keyboard focus has a visible 2px Task 1 ring." },
+      { group: "list", id: "list-selected", title: "List — Selected rows / bulk bar", role: "admin", mode: "selected", note: "1. Show selected and eligible counts. 2. Bulk actions apply to Users only; changes in filter/tab/page clear selection." },
+      { group: "list", id: "list-checked", title: "List — Header checkbox checked", role: "superadmin", mode: "checked", note: "1. Checked selects eligible visible rows on this page only. 2. Selection never silently includes hidden pages." },
+      { group: "list", id: "list-mixed", title: "List — Header checkbox indeterminate", role: "superadmin", mode: "mixed", note: "1. Mixed state means some, but not all, eligible rows on the current page are selected. 2. Expose aria-checked=mixed." },
+      { group: "list", id: "list-deleted", title: "List — Soft-deleted row", role: "superadmin", mode: "deleted", note: "1. Use --color-row-deleted without fading text. 2. Keep the DELETED stamp and offer Restore. 3. No permanent-delete action." },
+      { group: "list", id: "list-blocked", title: "List — Blocked row", role: "admin", mode: "blocked", note: "1. Pair the lock symbol with Blocked text. 2. Eligible Admin actions include Unblock." },
+      { group: "list", id: "list-loading", title: "List — Loading", role: "superadmin", mode: "loading", note: "1. Keep heading and filters stable. 2. Announce Loading users and mark the table busy." },
+      { group: "list", id: "list-empty", title: "List — No users yet", role: "superadmin", mode: "empty", note: "1. Give authorized roles an Add user next action. 2. Do not show this state for an authorization failure." },
+      { group: "list", id: "list-search-empty", title: "List — No search results", role: "admin", mode: "search-empty", note: "1. Preserve search and role filters. 2. Clear filters offers a direct recovery path." },
+      { group: "list", id: "list-tab-empty", title: "List — No results in tab", role: "superadmin", mode: "tab-empty", note: "1. Name the selected status in the message. 2. Offer another tab or Clear filters." },
+      { group: "list", id: "list-error", title: "List — Load error", role: "admin", mode: "error", note: "1. Keep filter values. 2. Try again retries the request and explains the next step." },
+      { group: "list", id: "list-no-access", title: "List — No access", role: "user", mode: "noaccess", note: "1. Direct URL access returns no account rows. 2. Back to Home provides a clear next step." },
+
+      { group: "dialog", id: "dialog-add-sa", title: "Dialog — Add user, Superadmin", role: "superadmin", mode: "add", note: "1. Enter first name, last name, email, temporary password, and role (User or Admin). 2. The account is approved immediately and the new user must change the password at first sign-in. 3. Current creator code supports User only; Admin creation is an implementation follow-up." },
+      { group: "dialog", id: "dialog-add-admin", title: "Dialog — Add User, Admin", role: "admin", mode: "add-admin", note: "1. Admin-created accounts are approved Users. 2. The user must change the temporary password at first sign-in. 3. Share the temporary password securely." },
+      { group: "dialog", id: "dialog-edit-admin", title: "Dialog — Superadmin edits Admin", role: "superadmin", mode: "edit-admin", note: "1. Superadmin can edit Admin records. 2. Show CREATED and EDITED stamps in Task 1 format." },
+      { group: "dialog", id: "dialog-edit-user", title: "Dialog — Admin edits User", role: "admin", mode: "edit-user", note: "1. Admin can edit Users. 2. Keep role constrained to User and show audit stamps." },
+      { group: "dialog", id: "dialog-view-readonly", title: "Dialog — Admin views Admin record (read-only)", role: "admin", mode: "view-readonly", note: "1. Read-only fields and audit stamps remain available. 2. No Edit action for Admin/Superadmin records." },
+      { group: "dialog", id: "dialog-focus", title: "Dialog — Field focus", role: "superadmin", mode: "focus", note: "1. Initial focus goes to the accessible dialog title or first field. 2. Focus ring is visible and not clipped." },
+      { group: "dialog", id: "dialog-validation", title: "Dialog — Validation errors", role: "superadmin", mode: "validation", note: "1. Validate on blur; after the first error, revalidate on input. 2. Keep server duplicate-email copy beside Email." },
+      { group: "dialog", id: "dialog-saving", title: "Dialog — Saving", role: "admin", mode: "saving", note: "1. Disable fields during save and announce Saving user. 2. Prevent duplicate Save." },
+      { group: "dialog", id: "dialog-add-loading", title: "Dialog — Add user, creating", role: "admin", mode: "add-loading", note: "1. Keep the form visible and prevent duplicate submission. 2. Announce Creating account…." },
+      { group: "dialog", id: "dialog-add-success", title: "Dialog — Add user, success", role: "superadmin", mode: "add-success", note: "1. Close the dialog, update list and counts, and announce Account created. 2. Remind the Admin to share the temporary password securely." },
+      { group: "dialog", id: "dialog-success", title: "Dialog — Edit success", role: "superadmin", mode: "success", note: "1. Close the dialog, refresh the list and counts, and announce User saved." },
+      { group: "dialog", id: "dialog-error", title: "Dialog — Save error", role: "admin", mode: "save-error", note: "1. Keep the panel open and preserve values. 2. Show actionable inline error, not toast-only failure." },
+      { group: "dialog", id: "dialog-unsaved", title: "Dialog — Unsaved changes warning", role: "superadmin", mode: "unsaved", note: "1. Closing with changes asks before discarding. 2. Keep editing restores focus to the last changed field." },
+
+      { group: "confirm", id: "confirm-delete", title: "Confirmation — Soft delete one user", role: "superadmin", mode: "delete", note: "1. Name and email identify the target. 2. Explain soft delete and restore. 3. Cancel receives initial focus." },
+      { group: "confirm", id: "confirm-create-user", title: "Confirmation — Create account", role: "superadmin", mode: "create-user", note: "1. Confirm the selected role and immediate approval. 2. Explain first-sign-in password change and secure sharing. 3. Cancel returns to the Add form." },
+      { group: "confirm", id: "confirm-delete-loading", title: "Confirmation — Delete loading", role: "superadmin", mode: "delete-loading", note: "1. Keep the dialog open, show Deleting, and prevent duplicate submission. 2. Announce progress." },
+      { group: "confirm", id: "confirm-delete-error", title: "Confirmation — Delete error", role: "superadmin", mode: "delete-error", note: "1. Preserve the target and dialog. 2. Explain recovery and keep Delete available for retry." },
+      { group: "confirm", id: "confirm-block", title: "Confirmation — Block one user", role: "admin", mode: "block", note: "1. Explain login impact. 2. No reason field is shown because the context does not require one. 3. Cancel receives initial focus." },
+      { group: "confirm", id: "confirm-block-loading", title: "Confirmation — Block loading", role: "admin", mode: "block-loading", note: "1. Keep the dialog open and announce Blocking. 2. Prevent duplicate submission." },
+      { group: "confirm", id: "confirm-block-error", title: "Confirmation — Block error", role: "admin", mode: "block-error", note: "1. Keep the dialog open and explain how to retry." },
+      { group: "confirm", id: "confirm-unblock", title: "Confirmation — Unblock", role: "admin", mode: "unblock", note: "1. Confirm sign-in may resume if account is Active. 2. Cancel is the safe initial focus." },
+      { group: "confirm", id: "confirm-restore", title: "Confirmation — Restore", role: "superadmin", mode: "restore", note: "1. Explain restoration and prior status. 2. Restore preserves the account’s previous status." },
+      { group: "confirm", id: "confirm-bulk-delete", title: "Confirmation — Bulk soft delete", role: "superadmin", mode: "bulk-delete", note: "1. Show eligible affected count. 2. Explicitly state records can be restored. 3. Clear selection after success." },
+      { group: "confirm", id: "confirm-bulk-block", title: "Confirmation — Bulk block", role: "admin", mode: "bulk-block", note: "1. Show eligible User count only. 2. On completion update statuses/counts and clear selection." },
+      { group: "confirm", id: "confirm-self", title: "Confirmation — Self-protection", role: "superadmin", mode: "self", note: "1. Self Block/Delete are disabled with explanation. 2. Prevent opening a confirmation through direct action or bulk selection." }
+    ];
+
+    const esc = (value) => String(value).replace(/[&<>"']/g, (char) => ({
+      "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+    }[char]));
+    const rolePill = (role) => `<span class="role-pill ${roles[role].className}">${roles[role].label}</span>`;
+    const statusPill = (status) => {
+      const map = {
+        Active: ["status-active", "✓"], Inactive: ["status-inactive", "−"],
+        Blocked: ["status-blocked", "⊘"], Deleted: ["status-deleted", "DELETED"]
+      };
+      return `<span class="status ${map[status][0]}">${map[status][1]} ${status}</span>`;
+    };
+    const nav = (role, active = "Home") => `
+      <div class="brand"><span class="brand-icon" aria-hidden="true">H</span><span class="brand-label">HOPE ERP</span></div>
+      <a class="nav-item ${active === "Home" ? "active" : ""}" href="#" aria-label="Home" aria-current="${active === "Home" ? "page" : "false"}" title="Home"><span class="nav-icon" aria-hidden="true">H</span><span class="side-label">Home</span></a>
+      <a class="nav-item ${active === "User Management" ? "active" : ""} ${role === "user" ? "disabled" : ""}" href="#" aria-label="${role === "user" ? "User Management. You don’t have access to User Management." : "User Management"}" title="${role === "user" ? "You don’t have access to User Management." : "User Management"}" ${role === "user" ? 'aria-disabled="true"' : `aria-current="${active === "User Management" ? "page" : "false"}"`}><span class="nav-icon" aria-hidden="true">U</span><span class="side-label">User Management</span></a>`;
+    const listRows = (state) => {
+      if (state === "loading") return `<div class="loading-line"></div><div class="loading-line medium"></div><div class="loading-line short"></div><div class="loading-line"></div>`;
+      const rows = [
+        { name: "Maria Santos", email: "maria.santos@hope.example", role: "user", status: state === "blocked" ? "Blocked" : "Active", date: "28 Oct 2026", row: state === "hover" ? "hover" : state === "selected" || state === "checked" || state === "mixed" ? "selected" : "", check: state === "selected" || state === "checked" ? "checked" : state === "mixed" ? "mixed" : "" },
+        { name: "Ana Dela Cruz", email: "ana.delacruz@hope.example", role: "admin", status: "Active", date: "29 Oct 2026", row: "" },
+        { name: "Paolo Garcia", email: "paolo.garcia@hope.example", role: "user", status: "Blocked", date: "30 Oct 2026", row: "" }
+      ];
+      if (state === "deleted") rows.splice(0, rows.length, { name: "Liza Mendoza", email: "liza.mendoza@hope.example", role: "user", status: "Deleted", date: "DELETED · Maya Chen · 28 Oct 2026, 09:20", row: "deleted" });
+      if (state === "blocked") rows.splice(0, rows.length, { name: "Paolo Garcia", email: "paolo.garcia@hope.example", role: "user", status: "Blocked", date: "30 Oct 2026", row: "" });
+      return rows.map((row) => `<tr class="${row.row}">
+        <td><span role="checkbox" aria-checked="${row.check === "mixed" ? "mixed" : row.check === "checked" ? "true" : "false"}" aria-label="Select ${row.name}" class="checkbox-mock ${row.check}">${row.check === "mixed" ? "−" : row.check === "checked" ? "✓" : ""}</span></td>
+        <td><strong>${row.name}</strong>${row.status === "Deleted" ? `<br><span class="meta">${row.date}</span>` : ""}</td>
+        <td>${row.email}</td><td>${rolePill(row.role)}</td><td>${statusPill(row.status)}</td>
+        <td>${row.status === "Deleted" ? "—" : row.date}</td><td>31 Oct 2026</td><td><button class="row-menu" aria-label="Actions for ${row.name}">Actions ▾</button></td>
+      </tr>`).join("");
+    };
+    const mobileCards = (state) => {
+      const deleted = state === "deleted";
+      const name = deleted ? "Liza Mendoza" : state === "blocked" ? "Paolo Garcia" : "Maria Santos";
+      const role = "user";
+      const status = deleted ? "Deleted" : state === "blocked" ? "Blocked" : "Active";
+      return `<div class="mobile-card ${deleted ? "deleted" : ""}">
+        <div class="mobile-card-top"><span><span role="checkbox" aria-checked="${state === "selected" ? "true" : "false"}" aria-label="Select ${name}" class="checkbox-mock ${state === "selected" ? "checked" : ""}">${state === "selected" ? "✓" : ""}</span> <strong>${name}</strong></span>${rolePill(role)}</div>
+        <div>Email: ${deleted ? "liza.mendoza" : name === "Paolo Garcia" ? "paolo.garcia" : "maria.santos"}@hope.example</div>
+        <div>Status: ${statusPill(status)}</div><div>Created: 28 Oct 2026</div><div>Last edited: 31 Oct 2026</div>
+        ${deleted ? '<div>DELETED · Maya Chen · 28 Oct 2026, 09:20</div>' : ""}
+        <button class="row-menu" aria-label="Actions for ${name}">Actions ▾</button>
+      </div>`;
+    };
+    const tableMarkup = (state) => {
+      const selected = ["selected", "checked", "mixed"].includes(state);
+      return `<div class="toolbar"><div class="search" aria-label="Search users">⌕ &nbsp; Search by name or email</div><div class="select-mock">Role: All roles ▾</div><button class="button">Clear filters</button></div>
+        <div class="tabs" role="tablist" aria-label="User status">
+          ${["All 24", "Active 16", "Inactive 4", "Blocked 2", "Deleted 2"].map((item, index) => `<button class="tab ${index === (state === "deleted" ? 4 : state === "blocked" ? 3 : 0) ? "selected" : ""}" role="tab" aria-selected="${index === (state === "deleted" ? 4 : state === "blocked" ? 3 : 0)}">${item}</button>`).join("")}
+        </div>
+        ${selected ? `<div class="bulk-bar"><strong>${state === "selected" ? "2 selected · 2 eligible" : state === "checked" ? "All eligible rows on this page selected" : "Some eligible rows selected"}</strong><button class="button">Block</button><button class="button danger">Delete</button><button class="button ghost">Clear selection</button></div>` : ""}
+        <div class="table-wrap"><table class="users"><thead><tr>
+          <th><span role="checkbox" aria-label="Select all eligible rows on this page" aria-checked="${state === "checked" ? "true" : state === "mixed" || state === "selected" ? "mixed" : "false"}" class="checkbox-mock ${state === "checked" ? "checked" : state === "mixed" || state === "selected" ? "mixed" : ""}">${state === "checked" ? "✓" : state === "mixed" || state === "selected" ? "−" : ""}</span></th>
+          <th aria-sort="none">Name ↕</th><th aria-sort="none">Email ↕</th><th aria-sort="none">Role ↕</th><th aria-sort="none">Status ↕</th><th aria-sort="none">Created ↕</th><th aria-sort="descending">Last edited ↓</th><th>Actions</th>
+        </tr></thead><tbody>${listRows(state)}</tbody></table></div>
+        <div class="mobile-cards">${mobileCards(state)}</div>
+        <div class="pagination"><span>Showing 1 to ${state === "deleted" || state === "blocked" ? "1" : "10"} of ${state === "deleted" ? "2" : "24"}</span><span>Rows per page: 10 &nbsp; Previous &nbsp; 1 &nbsp; 2 &nbsp; Next</span></div>`;
+    };
+    const homeContent = (state) => {
+      const role = roles[state.role];
+      if (state.mode === "noaccess") return `<div class="page-heading"><div><h3>No access</h3></div></div><div class="alert error">You don’t have access to User Management. Ask a Superadmin if you need access.</div><button class="button primary">Back to Home</button>`;
+      if (state.mode === "loading") return `<div class="page-heading"><div><h3>Home</h3></div></div><div class="loading-line medium"></div><div class="loading-line"></div><div class="loading-line short"></div><p class="meta" role="status">Loading your home page…</p>`;
+      if (state.mode === "empty") return `<div class="page-heading"><div><h3>Home</h3></div></div><p class="home-greeting">Good morning, ${role.name.split(" ")[0]}.</p><div class="empty-note">There’s nothing to show yet. You can still use the actions available to your role.</div>${quickActions(state.role)}`;
+      return `<div class="page-heading"><div><h3>Home</h3><p>Hope ERP</p></div></div><p class="home-greeting">Good morning, ${role.name.split(" ")[0]}.</p><p class="meta">Choose an action to get started.</p>${quickActions(state.role)}`;
+    };
+    const quickActions = (role) => role === "user"
+      ? `<div class="empty-note">No management shortcuts are available for your role.</div>`
+      : `<div class="quick-actions"><button class="quick-action"><strong>Add user</strong><span>${role === "admin" ? "Create a User account with a temporary password; they must change it at first sign-in." : "Create a User or Admin account with a temporary password; they must change it at first sign-in."}</span></button><button class="quick-action"><strong>View users</strong><span>${role === "admin" ? "Search and manage Users." : "Search and manage accounts."}</span></button></div>`;
+    const listContent = (state) => {
+      if (state.mode === "noaccess") return `<div class="page-heading"><div><h3>No access</h3></div></div><div class="alert error">You don’t have access to User Management. Ask a Superadmin if you need access.</div><button class="button primary">Back to Home</button>`;
+      let special = state.mode;
+      let tableState = ["hover", "selected", "checked", "mixed", "deleted", "blocked", "loading"].includes(special) ? special : "default";
+      if (special === "search-empty") return listHeader(state) + `<div class="empty-note"><strong>No users match your search.</strong><br>Try a different name or email, or clear your filters.<br><button class="button">Clear filters</button></div>`;
+      if (special === "tab-empty") return listHeader(state) + `<div class="empty-note"><strong>No Inactive users.</strong><br>Choose another status or clear your filters.<br><button class="button">Clear filters</button></div>`;
+      if (special === "empty") return listHeader(state) + `<div class="empty-note"><strong>No users yet.</strong><br>Add a user to get started.<br><button class="button primary">Add user</button></div>`;
+      if (special === "error") return listHeader(state) + `<div class="alert error">We couldn’t load users. Check your connection and try again.</div><button class="button primary">Try again</button>`;
+      return listHeader(state) + tableMarkup(tableState);
+    };
+    const listHeader = (state) => `<div class="page-heading"><div><h3>User Management</h3><p>View and manage Hope accounts.</p></div>${state.role === "user" ? "" : '<button class="button primary">Add user</button>'}</div>`;
+    const dialogFields = (state) => {
+      const view = state.mode === "view-readonly";
+      const values = {
+        add: ["", "", "User", "Inactive"],
+        "add-admin": ["", "", "User", "Inactive"],
+        "edit-admin": ["Ana Dela Cruz", "ana.delacruz@hope.example", "Admin", "Active"],
+        "edit-user": ["Maria Santos", "maria.santos@hope.example", "User", "Active"],
+        "view-readonly": ["Leo Bautista", "leo.bautista@hope.example", "Superadmin", "Active"],
+        focus: ["Maria Santos", "maria.santos@hope.example", "User", "Active"],
+        validation: ["", "maria@example", "User", "Inactive"],
+        saving: ["Maria Santos", "maria.santos@hope.example", "User", "Inactive"],
+        success: ["Maria Santos", "maria.santos@hope.example", "User", "Inactive"],
+        "save-error": ["Maria Santos", "maria.santos@hope.example", "User", "Inactive"],
+        unsaved: ["Maria Santos", "maria.santos@hope.example", "User", "Active"]
+      }[state.mode];
+      const saving = state.mode === "saving" || state.mode === "add-loading";
+      const disabled = view || saving;
+      const errors = state.mode === "validation";
+      const field = (label, value, index, error = "") => {
+        if (view) return `<div class="field"><label>${label}</label><div class="readonly-value">${value || "—"}</div></div>`;
+        const focus = state.mode === "focus" && index === 0;
+        const input = index < 2;
+        const control = input
+          ? `<input ${focus ? 'autofocus aria-describedby="focus-help"' : ""} ${disabled ? "disabled" : ""} value="${esc(value)}" aria-label="${label}">`
+          : `<select ${disabled ? "disabled" : ""} aria-label="${label}"><option>${esc(value)}</option></select>`;
+        let err = "";
+        if (errors && index === 0) err = `<span class="help-error">Enter the user's full name.</span>`;
+        if (errors && index === 1) err = `<span class="help-error">Enter a valid email address. This email is already in use.</span>`;
+        return `<div class="field ${errors && index < 2 ? "error" : ""} ${focus ? "focus" : ""}"><label>${label}${index < 2 ? " *" : ""}</label>${control}${err}</div>`;
+      };
+      const addMode = state.mode.startsWith("add");
+      const addField = (label, type = "text", autocomplete = "", maxLength = "") =>
+        `<div class="field"><label>${label} *</label><input type="${type}" ${autocomplete ? `autocomplete="${autocomplete}"` : ""} ${maxLength ? `maxlength="${maxLength}"` : ""} ${label === "Temporary password" ? 'minlength="8"' : ""} ${saving ? "disabled" : ""} aria-label="${label}" required></div>`;
+      const formFields = addMode
+        ? `${addField("First name", "text", "given-name", 80)}${addField("Last name", "text", "family-name", 80)}${addField("Email address", "email", "email", 254)}${addField("Temporary password", "password", "new-password", 128)}${state.role === "superadmin" ? `<div class="field"><label>Role *</label><select aria-label="Role" ${saving ? "disabled" : ""} required><option>User</option><option>Admin</option></select></div>` : '<div class="field"><label>Role</label><div class="readonly-value">User</div></div>'}<p class="form-note">The account is approved immediately. The new user must set a new password at first sign-in. Share the temporary password securely.</p>`
+        : `${field("Full name", values[0], 0)}${field("Email", values[1], 1)}${field("Role", values[2], 2)}${field("Status", values[3], 3)}`;
+      const title = state.mode.startsWith("add") ? "Add user" : view ? "User details" : "Edit user";
+      const stamps = view || state.mode.startsWith("edit")
+        ? `<div class="stamp">CREATED · Maya Chen · 26 Oct 2026, 14:32<br>EDITED · Alex Rivera · 30 Oct 2026, 11:08</div>`
+        : "";
+      return `<div class="scrim"><section class="dialog-panel" role="dialog" aria-modal="true" aria-labelledby="dialog-title">
+        <header class="dialog-header"><h3 id="dialog-title">${title}</h3><button class="button" aria-label="Close dialog">×</button></header>
+        <div class="dialog-body">
+          ${state.mode === "add-error" ? '<div class="alert error" role="alert">We couldn’t create that account. Check the email and password requirements.</div>' : ""}
+          ${state.mode === "save-error" ? '<div class="alert error">We couldn’t save this user. Check your connection and try again.</div>' : ""}
+          ${errors ? '<div class="alert error" role="alert">Check the highlighted fields.</div>' : ""}
+          ${state.mode === "saving" ? '<div class="alert info" role="status">Saving user…</div>' : ""}
+          ${state.mode === "add-loading" ? '<div class="alert info" role="status">Creating account…</div>' : ""}
+          ${formFields}
+          ${stamps}
+        </div>
+        <footer class="dialog-footer">
+          ${view ? '<button class="button">Close</button>' : '<button class="button">Cancel</button>'}
+          ${view ? (state.role === "superadmin" ? '<button class="button primary">Edit</button>' : "") : `<button class="button primary" ${saving ? "disabled" : ""}>${state.mode === "saving" ? "Saving…" : state.mode === "add-loading" ? "Creating account…" : addMode ? "Review and create" : "Save"}</button>`}
+        </footer>
+      </section></div>
+      ${state.mode === "unsaved" ? `<div class="confirm-wrap"><section class="confirm" role="alertdialog" aria-modal="true" aria-labelledby="unsaved-title"><h3 id="unsaved-title">Discard your changes?</h3><p>Your edits haven’t been saved.</p><div class="confirm-actions"><button class="button">Keep editing</button><button class="button danger">Discard changes</button></div></section></div>` : ""}
+      `;
+    };
+    const confirmMarkup = (state) => {
+      const configs = {
+        delete: ["Delete user?", "Maria Santos (maria.santos@hope.example) will be soft-deleted. The record stays in Deleted and can be restored.", "Delete user"],
+        block: ["Block user?", "Maria Santos (maria.santos@hope.example) won’t be able to log in until the account is unblocked.", "Block user"],
+        unblock: ["Unblock user?", "Maria Santos will be able to sign in again if the account is Active.", "Unblock user"],
+        restore: ["Restore user?", "Maria Santos will return to the user list with the previous account status.", "Restore user"],
+        "create-user": ["Create this account?", "The selected account will be created with the selected role and approved immediately. The new user must change the temporary password at first sign-in. Share the temporary password securely.", "Create account"],
+        "bulk-delete": ["Delete 3 users?", "These records will be soft-deleted and can be restored from Deleted.", "Delete 3 users"],
+        "bulk-block": ["Block 3 users?", "These users won’t be able to log in until their accounts are unblocked.", "Block 3 users"]
+      };
+      if (state.mode === "self") return `<div class="alert warning">Block and Delete are disabled for your own account.<br><strong>You can’t block or delete your own account.</strong></div><button class="button disabled" disabled aria-describedby="self-reason">Delete</button><button class="button disabled" disabled>Block</button><span id="self-reason" class="meta">You can’t block or delete your own account.</span>`;
+      const baseMode = state.mode.replace(/-(loading|error)$/, "");
+      const [title, message, action] = configs[baseMode];
+      const loading = state.mode.endsWith("-loading");
+      const error = state.mode.endsWith("-error");
+      const progress = { delete: "Deleting…", block: "Blocking…", unblock: "Unblocking…", restore: "Restoring…" }[baseMode] || "Saving…";
+      const danger = ["delete", "block", "bulk-delete", "bulk-block"].includes(baseMode);
+      return `<div class="confirm-wrap"><section class="confirm" role="alertdialog" aria-modal="true" aria-labelledby="confirm-title" ${loading ? 'aria-busy="true"' : ""}>
+        <h3 id="confirm-title">${title}</h3><p>${message}</p>
+        ${error ? '<div class="alert error" role="alert">We couldn’t complete this action. Try again.</div>' : ""}
+        ${loading ? `<div class="alert info" role="status">${progress}</div>` : ""}
+        <div class="confirm-actions"><button class="button" ${loading ? "disabled" : ""}>Cancel</button><button class="button ${danger ? "danger" : "primary"}" ${loading ? "disabled" : ""}>${loading ? progress : action}</button></div>
+      </section></div>`;
+    };
+    const shot = (state, size) => {
+      const person = roles[state.role];
+      const active = ["list", "dialog", "confirm"].includes(state.group) && state.mode !== "noaccess" ? "User Management" : "Home";
+      let body = "";
+      if (state.group === "home") body = homeContent(state);
+      if (state.group === "list") body = listContent(state);
+      if (state.group === "dialog") {
+        if (state.mode === "success" || state.mode === "add-success") {
+          const message = state.mode === "add-success"
+            ? "✓ Account created. Share the temporary password securely; first sign-in requires a change."
+            : "✓ User saved";
+          body = listHeader({ role: state.role }) + tableMarkup("default") + `<div class="toast" role="status" aria-live="polite">${message}</div>`;
+        } else {
+          body = listHeader({ role: state.role }) + tableMarkup("default") + dialogFields(state);
+        }
+      }
+      if (state.group === "confirm") body = listHeader({ role: state.role }) + tableMarkup(state.mode === "self" ? "default" : "selected") + confirmMarkup(state);
+      const mobileMenu = state.mode === "menu" && size !== "desktop"
+        ? `<div class="scrim"><nav class="drawer" aria-label="Main navigation"><button class="button" style="align-self:end">Close menu</button>${nav(state.role)}</nav></div>`
+        : "";
+      return `<div class="app-shot v-${size}" aria-label="${size} wireframe">
+        <aside class="sidebar" aria-label="Primary navigation">${nav(state.role, active)}</aside>
+        <div class="shot-main">
+          <header class="topbar"><button class="menu-trigger" aria-label="Open menu">☰</button><span class="topbar-title">${state.group === "home" || state.group === "dialog" || state.group === "confirm" ? "Home" : "User Management"}</span>
+            <div class="topbar-right"><div class="profile"><span class="person">${person.name}</span>${rolePill(state.role)}</div><button aria-label="Log out">Log out</button></div>
+          </header>
+          <main class="content" ${state.mode === "loading" ? 'aria-busy="true"' : ""}>${body}</main>
+        </div>${mobileMenu}
+      </div>`;
+    };
+    const groupLabels = {
+      home: ["Screen 1 — Main page (Home)", "Shell: 256px desktop sidebar; Task 1 navigation drawer at and below 768px. Only documented navigation and role-allowed Quick Actions are shown."],
+      list: ["Screen 2 — User Management list", "Columns, status counts, search/filter, row menus, selection, pagination, responsive cards, and all requested empty/error/access states."],
+      dialog: ["Screen 3 — Right-side dialog", "Add / Edit / View user with scrollable body, sticky footer, validation, audit stamps, focus, permission, and save states."],
+      confirm: ["Screen 4 — Centered confirmations", "Delete, Block, Unblock, Restore, bulk actions, and own-account protection. Cancel is the initial safe action."]
+    };
+    const gallery = document.getElementById("gallery");
+    for (const group of ["home", "list", "dialog", "confirm"]) {
+      const groupStates = states.filter((state) => state.group === group);
+      const section = document.createElement("section");
+      section.className = "screen";
+      section.innerHTML = `<div class="screen-heading"><h2>${groupLabels[group][0]}</h2></div><p class="screen-intro">${groupLabels[group][1]}</p>`;
+      for (const state of groupStates) {
+        const article = document.createElement("article");
+        article.className = "state";
+        article.innerHTML = `<div class="state-title"><strong>${state.title}</strong><span>${roles[state.role].label} · 1440 / 768 / 375px</span></div>
+          <div class="views">
+            ${[
+              ["desktop", "Desktop", "1440px"],
+              ["tablet", "Tablet", "768px"],
+              ["mobile", "Mobile", "375px"]
+            ].map(([size, label, width]) => `<figure class="viewport v-${size}"><figcaption class="viewport-label"><span>${label}</span><span>${width}</span></figcaption><div class="scene">${shot(state, size)}</div><figcaption class="frame-caption">Only documented modules</figcaption></figure>`).join("")}
+          </div>
+          <ol class="state-note">${state.note.split(/\s(?=\d+\.\s)/).map((note) => `<li>${esc(note.replace(/^\d+\.\s*/, ""))}</li>`).join("")}</ol>`;
+        section.append(article);
+      }
+      gallery.append(section);
+    }
+  </script>
+</body>
+</html>
