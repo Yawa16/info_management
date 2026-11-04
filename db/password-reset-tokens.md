@@ -133,3 +133,12 @@ temporarily blocks the test user for the blocked case, displays the expected
 and actual validation results, then rolls back the entire transaction. All
 four cases should pass: valid is accepted; expired, used, and blocked are
 rejected.
+
+### Development verification result
+
+On 2026-11-04, the verification script was run against the `HOPE ERP Dev
+Fresh` development project using a disposable active, unblocked Auth-linked
+`app_user`. All four cases passed: valid token accepted; expired token, used
+token, and blocked user rejected. The verification transaction rolled back,
+and the disposable Auth user, `app_user`, and token fixtures were confirmed
+removed afterward.
