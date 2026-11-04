@@ -4,6 +4,10 @@ Next.js App Router starter for the Hope, Inc. business management system.
 
 For the cross-platform, no-Docker team database workflow, follow the [student database setup guide](db/README.md). It documents the Supabase PostgreSQL connection, migration and seed commands, verification, reset safeguards, and team migration rules. **This task adds the database tooling only; it does not add HOPE application-table migrations or seeds.**
 
+Task 5 adds repeatable user-management catalogue seeds, private team-account
+provisioning, setup-link issuance, and a dev-only sample account seed; see
+[the Task 5 setup guide](db/task5-seeding.md).
+
 ## Local setup
 
 1. Install the project dependencies:
@@ -12,8 +16,10 @@ For the cross-platform, no-Docker team database workflow, follow the [student da
    npm ci
    ```
 
-2. Create `.env.local` from the example, then replace the placeholders with the
-   Supabase project URL and anon key:
+2. Create `.env.local` from the example, then replace the placeholders with
+   your Supabase project URL and anon key. To enable first-password setup,
+   also provide the server-only Supabase service-role key and private
+   PostgreSQL connection URL:
 
    ```powershell
    Copy-Item .env.local.example .env.local
@@ -42,6 +48,7 @@ Use `npm run typecheck` and `npm run build` to verify the project.
 - `app/`: App Router pages, shared layout/styles, and the API health route.
 - `app/(auth)/`: Sign-in and registration route placeholders; authentication UI
   is not implemented in this scaffold.
+- `app/set-password/`: One-time first-password setup page and completion route.
 - `components/`: Shared landing-page account links and auth-page placeholder.
 - `lib/supabase/`: Shared environment validation plus browser, server, and
   middleware clients.

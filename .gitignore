@@ -11,6 +11,7 @@ npm-debug.log*
 .env*
 !.env.example
 !.env.local.example
+/db/seeds/team.csv
 
 # OS and editor files
 .DS_Store
