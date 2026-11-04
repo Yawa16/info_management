@@ -14,7 +14,9 @@ Migration `005_create_audit_log.sql` introduces `public.audit_user()`. It
 reads the transaction-local `app.current_user` setting and returns `system`
 when the setting is absent or blank. The audit table stores that application
 identity separately from `SESSION_USER`, the PostgreSQL login used by the
-connection.
+connection. It preserves any pre-existing audit history in a restricted
+`audit_log_legacy_task6` archive and copies it into the new audit table;
+historical database identities are marked unknown rather than guessed.
 
 ## Identity context and missing-user policy
 
@@ -69,9 +71,11 @@ start of each job transaction.
 
 ## Audit behavior
 
-The migration attaches triggers to every public table that has both `status`
-and `stamp`, including `app_user`, `user_permission`, and
-`password_reset_token`. It discovers each table's primary key and stores
+The migrations attach triggers to every public table that has a primary key,
+a stamp, and either a `status` column or the legacy `is_deleted` column.
+This includes `app_user`, `user_permission`, and `password_reset_token`.
+Legacy `is_deleted` changes are mapped to the equivalent DELETED/RESTORED
+actions. The migration discovers each table's primary key and stores
 `record_key` as a JSON object of those key values. Stamps use
 `ACTION app_user YYYY-MM-DD H:MM AM` in `Asia/Manila`; the `stamp` columns are
 widened to `TEXT` so an email identity and timestamp are not silently
@@ -88,15 +92,16 @@ truncated.
 
 ## Verification
 
-Apply migrations 001-005 to a disposable development database. The serial
+Apply migrations 001-006 to a disposable development database. The serial
 SQL tests can be run with psql:
 
 ```powershell
 psql "$env:DATABASE_URL" -v ON_ERROR_STOP=1 -f db/verification/verify_audit_user.sql
 ```
 
-The full suite also checks transaction-local pooling and two independent
-sessions, which a single SQL session cannot reliably simulate. Configure
+The SQL script also verifies the post-commit transaction-local setting does
+not leak. The full runner adds the two-independent-session test, which a
+single SQL session cannot reliably coordinate. Configure
 `ALLOW_AUDIT_TEST=true`, `DEV_DATABASE_NAME`, `DEV_ALLOWED_HOSTS`, and the
 matching `DEV_SUPABASE_URL` in the private environment, then run:
 
@@ -105,7 +110,7 @@ npm.cmd run db:verify-audit
 ```
 
 The runner refuses production, an unallowlisted host, or a database name or
-Supabase project mismatch. It reports PASS/FAIL for all nine requested cases
+Supabase project mismatch. Together, the SQL script and runner report PASS/FAIL for all nine requested cases
 and exits non-zero on failure. SQL fixtures and audit records are enclosed in
 transactions that are rolled back; the session-locality test writes no rows.
 The SQL permission test requires an active approved Admin/Superadmin as the
@@ -114,7 +119,8 @@ right.
 
 ## Migration and deployment notes
 
-Apply this as a new forward-only migration; do not edit migrations 001-004.
+Apply migrations 005 and 006 as new forward-only migrations; do not edit
+migrations 001-004 or an already-applied migration.
 The first-password setup path sets transaction-local identity from the
 token-linked account. Future request handlers that write directly to
 PostgreSQL must also call `set_config` before their first write. The existing

@@ -1,7 +1,36 @@
--- Run against a disposable development database after migrations 001-005.
+-- Run against a disposable development database after migrations 001-006.
 -- This file rolls back every fixture and audit row. The full npm verification
--- runner also executes pooling and two-session tests that SQL alone cannot
+-- runner also executes the independent-session test that SQL alone cannot
 -- reliably coordinate.
+BEGIN;
+SELECT set_config('app.current_user', 'first-transaction@hope.test', TRUE);
+DO $$
+BEGIN
+    IF public.audit_user() <> 'first-transaction@hope.test' THEN
+        RAISE NOTICE 'FAIL: 5. transaction-local identity is visible before commit';
+        RAISE EXCEPTION 'Transaction-local setting was not visible in its transaction.';
+    END IF;
+END;
+$$;
+COMMIT;
+
+BEGIN;
+DO $$
+DECLARE
+    setting_value TEXT;
+BEGIN
+    setting_value := current_setting('app.current_user', TRUE);
+    IF public.audit_user() = 'system'
+       AND (setting_value IS NULL OR setting_value = '') THEN
+        RAISE NOTICE 'PASS: 5. committed transaction-local user does not leak';
+    ELSE
+        RAISE NOTICE 'FAIL: 5. committed transaction-local user does not leak';
+        RAISE EXCEPTION 'Previous transaction application identity leaked.';
+    END IF;
+END;
+$$;
+ROLLBACK;
+
 BEGIN;
 
 CREATE TEMP TABLE audit_test_results (
@@ -49,6 +78,7 @@ DECLARE
     actor_value TEXT;
     stamp_value TEXT;
     test_error TEXT;
+    record_id BIGINT;
     target_user_id BIGINT;
     grantor_user_id BIGINT;
     permission_right_id BIGINT;
@@ -65,14 +95,15 @@ BEGIN
     test_error := NULL;
     BEGIN
         PERFORM set_config('app.current_user', 'lisa@hope.com', TRUE);
-        INSERT INTO public.customer (cust_no, cust_name, stamp)
-        VALUES (customer_key, 'Audit verification insert', 'caller-supplied');
+        INSERT INTO public.role (name, description, stamp)
+        VALUES (customer_key, 'Audit verification insert', 'caller-supplied')
+        RETURNING id INTO record_id;
 
         SELECT audit.action, audit.app_user, audit.new_values ->> 'stamp'
           INTO action_value, actor_value, stamp_value
           FROM public.audit_log AS audit
-         WHERE audit.table_name = 'customer'
-           AND audit.record_key = jsonb_build_object('cust_no', customer_key)::TEXT
+         WHERE audit.table_name = 'role'
+           AND audit.record_key = jsonb_build_object('id', record_id)::TEXT
          ORDER BY audit.id DESC
          LIMIT 1;
 
@@ -99,20 +130,20 @@ BEGIN
     test_error := NULL;
     BEGIN
         IF NOT EXISTS (
-            SELECT 1 FROM public.customer WHERE cust_no = customer_key
+            SELECT 1 FROM public.role WHERE id = record_id
         ) THEN
             RAISE EXCEPTION 'insert fixture was not created';
         END IF;
         PERFORM set_config('app.current_user', 'maria@hope.com', TRUE);
-        UPDATE public.customer
-           SET cust_name = 'Audit verification edited'
-         WHERE cust_no = customer_key;
+        UPDATE public.role
+           SET description = 'Audit verification edited'
+         WHERE id = record_id;
 
         SELECT audit.action, audit.app_user, audit.new_values ->> 'stamp'
           INTO action_value, actor_value, stamp_value
           FROM public.audit_log AS audit
-         WHERE audit.table_name = 'customer'
-           AND audit.record_key = jsonb_build_object('cust_no', customer_key)::TEXT
+         WHERE audit.table_name = 'role'
+           AND audit.record_key = jsonb_build_object('id', record_id)::TEXT
          ORDER BY audit.id DESC
          LIMIT 1;
         PERFORM pg_temp.audit_test_assert(
@@ -134,20 +165,20 @@ BEGIN
     BEGIN
         IF NOT EXISTS (
             SELECT 1
-            FROM public.customer
-            WHERE cust_no = customer_key AND cust_name = 'Audit verification edited'
+            FROM public.role
+            WHERE id = record_id AND description = 'Audit verification edited'
         ) THEN
             RAISE EXCEPTION 'edited fixture was not created';
         END IF;
         PERFORM set_config('app.current_user', 'lisa@hope.com', TRUE);
-        UPDATE public.customer SET status = 'Inactive' WHERE cust_no = customer_key;
-        UPDATE public.customer SET status = 'Active' WHERE cust_no = customer_key;
+        UPDATE public.role SET status = 'Inactive' WHERE id = record_id;
+        UPDATE public.role SET status = 'Active' WHERE id = record_id;
 
         PERFORM pg_temp.audit_test_assert(
             EXISTS (
                 SELECT 1 FROM public.audit_log
-                WHERE table_name = 'customer'
-                  AND record_key = jsonb_build_object('cust_no', customer_key)::TEXT
+                WHERE table_name = 'role'
+                  AND record_key = jsonb_build_object('id', record_id)::TEXT
                   AND action = 'DELETED'
                   AND app_user = 'lisa@hope.com'
             ),
@@ -156,8 +187,8 @@ BEGIN
         PERFORM pg_temp.audit_test_assert(
             EXISTS (
                 SELECT 1 FROM public.audit_log
-                WHERE table_name = 'customer'
-                  AND record_key = jsonb_build_object('cust_no', customer_key)::TEXT
+                WHERE table_name = 'role'
+                  AND record_key = jsonb_build_object('id', record_id)::TEXT
                   AND action = 'RESTORED'
                   AND app_user = 'lisa@hope.com'
             ),
@@ -175,14 +206,15 @@ BEGIN
     test_error := NULL;
     BEGIN
         PERFORM set_config('app.current_user', '', TRUE);
-        INSERT INTO public.customer (cust_no, cust_name, stamp)
-        VALUES (no_user_key, 'Audit system fallback', 'caller-supplied');
+        INSERT INTO public.role (name, description, stamp)
+        VALUES (no_user_key, 'Audit system fallback', 'caller-supplied')
+        RETURNING id INTO record_id;
 
         SELECT audit.action, audit.app_user, audit.new_values ->> 'stamp'
           INTO action_value, actor_value, stamp_value
           FROM public.audit_log AS audit
-         WHERE audit.table_name = 'customer'
-           AND audit.record_key = jsonb_build_object('cust_no', no_user_key)::TEXT
+         WHERE audit.table_name = 'role'
+           AND audit.record_key = jsonb_build_object('id', record_id)::TEXT
          ORDER BY audit.id DESC
          LIMIT 1;
         PERFORM pg_temp.audit_test_assert(
@@ -383,13 +415,14 @@ BEGIN
     BEGIN
         BEGIN
             PERFORM set_config('app.current_user', 'rollback@hope.com', TRUE);
-            INSERT INTO public.customer (cust_no, cust_name, stamp)
-            VALUES (rollback_key, 'Audit rollback fixture', 'caller-supplied');
+            INSERT INTO public.role (name, description, stamp)
+            VALUES (rollback_key, 'Audit rollback fixture', 'caller-supplied')
+            RETURNING id INTO record_id;
             SELECT audit.id
               INTO rollback_id
               FROM public.audit_log AS audit
-             WHERE audit.table_name = 'customer'
-               AND audit.record_key = jsonb_build_object('cust_no', rollback_key)::TEXT
+             WHERE audit.table_name = 'role'
+               AND audit.record_key = jsonb_build_object('id', record_id)::TEXT
              ORDER BY audit.id DESC
              LIMIT 1;
             RAISE EXCEPTION USING
@@ -404,7 +437,7 @@ BEGIN
                 SELECT 1 FROM public.audit_log WHERE id = rollback_id
             )
             AND NOT EXISTS (
-                SELECT 1 FROM public.customer WHERE cust_no = rollback_key
+                SELECT 1 FROM public.role WHERE id = record_id
             ),
             'rolled-back write left a row or audit entry'
         );

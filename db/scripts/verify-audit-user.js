@@ -46,52 +46,13 @@ function assert(condition, message) {
   }
 }
 
-async function verifyTransactionLocalSetting(client) {
-  let transactionOpen = false;
-  try {
-    await client.query("BEGIN");
-    transactionOpen = true;
-    await client.query(
-      "SELECT set_config('app.current_user', $1, true)",
-      ["first-transaction@hope.test"],
-    );
-    const first = await client.query("SELECT public.audit_user() AS app_user");
-    assert(
-      first.rows[0].app_user === "first-transaction@hope.test",
-      "transaction-local identity was not visible in its transaction",
-    );
-    await client.query("COMMIT");
-    transactionOpen = false;
-
-    await client.query("BEGIN");
-    transactionOpen = true;
-    const next = await client.query(
-      "SELECT public.audit_user() AS app_user, current_setting('app.current_user', true) AS setting",
-    );
-    assert(
-      next.rows[0].app_user === "system"
-        && (next.rows[0].setting === null || next.rows[0].setting === ""),
-      "previous transaction's application identity leaked into a new transaction",
-    );
-    await client.query("ROLLBACK");
-    transactionOpen = false;
-    console.log("PASS: 5. committed transaction-local user does not leak");
-  } catch (error) {
-    if (transactionOpen) {
-      try { await client.query("ROLLBACK"); } catch {}
-    }
-    console.error(`FAIL: 5. committed transaction-local user does not leak - ${error.message}`);
-    return false;
-  }
-  return true;
-}
-
 async function verifyIndependentSessions() {
   const clients = [createClient(), createClient()];
   const users = ["session-one@hope.test", "session-two@hope.test"];
-  const keys = users.map((_, index) =>
+  const roleNames = users.map((_, index) =>
     `S${index}${require("node:crypto").randomBytes(8).toString("hex")}`.slice(0, 10),
   );
+  const roleIds = [];
   const begun = [false, false];
   try {
     await Promise.all(clients.map((client) => client.connect()));
@@ -104,21 +65,24 @@ async function verifyIndependentSessions() {
     ));
     await Promise.all(clients.map((client, index) =>
       client.query(
-        `INSERT INTO public.customer (cust_no, cust_name, stamp)
-         VALUES ($1, $2, 'caller-supplied')`,
-        [keys[index], "Audit session fixture"],
-      ),
+        `INSERT INTO public.role (name, description, stamp)
+         VALUES ($1, $2, 'caller-supplied')
+         RETURNING id`,
+        [roleNames[index], "Audit session fixture"],
+      ).then((result) => {
+        roleIds[index] = result.rows[0].id;
+      }),
     ));
 
     const audits = await Promise.all(clients.map((client, index) =>
       client.query(
         `SELECT app_user, action, new_values ->> 'stamp' AS stamp
          FROM public.audit_log
-         WHERE table_name = 'customer'
-           AND record_key = jsonb_build_object('cust_no', $1)::TEXT
+         WHERE table_name = 'role'
+           AND record_key = jsonb_build_object('id', $1::BIGINT)::TEXT
          ORDER BY id DESC
          LIMIT 1`,
-        [keys[index]],
+        [roleIds[index]],
       ),
     ));
     for (let index = 0; index < clients.length; index += 1) {
@@ -179,17 +143,9 @@ async function main() {
     await client.end();
   }
 
-  const sessionClient = createClient();
-  let localSettingPassed = false;
-  try {
-    await sessionClient.connect();
-    localSettingPassed = await verifyTransactionLocalSetting(sessionClient);
-  } finally {
-    await sessionClient.end();
-  }
   const sessionsPassed = await verifyIndependentSessions();
 
-  if (!serialPassed || !localSettingPassed || !sessionsPassed) {
+  if (!serialPassed || !sessionsPassed) {
     throw new Error("One or more audit-user verification cases failed.");
   }
   console.log("All Task 6 audit verification cases passed; test transactions were rolled back.");

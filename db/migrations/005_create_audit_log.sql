@@ -1,3 +1,56 @@
+DO $$
+DECLARE
+    has_application_identity BOOLEAN;
+    has_database_identity BOOLEAN;
+    trigger_record RECORD;
+BEGIN
+    IF to_regclass('public.audit_log') IS NULL THEN
+        RETURN;
+    END IF;
+
+    SELECT
+        COALESCE(bool_or(attribute.attname = 'app_user'), FALSE),
+        COALESCE(bool_or(attribute.attname = 'db_user'), FALSE)
+      INTO has_application_identity, has_database_identity
+      FROM pg_attribute AS attribute
+     WHERE attribute.attrelid = 'public.audit_log'::REGCLASS
+       AND attribute.attnum > 0
+       AND NOT attribute.attisdropped;
+
+    IF has_application_identity OR has_database_identity THEN
+        RAISE EXCEPTION
+            'public.audit_log already has application/database identity columns; inspect and reconcile it before applying migration 005.';
+    END IF;
+
+    IF to_regclass('public.audit_log_legacy_task6') IS NOT NULL THEN
+        RAISE EXCEPTION
+            'public.audit_log_legacy_task6 already exists; inspect the prior audit migration state before continuing.';
+    END IF;
+
+    ALTER TABLE public.audit_log RENAME TO audit_log_legacy_task6;
+
+    FOR trigger_record IN
+        SELECT relation.relname AS table_name,
+               trigger_row.tgname AS trigger_name
+          FROM pg_trigger AS trigger_row
+          JOIN pg_class AS relation ON relation.oid = trigger_row.tgrelid
+          JOIN pg_namespace AS namespace ON namespace.oid = relation.relnamespace
+          JOIN pg_proc AS function_row ON function_row.oid = trigger_row.tgfoid
+          JOIN pg_namespace AS function_namespace ON function_namespace.oid = function_row.pronamespace
+         WHERE namespace.nspname = 'public'
+           AND function_namespace.nspname = 'public'
+           AND function_row.proname = 'trg_audit_log'
+           AND NOT trigger_row.tgisinternal
+    LOOP
+        EXECUTE format(
+            'DROP TRIGGER %I ON public.%I',
+            trigger_record.trigger_name,
+            trigger_record.table_name
+        );
+    END LOOP;
+END;
+$$;
+
 CREATE TABLE public.audit_log (
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     table_name TEXT NOT NULL,
@@ -23,7 +76,7 @@ CREATE INDEX audit_log_occurred_at_idx
 
 ALTER TABLE public.audit_log ENABLE ROW LEVEL SECURITY;
 
-CREATE FUNCTION public.audit_user()
+CREATE OR REPLACE FUNCTION public.audit_user()
 RETURNS TEXT
 LANGUAGE SQL
 STABLE
@@ -164,6 +217,7 @@ REVOKE ALL ON SEQUENCE public.audit_log_id_seq FROM PUBLIC;
 DO $$
 DECLARE
     application_role TEXT;
+    legacy_sequence TEXT;
 BEGIN
     FOREACH application_role IN ARRAY ARRAY['anon', 'authenticated', 'service_role', 'hope_app'] LOOP
         IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = application_role) THEN
@@ -177,6 +231,77 @@ BEGIN
             );
         END IF;
     END LOOP;
+
+    IF to_regclass('public.audit_log_legacy_task6') IS NOT NULL THEN
+        ALTER TABLE public.audit_log_legacy_task6 ENABLE ROW LEVEL SECURITY;
+        REVOKE ALL ON TABLE public.audit_log_legacy_task6 FROM PUBLIC;
+
+        FOREACH application_role IN ARRAY ARRAY['anon', 'authenticated', 'service_role', 'hope_app'] LOOP
+            IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = application_role) THEN
+                EXECUTE format(
+                    'REVOKE ALL ON TABLE public.audit_log_legacy_task6 FROM %I',
+                    application_role
+                );
+            END IF;
+        END LOOP;
+
+        legacy_sequence := pg_get_serial_sequence(
+            'public.audit_log_legacy_task6',
+            'audit_id'
+        );
+        IF legacy_sequence IS NOT NULL THEN
+            EXECUTE format(
+                'REVOKE ALL ON SEQUENCE %s FROM PUBLIC',
+                legacy_sequence::REGCLASS
+            );
+            FOREACH application_role IN ARRAY ARRAY['anon', 'authenticated', 'service_role', 'hope_app'] LOOP
+                IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = application_role) THEN
+                    EXECUTE format(
+                        'REVOKE ALL ON SEQUENCE %s FROM %I',
+                        legacy_sequence::REGCLASS,
+                        application_role
+                    );
+                END IF;
+            END LOOP;
+        END IF;
+    END IF;
+END;
+$$;
+
+DO $$
+BEGIN
+    IF to_regclass('public.audit_log_legacy_task6') IS NOT NULL THEN
+        INSERT INTO public.audit_log (
+            table_name, record_key, action, app_user, db_user,
+            occurred_at, old_values, new_values
+        )
+        SELECT
+            legacy.table_name,
+            COALESCE(legacy.record_key, '{}'),
+            CASE legacy.action::TEXT
+                WHEN 'ADD' THEN 'CREATED'
+                WHEN 'EDIT' THEN 'EDITED'
+                WHEN 'DELETE' THEN 'DELETED'
+                WHEN 'RESTORE' THEN 'RESTORED'
+            END,
+            legacy.action_by,
+            'unknown (legacy audit did not record database user)',
+            legacy.action_at,
+            CASE
+                WHEN jsonb_typeof(legacy.old_values) = 'object'
+                    THEN legacy.old_values
+                        - ARRAY['password_hash', 'token_hash', 'password', 'token', 'raw_token']
+                ELSE legacy.old_values
+            END,
+            CASE
+                WHEN jsonb_typeof(legacy.new_values) = 'object'
+                    THEN legacy.new_values
+                        - ARRAY['password_hash', 'token_hash', 'password', 'token', 'raw_token']
+                ELSE legacy.new_values
+            END
+        FROM public.audit_log_legacy_task6 AS legacy
+        ORDER BY legacy.action_at, legacy.audit_id;
+    END IF;
 END;
 $$;
 
