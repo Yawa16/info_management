@@ -147,3 +147,47 @@ Run link issuance twice for a disposable development account: the second
 token must be the only active, unused `set_password` token, the first must be
 inactive/used, and only the second link should work. Never paste setup links
 or service-role keys into a PR or issue.
+
+For repeatable acceptance checks, configure `ALLOW_TASK5_TEST=true` only for
+the allowlisted development database, with `DEV_DATABASE_NAME`,
+`DEV_ALLOWED_HOSTS`, `DEV_SUPABASE_URL`, and
+`DEV_SUPABASE_SERVICE_ROLE_KEY` set to the matching development project. Run:
+
+```powershell
+npm.cmd run db:verify-task5
+```
+
+The runner checks the project and database match before connecting. It runs
+the user-management catalogue seed twice, checks the expected role/module/
+right counts, verifies valid/expired/used/blocked reset-token behavior, and
+runs [the setup-link lifecycle SQL test](verification/verify_task5_setup_links.sql)
+for link rotation, single-use, expiry, and rollback. It also creates a unique
+disposable Supabase Auth fixture, provisions its `app_user` twice to verify
+the initial password state and idempotency, rolls back the database rows, and
+deletes that Auth fixture. It never prints the private roster or a raw link.
+
+The sample-data seed is a separate part of `npm run db:seed`. If it fails
+because the connected database's physical base schema does not match the
+numbered migration definitions, do not claim the full sample-data seed was
+verified; reconcile the development schema or use a clean database created
+from the current migrations before running all seeds.
+
+### Development acceptance run (2026-11-04)
+
+On the configured non-production Supabase project:
+
+- `npm.cmd run db:verify-task5` passed. The catalogue seed ran twice; all
+  expected role/module/right counts passed; the four reset-token cases and
+  four setup-link cases passed. The disposable Auth account was provisioned
+  once, the repeat was a no-op, and both its database fixture and Auth user
+  were cleaned up.
+- `npm.cmd run db:seed-team` ran twice. Both runs processed the private
+  two-row roster and created zero new `app_user` rows; the existing rows were
+  verified as matching approved Superadmin Auth identities. No roster values
+  or setup links were printed or recorded.
+- The full `npm.cmd run db:seed` did **not** complete: the configured
+  database's existing `department` table has the legacy `deptcode` column,
+  while the sample-data seed expects `dept_code`. The catalog and account
+  acceptance checks above were run independently. Reconcile this database's
+  schema drift or use a clean database built from the current migrations
+  before claiming the sample-data seed was verified.

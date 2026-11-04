@@ -18,7 +18,8 @@
     "db:seed-team": "node db/scripts/seed-team-users.js",
     "db:seed-dev": "node db/scripts/seed-dev-users.js",
     "db:issue-setup-links": "node db/scripts/issue-setup-links.js",
-    "db:check-sql-secrets": "node db/scripts/check-sql-secrets.js"
+    "db:check-sql-secrets": "node db/scripts/check-sql-secrets.js",
+    "db:verify-task5": "node db/scripts/verify-task5.js"
   },
   "dependencies": {
     "@supabase/ssr": "^0.6.1",
