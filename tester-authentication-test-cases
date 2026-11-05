@@ -1,0 +1,43 @@
+# Authentication Test Cases and Results
+
+## Scope and environment
+- Branch: `feature/issue-7-auth-tests`
+- App: Hope, Inc. info management app
+- Stack: Next.js + Supabase Auth
+- Local environment: `.env.local` is configured for the development Supabase project
+- DB migration: confirmed by the DB Admin as applied
+- No test accounts were created during these checks
+- Product decision: passwords do not expire; old passwords should remain usable unless a separate expiry policy is introduced
+
+## Executed checks
+
+| ID | Check | Expected result | Actual result | Status |
+|---|---|---|---|---|
+| BUILD-01 | Run `npm run build` | Production build completes successfully | Build succeeded | PASS |
+| TYPE-01 | Run `npm run typecheck` | No TypeScript errors | Type check passed | PASS |
+| ROUTE-01 | Open `/`, `/sign-in`, `/register`, `/reset-password`, `/set-password` | Pages load correctly | All returned HTTP 200 | PASS |
+| ROUTE-02 | Open `/account` and `/admin/approvals` without a signed-in session | Redirect to sign-in | Both returned HTTP 307 | PASS |
+| ROUTE-03 | Open `/auth/callback` and `/auth/confirm` without a token/code | Invalid auth callback is rejected | Both returned HTTP 307 | PASS |
+| DB-01 | Call `/api/health` | Database is connected | HTTP 200 with database status `"connected"` | PASS |
+
+## Authentication test cases
+
+| ID | Steps | Expected result | Actual result | Status |
+|---|---|---|---|---|
+| REG-01 | Go to `/register`, enter valid first name, last name, and email, then submit | Registration request is accepted and an email confirmation or next-step message is shown | Registration failed with: “We couldn't complete that request. Check your details and try again.” | FAIL |
+| REG-02 | Submit missing or malformed registration data | Browser validation blocks invalid input | Not run | BLOCKED |
+| LOGIN-01 | Sign in as an approved active user | User is redirected to `/account` | Not run; requires an approved test account | BLOCKED |
+| LOGIN-02 | Try a wrong password or unknown email | Generic credentials error without exposing account status | Not run | BLOCKED |
+| LOGIN-03 | Sign in as inactive and blocked users | Access is denied and user receives the correct message | Not run | BLOCKED |
+| LOGOUT-01 | Sign in, log out, and then access `/account` | Session ends and user is redirected to sign-in | Not run | BLOCKED |
+| APPROVE-01 | Approve a pending user from `/admin/approvals` | Pending user becomes active | Not run; requires admin test account | BLOCKED |
+| PASS-01 | Request and complete a password reset | Password updates successfully and user can sign in with the new password | Not run; requires email delivery and a test account | BLOCKED |
+| PASS-02 | Submit mismatched or invalid password fields during reset | Validation prevents invalid update | Not run | BLOCKED |
+| RESET-01 | Request password reset for both registered and unregistered emails | Same generic confirmation appears for both | Not run | BLOCKED |
+| RESET-02 | Use an expired or already-used reset link | User is rejected and can request a replacement | Not run | BLOCKED |
+| EXP-01 | Sign in using a password that has been in use for a long time | Password remains valid; no forced expiry is applied | Not run; no suitable test user is available | BLOCKED |
+
+## Summary
+The application builds successfully, the configured development Supabase project is connected, and the core auth pages and route protections behave as expected. However, the registration flow currently fails in the observed user scenario and requires investigation before the remaining authentication flows can be validated with real test accounts.
+
+The remaining authentication cases are blocked because approved development accounts and controlled email delivery are not yet available. These should be completed using trusted test identities before final sign-off.
