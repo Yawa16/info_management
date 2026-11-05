@@ -87,6 +87,7 @@ async function authorizeRightsChange(targetId: string): Promise<
     !target ||
     target.id === actor.id ||
     target.role !== "user" ||
+    target.is_blocked ||
     !["active", "approved"].includes(target.approval_status)
   ) {
     return { error: NOT_ALLOWED };

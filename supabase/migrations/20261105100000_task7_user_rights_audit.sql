@@ -80,7 +80,7 @@ BEGIN
       USING ERRCODE = '42501';
   END IF;
 
-  SELECT role, approval_status
+  SELECT role, approval_status, is_blocked
     INTO v_target
     FROM public.profiles
     WHERE id = p_target_id
@@ -88,6 +88,7 @@ BEGIN
 
   IF NOT FOUND
     OR v_target.role <> 'user'
+    OR v_target.is_blocked
     OR v_target.approval_status NOT IN ('active', 'approved') THEN
     RAISE EXCEPTION 'Rights can only be set for active regular Users.'
       USING ERRCODE = '42501';
