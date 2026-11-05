@@ -142,3 +142,25 @@ Fresh` development project using a disposable active, unblocked Auth-linked
 token, and blocked user rejected. The verification transaction rolled back,
 and the disposable Auth user, `app_user`, and token fixtures were confirmed
 removed afterward.
+
+### Runtime re-verification
+
+On 2026-11-05, the development target was rechecked before testing: the
+configured database name and allowlisted host matched, the database and Auth
+URLs resolved to the same Supabase project, SSL was enabled, and migration
+004 plus `public.password_reset_token` were present. The verification SQL
+then ran with a disposable Auth-linked `app_user` fixture inside a rollback
+transaction:
+
+| Case | Result |
+| --- | --- |
+| Valid token | Accepted |
+| Expired token | Rejected |
+| Already-used token | Rejected |
+| Blocked user | Rejected |
+
+All four checks passed. The transaction rollback removed the disposable
+`app_user` and token rows, and the disposable Auth user was deleted. These
+checks exercise the database token-eligibility predicates; they do not claim
+to exercise an application HTTP/UI password-reset flow. No credentials or raw
+tokens were logged.
