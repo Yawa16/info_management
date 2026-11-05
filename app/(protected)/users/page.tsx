@@ -4,6 +4,7 @@ import BlockManagedUserForm from "@/components/BlockManagedUserForm";
 import CreateManagedUserForm from "@/components/CreateManagedUserForm";
 import EditManagedUserForm from "@/components/EditManagedUserForm";
 import ManageUserRoleForm from "@/components/ManageUserRoleForm";
+import RightsDialog from "@/components/RightsDialog";
 import { getProfileAccess } from "@/lib/auth/access";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -158,13 +159,18 @@ export default async function UsersPage() {
                               userId={managedUser.id}
                               isBlocked={managedUser.is_blocked}
                             />
-                            <button
-                              className="button button-small button-placeholder"
-                              disabled
-                              title="Rights management will be available in a future task."
-                            >
-                              Rights
-                            </button>
+                            {managedUser.role === "user" &&
+                              ["active", "approved"].includes(
+                                managedUser.approval_status,
+                              ) && (
+                                <RightsDialog
+                                  userId={managedUser.id}
+                                  userName={
+                                    `${managedUser.first_name ?? ""} ${managedUser.last_name ?? ""}`.trim() ||
+                                    managedUser.email
+                                  }
+                                />
+                              )}
                             <EditManagedUserForm user={managedUser} />
                             {access.role === "superadmin" &&
                               !managedUser.is_blocked &&

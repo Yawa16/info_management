@@ -1,0 +1,21 @@
+.rights-dialog { width: min(720px, calc(100vw - 32px)); max-height: calc(100vh - 48px); margin: auto; padding: 0; border: 1px solid var(--line, #e9e9e2); border-radius: 8px; background: #fff; color: var(--ink, #202c29); box-shadow: 0 24px 60px rgba(32, 44, 41, .25); }
+.rights-dialog::backdrop { background: rgba(32, 44, 41, .45); }
+.rights-dialog-body { display: grid; gap: 16px; padding: 22px; max-height: calc(100vh - 48px); overflow-y: auto; }
+.rights-dialog-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.rights-dialog-header h2 { margin: 0; font-size: 20px; }
+.rights-dialog-header p, .rights-dialog-note { margin: 2px 0 0; color: var(--muted, #697571); font-size: 13px; }
+.rights-dialog-close { border: 0; background: transparent; font-size: 26px; line-height: 1; cursor: pointer; color: var(--muted, #697571); }
+.rights-dialog-modules { display: grid; gap: 12px; }
+.rights-module { margin: 0; padding: 12px 14px; border: 1px solid var(--line, #e9e9e2); border-radius: 6px; min-width: 0; }
+.rights-module-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.rights-module-toggle { display: inline-flex; align-items: center; gap: 8px; font-weight: 650; font-size: 14px; cursor: pointer; }
+.rights-module-toggle small { color: var(--muted, #697571); font-weight: 500; }
+.rights-module-bulk { display: flex; gap: 6px; }
+.rights-module-bulk .button { min-height: 30px; padding-inline: 12px; font-size: 11px; }
+.rights-module-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 6px 14px; margin-top: 10px; }
+.rights-item { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; cursor: pointer; }
+.rights-item:has(input:disabled) { color: var(--muted, #697571); cursor: not-allowed; }
+.rights-dialog-footer { display: flex; justify-content: flex-end; gap: 8px; }
+.rights-save { background: var(--green, #397e68); color: #fff; }
+.rights-save:disabled { opacity: .6; cursor: not-allowed; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
