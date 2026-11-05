@@ -1,0 +1,36 @@
+
+# Team Working Agreement and Definition of Done
+
+## 1. Overview
+This document establishes the team's working agreement, responsibilities, and Definition of Done to ensure organized collaboration and consistent project development.
+
+## 2. Communication and Collaboration Rules
+- Communicate respectfully with all team members.
+- Provide regular updates about assigned tasks.
+- Inform the team about problems or delays.
+- Participate in meetings and team discussions.
+- Help other members when assistance is needed.
+- Keep project-related communication clear and organized.
+
+## 3. Team Roles and Responsibilities
+- Project Leader: Monitors progress and coordinates team activities.
+- Scrum Master: Helps organize sprint activities and addresses impediments.
+- Developers: Work on assigned tasks and contribute to project development.
+- Documentation Team: Maintains project records and technical documentation.
+- Testers: Check completed features and report errors or issues.
+
+## 4. Definition of Done
+A task is considered complete when:
+- The assigned requirements have been fulfilled.
+- The work has been properly tested or reviewed.
+- No major errors remain unresolved.
+- Documentation is updated when necessary.
+- Changes are committed and pushed to the correct GitHub branch.
+- A pull request has been submitted for review.
+- Required approvals have been received.
+
+## 5. Team Commitment
+Every member is expected to fulfill their responsibilities, meet agreed deadlines, communicate progress, and contribute to achieving the team's sprint goals.
+
+## 6. Conclusion
+This working agreement provides clear guidelines for teamwork, communication, and task completion. Following these standards will help maintain productivity, accountability, and consistency throughout the project.

@@ -1,0 +1,27 @@
+# User Management Test Cases and Results
+
+## Test information
+- Environment: Development
+- Tester: [your name]
+- Date: [date]
+- Test accounts used: [test account names or “None”]
+- Production data used: No
+
+## Test results
+
+| ID | Test | Steps | Expected result | Actual result | Status |
+|---|---|---|---|---|---|
+| UM-01 | Add a user | As an authorized administrator, add a user with valid details. | The user is created and appears in the user list with the expected initial status and role. | Not run | NOT RUN |
+| UM-02 | Reject invalid user details | Try to add a user with required fields missing or an invalid email. | The user is not created; validation explains what needs correction. | Not run | NOT RUN |
+| UM-03 | Edit user information | Change a test user’s editable details and save. | The updated information is saved and displayed correctly. | Not run | NOT RUN |
+| UM-04 | Block a user | Block a test user, then check their access. | The user is marked blocked and cannot access protected features. | Not run | NOT RUN |
+| UM-05 | Unblock a user | Unblock a previously blocked test user. | The user’s status is restored and access matches the assigned status and role. | Not run | NOT RUN |
+| UM-06 | Approve a user | Approve a pending test user. | The user is marked approved/active and can access permitted features. | Not run | NOT RUN |
+| UM-07 | Change a user role | Change a test user’s role, then verify the permissions for that role. | The new role is saved and grants only the intended permissions. | Not run | NOT RUN |
+| UM-08 | Unauthorized management attempt | Try to manage users with an account that is not authorized to do so. | The action is denied and user data is not changed. | Not run | NOT RUN |
+
+## Defects
+- None recorded. Add a defect here if a test fails, including steps to reproduce and the observed result.
+
+## Summary
+Testing has not been completed yet. Update each result and status after running the test cases. Use PASS, FAIL, BLOCKED, or NOT RUN, and do not report unexecuted tests as passed.
