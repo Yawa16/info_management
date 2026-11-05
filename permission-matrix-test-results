@@ -1,0 +1,25 @@
+# Permission Matrix Test Results
+
+## Test setup
+- Environment: Development
+- Tester: [your name]
+- Date: [date]
+- Test accounts: Approved test accounts only
+- Permission matrix used: [link or document name]
+
+## Test cases
+
+| ID | Role / scenario | Steps | Expected result | Actual result | Status |
+|---|---|---|---|---|---|
+| PM-01 | Superadmin — permitted action | Sign in as a Superadmin and try an action allowed by the permission matrix. | The action succeeds. | Not run | NOT RUN |
+| PM-02 | Admin — permitted action | Sign in as an Admin and try an action allowed by the permission matrix. | The action succeeds. | Not run | NOT RUN |
+| PM-03 | User — permitted action | Sign in as a User and try an action allowed by the permission matrix. | The action succeeds. | Not run | NOT RUN |
+| PM-04 | Unauthorized page or feature | Sign in with a role that lacks permission and open the restricted page or feature. | Access is denied. | Not run | NOT RUN |
+| PM-05 | Unauthorized action | Try an action that the signed-in role is not allowed to perform. | The action is rejected and no data is changed. | Not run | NOT RUN |
+| PM-06 | Rights changed by an administrator | Change a test user's assigned rights, then retry the affected action. | Access reflects the updated rights. | Not run | NOT RUN |
+
+## Defects
+- None recorded. Add reproduction steps here if a test fails.
+
+## Summary
+Testing has not been completed. Update the actual result and status for each case after running it. Do not mark an unexecuted case as passed.
