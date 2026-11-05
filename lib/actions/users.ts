@@ -300,7 +300,7 @@ export async function approvePendingUser(
   if (!actor) {
     return {
       status: "error",
-      message: "Sign in with an Admin or Superadmin account to approve users.",
+      message: "Sign in with an active Superadmin account to approve users.",
     };
   }
 
@@ -325,19 +325,22 @@ export async function approvePendingUser(
 
   if (
     !actorResult.data ||
-    actorResult.data.approval_status !== "approved" ||
+    !["active", "approved"].includes(actorResult.data.approval_status) ||
     actorResult.data.is_blocked ||
-    !["admin", "superadmin"].includes(actorResult.data.role)
+    actorResult.data.role !== "superadmin"
   ) {
     return {
       status: "error",
-      message: "Only an approved, unblocked Admin or Superadmin can approve users.",
+      message: "Only an active, unblocked Superadmin can approve users.",
     };
   }
 
   const { data: updatedUsers, error: updateError } = await adminClient
     .from("profiles")
-    .update({ approval_status: "approved" })
+    .update({
+      approval_status: "active",
+      must_change_password: true,
+    })
     .eq("id", targetUserId)
     .eq("role", "user")
     .eq("approval_status", "pending")
@@ -368,6 +371,7 @@ export async function approvePendingUser(
   revalidatePath("/dashboard");
   return {
     status: "success",
-    message: "User approved. They can now sign in to Hope.",
+    message:
+      "User approved. They can now set their password and sign in to Hope.",
   };
 }

@@ -67,7 +67,7 @@ async function getManagerContext(): Promise<
 
   if (
     !profile ||
-    profile.approval_status !== "approved" ||
+    !["active", "approved"].includes(profile.approval_status) ||
     profile.is_blocked ||
     (profile.role !== "admin" && profile.role !== "superadmin")
   ) {
@@ -87,14 +87,22 @@ async function getManagerContext(): Promise<
 async function getManageableTarget(
   context: ManagerContext,
   targetId: string,
-): Promise<{ ok: true; role: string } | { ok: false; error: string }> {
+): Promise<
+  | {
+      ok: true;
+      role: string;
+      approval_status: string;
+      is_blocked: boolean;
+    }
+  | { ok: false; error: string }
+> {
   if (!targetId || targetId === context.userId) {
     return { ok: false, error: "You cannot manage your own account." };
   }
 
   const { data: target, error } = await context.adminClient
     .from("profiles")
-    .select("role")
+    .select("role, approval_status, is_blocked")
     .eq("id", targetId)
     .maybeSingle();
 
@@ -113,7 +121,12 @@ async function getManageableTarget(
     return { ok: false, error: "Admins can manage regular User accounts only." };
   }
 
-  return { ok: true, role: target.role };
+  return {
+    ok: true,
+    role: target.role,
+    approval_status: target.approval_status,
+    is_blocked: target.is_blocked,
+  };
 }
 
 function validateIdentity(firstName: string, lastName: string, email: string) {
@@ -339,6 +352,36 @@ export async function setManagedUserBlocked(
   }
 
   const blocked = blockedValue === "true";
+  if (
+    blocked &&
+    target.role === "superadmin" &&
+    !target.is_blocked &&
+    ["active", "approved"].includes(target.approval_status)
+  ) {
+    const { count, error: countError } = await context.adminClient
+      .from("profiles")
+      .select("id", { count: "exact", head: true })
+      .eq("role", "superadmin")
+      .eq("is_blocked", false)
+      .in("approval_status", ["active", "approved"]);
+
+    if (countError) {
+      console.error("Unable to count active Superadmin accounts.", {
+        code: countError.code,
+        message: countError.message,
+      });
+      return actionError("We could not verify the remaining Superadmins. Try again.");
+    }
+    if (count === null) {
+      return actionError("We could not verify the remaining Superadmins. Try again.");
+    }
+    if (count <= 1) {
+      return actionError(
+        "This action is blocked because at least one active Superadmin must remain.",
+      );
+    }
+  }
+
   const { data: updatedProfile, error: updateError } = await context.supabase
     .from("profiles")
     .update({ is_blocked: blocked })
@@ -353,6 +396,12 @@ export async function setManagedUserBlocked(
       targetId: userId,
       updatedBy: context.userId,
     });
+    if (
+      updateError?.code === "23514" &&
+      updateError.message.includes("at least one active Superadmin must remain")
+    ) {
+      return actionError(updateError.message);
+    }
     return actionError("We could not update that account. Please try again.");
   }
 

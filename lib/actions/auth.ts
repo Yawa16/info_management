@@ -157,7 +157,9 @@ export async function loginUser(
           ? "Your account is waiting for approval."
           : access.status === "blocked"
             ? "Your account is blocked. Contact an Admin for help."
-            : "We can’t verify account access right now. Please contact support.",
+            : access.status === "rejected"
+              ? "Your registration was rejected. Contact a Superadmin if you believe this is a mistake."
+              : "We can’t verify account access right now. Please contact support.",
     };
   }
 
@@ -364,6 +366,13 @@ export async function setInitialPassword(
       message: "Your account is blocked. Contact an Admin for help.",
     };
   }
+  if (access.status === "rejected") {
+    return {
+      status: "error",
+      message:
+        "Your registration was rejected. Contact a Superadmin if you believe this is a mistake.",
+    };
+  }
   if (access.status === "unavailable") {
     return {
       status: "error",
@@ -414,7 +423,7 @@ export async function setInitialPassword(
     .eq("id", user.id)
     .eq("must_change_password", true)
     .eq("is_blocked", false)
-    .eq("approval_status", "approved")
+    .in("approval_status", ["active", "approved"])
     .select("id");
 
   if (profileError || !updatedProfiles?.length) {

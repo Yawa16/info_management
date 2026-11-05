@@ -5,6 +5,8 @@ import { redirectSignedInUser } from "@/lib/auth/access";
 const notices: Record<string, string> = {
   pending: "Your account is waiting for approval.",
   blocked: "Your account is blocked. Contact an Admin for help.",
+  rejected:
+    "Your registration was rejected. Contact a Superadmin if you believe this is a mistake.",
   unavailable:
     "We can’t verify account access right now. Please contact support.",
   "confirmation-error":
