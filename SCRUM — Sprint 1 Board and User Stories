@@ -1,0 +1,47 @@
+# SCRUM — Sprint 1 Board and User Stories
+
+## 1. Overview
+The Sprint 1 Board and User Stories document outlines the tasks, requirements, and activities planned for the first sprint. It helps organize the team's workload and provides a clear guide for completing the project objectives.
+
+## 2. Sprint 1 Goal
+Establish the project's foundation, organize development activities, and prepare the necessary requirements and workflow for the succeeding development tasks.
+
+## 3. Sprint Board
+
+| Task | Status |
+|---|---|
+| Repository Setup and GitHub Workflow | Done |
+| Team Working Agreement and Definition of Done | Done |
+| Sprint 1 Board and User Stories | Done |
+| Mid-Sprint Check-In and Impediment Log | Done |
+| Sprint 1 Review and Retrospective Report | Done |
+
+## 4. User Stories
+
+### User Story 1: Access the System
+As a user, I want to access the system so that I can use its available features.
+
+Acceptance Criteria:
+- The user can access the system.
+- The system provides appropriate access based on user permissions.
+
+### User Story 2: Manage Information
+As an authorized user, I want to manage information so that records can be organized and maintained properly.
+
+Acceptance Criteria:
+- Authorized users can access the appropriate management features.
+- Information can be maintained according to assigned permissions.
+
+### User Story 3: Track Project Progress
+As a team member, I want to track assigned tasks so that I can monitor project progress and identify unfinished activities.
+
+Acceptance Criteria:
+- Tasks are properly documented.
+- Task progress can be monitored.
+- Updates are communicated to the team.
+
+## 5. Task Prioritization
+Tasks are organized according to their importance and contribution to the Sprint 1 goal. Priority is given to establishing the repository, organizing team responsibilities, and documenting project requirements.
+
+## 6. Conclusion
+The Sprint 1 Board and User Stories provide a structured overview of the team's planned activities and project requirements. This documentation helps maintain organization, monitor progress, and ensure that team members understand their responsibilities throughout the sprint.
