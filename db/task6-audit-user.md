@@ -117,6 +117,25 @@ The SQL permission test requires an active approved Admin/Superadmin as the
 grantor, another active approved account, and at least one unassigned active
 right.
 
+### Development verification (2026-11-05)
+
+Ran `npm.cmd run db:verify-audit` against the configured development database
+after enabling the script's explicit `ALLOW_AUDIT_TEST` guard. The runner
+confirmed the development database and matching Supabase project before
+testing. All nine cases passed:
+
+1. Insert records the application user and matching stamp.
+2. Update records the second application user.
+3. Soft delete and restore record the expected actions.
+4. A missing user falls back to `system` without blocking the write.
+5. A committed transaction's user does not leak into the next transaction.
+6. Two simultaneous database sessions record their own users.
+7. Permission changes are audited and password/token secrets are excluded.
+8. `UPDATE`, `DELETE`, and `TRUNCATE` against `audit_log` are rejected.
+9. A rolled-back write leaves no audit row.
+
+All test transactions were rolled back. `npm.cmd run typecheck` also passed.
+
 ## Migration and deployment notes
 
 Apply migrations 005 and 006 as new forward-only migrations; do not edit
