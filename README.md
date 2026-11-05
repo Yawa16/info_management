@@ -136,8 +136,8 @@ approval is exactly `approved` before deploying this check.
 The migration `supabase/migrations/20261101100000_add_login_access_flags.sql`
 adds `must_change_password` and `is_blocked` boolean columns to
 `public.profiles`. Both default to `false`. Apply it to the approved Supabase
-project before deploying the Task 3 login code. The existing profiles RLS
-policies remain enabled and unchanged.
+project before deploying the Task 3 login code. The Task 5 migration keeps
+profiles RLS enabled and adds role-scoped policies for User Management.
 
 Login uses Supabase Auth, which stores password hashes; the application never
 hashes or stores passwords itself. After authentication, the server checks the
@@ -155,3 +155,32 @@ Middleware refreshes Supabase cookies so sessions survive navigation and
 refreshes. Protected pages verify the session and profile server-side on every
 request. Repeated failed sign-in attempts rely on Supabase Auth's configured
 rate limits; review the Auth rate-limit settings in the Supabase project.
+
+## Task 5: User Management
+
+The `/users` page is available only to approved, unblocked Admins and
+Superadmins. Admins see regular User and Admin accounts, but can manage only
+regular Users; Superadmin accounts are omitted. Superadmins can manage other
+accounts of every role. Neither role can manage its own account. The Rights
+control is intentionally disabled as a placeholder for a later task.
+
+The page supports creating a regular, approved User with a cryptographically
+random temporary password, editing account name/email, and blocking or
+unblocking accounts. The generated password is shown after successful
+creation so it can be shared privately. New managed accounts set
+`must_change_password = true` and must visit `/set-password` before reaching
+protected pages. Blocking is confirmed in the browser; the server also
+validates the caller and target on every action. Existing login and protected
+page checks reject blocked accounts.
+
+Apply `supabase/migrations/20261104133000_user_management.sql` only to the
+approved development Supabase project after confirmation from the DB Admin.
+The migration keeps RLS enabled, adds manager-scoped profile read/update
+policies, and limits authenticated profile updates to the name, email, and
+block-status columns. The server actions independently enforce the same role
+and self-management rules. Auth account creation and email changes use the
+server-only service-role client; passwords remain managed by Supabase Auth.
+
+The SQL migration is committed but has not been applied to any Supabase
+project. Verify against the approved development project before deployment;
+do not apply it to production without explicit approval.
