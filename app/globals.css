@@ -295,63 +295,6 @@ button, a { -webkit-tap-highlight-color: transparent; }
   .auth-card h1 { font-size: 30px; }
   .auth-name-row { gap: 8px; }
 }
-.user-management-page { padding-block: 4.5rem 5rem; }
-.user-management-header, .user-section-heading { display: flex; align-items: center; justify-content: space-between; gap: 24px; }
-.user-management-header { margin-bottom: 36px; }
-.user-management-header h1 { margin: 0; font-size: clamp(32px, 4vw, 46px); letter-spacing: -1.7px; }
-.user-management-header > div > p:last-child, .user-section-heading p { margin: 8px 0 0; color: var(--muted); font-size: 14px; }
-.user-management-section { margin-top: 24px; padding: 26px; border: 1px solid var(--line); border-radius: 9px; background: #fff; }
-.user-section-heading { margin-bottom: 20px; }
-.user-section-heading h2 { margin: 0; font-size: 20px; letter-spacing: -.5px; }
-.user-section-heading p { font-size: 12px; }
-.user-count { color: var(--muted); font-size: 12px; white-space: nowrap; }
-.user-table-scroll { overflow-x: auto; }
-.user-management-table { width: 100%; border-collapse: collapse; text-align: left; }
-.user-management-table th { padding: 12px 10px; border-bottom: 1px solid var(--line); color: #78827d; font-size: 10px; font-weight: 650; letter-spacing: .07em; text-transform: uppercase; }
-.user-management-table td { padding: 15px 10px; border-bottom: 1px solid #f0f0eb; color: #3e4a45; font-size: 12px; vertical-align: middle; }
-.user-management-table tbody tr:last-child td { border-bottom: 0; }
-.user-role-badge, .user-status-badge { display: inline-flex; align-items: center; padding: 5px 9px; border-radius: 20px; background: #edf2ee; color: #53675b; font-size: 10px; font-weight: 650; text-transform: capitalize; }
-.role-superadmin { background: #f2eaf5; color: #79508b; }
-.role-admin { background: #e9eff8; color: #4d668e; }
-.status-active { background: #e7f2e8; color: #42774f; }
-.status-pending { background: #fbf1dc; color: #94702e; }
-.status-blocked { background: #f9e8e5; color: #a05247; }
-.user-row-actions { display: flex; align-items: center; gap: 7px; }
-.user-row-actions .button { min-height: 34px; padding-inline: 10px; font-size: 10px; }
-.user-row-actions form { display: flex; align-items: center; gap: 6px; }
-.user-management-page .button-placeholder { border: 1px solid var(--line); background: #f7f7f3; color: #8a928d; cursor: not-allowed; }
-.user-add-panel { position: relative; }
-.user-add-panel > summary, .user-row-edit > summary { list-style: none; }
-.user-add-panel > summary::-webkit-details-marker, .user-row-edit > summary::-webkit-details-marker { display: none; }
-.user-management-form { display: grid; gap: 13px; min-width: min(390px, calc(100vw - 42px)); margin-top: 12px; padding: 20px; border: 1px solid var(--line); border-radius: 8px; background: #fff; box-shadow: 0 12px 34px rgba(32,44,41,.12); }
-.user-add-panel > .user-management-form { position: absolute; z-index: 3; top: 100%; right: 0; }
-.user-management-form h2 { margin: 0; font-size: 18px; }
-.user-management-form > p { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.5; }
-.user-management-form .auth-field { display: grid; gap: 6px; }
-.user-management-form .auth-field label, .user-temporary-password label { color: #53605a; font-size: 11px; font-weight: 600; }
-.user-management-form input { width: 100%; min-height: 40px; padding: 9px 10px; border: 1px solid #dfe3dd; border-radius: 4px; background: #fff; color: var(--ink); font-size: 12px; }
-.user-management-form .button { justify-self: start; min-height: 40px; }
-.user-action-message { color: #53605a; font-size: 11px; line-height: 1.45; }
-.user-action-message[role="alert"], .user-load-error { color: #a05247; }
-.user-temporary-password { display: grid; gap: 6px; }
-.user-pending-list { margin: 0; padding: 0; list-style: none; }
-.user-pending-list li { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 13px 0; border-top: 1px solid #f0f0eb; font-size: 12px; }
-.user-pending-list small { display: block; margin-top: 4px; color: var(--muted); font-size: 11px; }
-.user-empty-state, .user-load-error { color: var(--muted); font-size: 12px; }
-.user-row-edit { position: relative; }
-.user-row-edit[open] .user-management-form { position: absolute; z-index: 2; top: 100%; right: 0; }
-@media (max-width: 700px) {
-  .user-management-header { align-items: flex-start; flex-direction: column; }
-  .user-management-section { padding: 19px 15px; }
-  .user-management-table thead { display: none; }
-  .user-management-table, .user-management-table tbody, .user-management-table tr, .user-management-table td { display: block; width: 100%; }
-  .user-management-table tr { padding: 12px 0; border-bottom: 1px solid var(--line); }
-  .user-management-table tr:last-child { border-bottom: 0; }
-  .user-management-table td { display: flex; justify-content: space-between; gap: 14px; padding: 7px 3px; border: 0; text-align: right; }
-  .user-management-table td::before { color: var(--muted); content: attr(data-label); font-size: 10px; font-weight: 650; text-align: left; text-transform: uppercase; }
-  .user-row-actions { flex-wrap: wrap; justify-content: flex-end; }
-  .user-add-panel > .user-management-form { position: static; min-width: min(390px, calc(100vw - 32px)); }
-}
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
