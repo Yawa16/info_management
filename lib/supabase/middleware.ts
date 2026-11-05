@@ -25,5 +25,10 @@ export async function updateSession(request: NextRequest) {
   });
 
   await supabase.auth.getUser();
+  if (request.nextUrl.pathname === "/set-password") {
+    response.headers.set("Cache-Control", "no-store");
+    response.headers.set("Referrer-Policy", "no-referrer");
+    response.headers.set("X-Robots-Tag", "noindex, nofollow");
+  }
   return response;
 }

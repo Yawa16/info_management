@@ -206,10 +206,15 @@ Expected output:
 ```text
 Running seed: 001_seed_hope_sample_data.sql
 Seed complete: 001_seed_hope_sample_data.sql
+Running seed: 002_seed_user_management_catalogue.sql
+Seed complete: 002_seed_user_management_catalogue.sql
 ```
 
-This sample seed is safe to run repeatedly. The seed runner executes each
-seed file in its own transaction.
+The sample and user-management catalogue seeds are safe to run repeatedly.
+The seed runner executes each SQL seed file in its own transaction. To add
+team Superadmin accounts, issue setup links, configure the optional dev-only
+accounts, and verify exact catalogue counts, follow
+[Task 5 seeding](./task5-seeding.md).
 
 ### 8. Verify the database
 
@@ -283,6 +288,10 @@ filenames and 64-character SHA-256 checksums.
 | `npm run db:status` | Shows applied and pending migration files; fails if applied checksums differ or files are missing |
 | `npm run db:migrate` | Creates the tracking table and applies pending migrations in filename order |
 | `npm run db:seed` | Runs each idempotent seed SQL file in its own transaction |
+| `npm run db:seed-team` | Creates missing Supabase Auth and Superadmin profiles from ignored `db/seeds/team.csv` |
+| `npm run db:issue-setup-links` | Rotates and prints one-time setup links for eligible accounts |
+| `npm run db:seed-dev` | Adds fake Admin/User accounts only after strict development-target checks |
+| `npm run db:check-sql-secrets` | Checks staged SQL for encoded password hashes or password assignments |
 | `npm run db:reset` | Drops and recreates a development database only after safety checks and interactive confirmation |
 
 ### Reset a local development database
