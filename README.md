@@ -108,10 +108,20 @@ Supabase project's Authentication → URL Configuration, set the Site URL to
 the local origin and allow the callback URLs, for example
 `http://localhost:3000/auth/callback` and
 `http://localhost:3000/auth/callback?flow=registration` and
-`http://localhost:3000/auth/callback?next=/reset-password/update`. Password
-reset links return to `/reset-password/update`; after a successful password
-change, the user is signed out and must sign in again. Do not change production
-Supabase settings for local testing.
+`http://localhost:3000/auth/callback?flow=recovery&next=/reset-password/update`.
+Password reset links return to `/reset-password/update`; after a successful
+password change, the user is signed out and must sign in again. Expired or
+invalid recovery links return to `/reset-password`, where the user can request
+a new link. Do not change production Supabase settings for local testing.
+
+Password reset email delivery uses Supabase Auth's Reset Password email
+template and configured SMTP provider. Keep `{{ .ConfirmationURL }}` in the
+template so Supabase validates the one-time token before redirecting to the
+app callback. Configure SMTP under Authentication → SMTP Settings in the
+development project; Supabase's default email service is rate-limited and
+restricted to authorized project-team addresses. Use an authorized sender
+domain for messages to other addresses, and never put SMTP credentials in the
+app or commit them.
 
 The registration and sign-in pages also support Google OAuth. Configure Google as an
 enabled provider under the development project's Authentication → Providers
