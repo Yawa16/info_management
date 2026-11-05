@@ -1,0 +1,49 @@
+# SCRUM — Repository Setup and GitHub Workflow
+
+## 1. Overview
+This document describes the repository setup and GitHub workflow used by the team to organize project files, manage code contributions, and collaborate during development.
+
+## 2. Repository Setup
+- Created a centralized GitHub repository for the project.
+- Organized project files and documentation.
+- Created separate branches for assigned tasks.
+- Maintained a README file for project information.
+- Used GitHub Issues to track tasks and responsibilities.
+
+## 3. Branch Management
+The team uses branches to organize individual contributions and prevent changes from directly affecting the main branch.
+
+Branching guidelines:
+- Main: Contains the stable project version.
+- Development: Used for integrating ongoing development work, if applicable.
+- Feature or Task Branches: Used for specific assignments and updates.
+
+## 4. Commit Guidelines
+Team members should:
+- Use clear and meaningful commit messages.
+- Commit changes related to specific tasks.
+- Avoid including unrelated changes in one commit.
+- Regularly push updates to the correct branch.
+
+Example commit message:
+`docs: add Sprint 1 documentation`
+
+## 5. Pull Request Workflow
+1. Create or select the appropriate task branch.
+2. Make the necessary changes.
+3. Commit and push the changes.
+4. Create a pull request targeting the appropriate base branch.
+5. Provide a clear title and description.
+6. Request team members to review the changes.
+7. Address feedback and requested revisions.
+8. Merge the pull request after approval.
+
+## 6. Collaboration Guidelines
+- Keep team members updated on project progress.
+- Review pull requests carefully before approving.
+- Avoid making changes directly to protected branches.
+- Communicate conflicts or technical issues.
+- Maintain organized and updated project documentation.
+
+## 7. Conclusion
+The repository setup and GitHub workflow provide the team with an organized environment for managing project development. Following these guidelines helps improve collaboration, maintain version control, and ensure that project contributions are properly reviewed and documented.
