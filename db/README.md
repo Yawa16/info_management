@@ -26,7 +26,10 @@ The runner records applied migrations in `public.schema_migrations`.
 `002_seed_hope_sample_data.sql` inserts the guide-based sample records.
 `003_create_user_management_schema.sql` adds roles, users, modules, rights,
 and permissions; `004_create_password_reset_token.sql` adds single-use,
-expiring password setup/reset tokens.
+expiring password setup/reset tokens; `005_create_audit_log.sql` adds
+transaction-local application-user audit logging; and
+`006_audit_legacy_soft_delete_tables.sql` adds equivalent logging for existing
+`is_deleted`/stamp tables.
 `db/seeds/001_seed_hope_sample_data.sql` provides the same sample records for
 the repeatable seed command; it uses `ON CONFLICT DO NOTHING`.
 
@@ -174,6 +177,8 @@ Migrations:
   [pending] 002_seed_hope_sample_data.sql
   [pending] 003_create_user_management_schema.sql
   [pending] 004_create_password_reset_token.sql
+  [pending] 005_create_audit_log.sql
+  [pending] 006_audit_legacy_soft_delete_tables.sql
 ```
 
 Expected migrate output:
@@ -187,9 +192,13 @@ Applying: 003_create_user_management_schema.sql
 Applied: 003_create_user_management_schema.sql
 Applying: 004_create_password_reset_token.sql
 Applied: 004_create_password_reset_token.sql
+Applying: 005_create_audit_log.sql
+Applied: 005_create_audit_log.sql
+Applying: 006_audit_legacy_soft_delete_tables.sql
+Applied: 006_audit_legacy_soft_delete_tables.sql
 ```
 
-Expected final status shows all four files as applied. The runner creates
+Expected final status shows all six files as applied. The runner creates
 `public.schema_migrations` if missing. It applies numbered SQL files in
 filename order, each in a transaction, and records the filename and SHA-256
 checksum in the same transaction. It fails if an applied migration's file is
@@ -261,12 +270,16 @@ are deferred to Task 6.
   quantity, nonnegative unit price, and positive payment amount. Derived
   sales totals and current prices remain unstored.
 - The source's audit tables/functions/triggers and active views are not
-  copied; they are deferred to Task 6 so they can be built against the final
-  status/stamp design.
+  copied into the base migrations; migrations 005-006 add audit logging
+  against the final status/stamp design and retain compatibility with existing
+  `is_deleted`/stamp tables. Active views are implemented in migration 003.
 
 The schema and seed migrations are forward-only. For a disposable development
 database, rollback by recreating the database with the guarded reset command,
 then rerun migrations. Never reset a shared or production database.
+
+For Task 6 audit identity setup, verification, and the required backend
+transaction context, see [Task 6 audit logging](./task6-audit-user.md).
 
 To confirm migration tracking, run:
 

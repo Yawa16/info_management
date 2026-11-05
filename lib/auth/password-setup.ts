@@ -99,6 +99,7 @@ export async function setInitialPassword(token: string, password: string) {
     const result = await client.query(
       `SELECT token.id AS token_id,
               app_user.id AS app_user_id,
+              app_user.email,
               app_user.auth_user_id
        FROM public.password_reset_token AS token
        JOIN public.app_user AS app_user ON app_user.id = token.user_id
@@ -124,8 +125,14 @@ export async function setInitialPassword(token: string, password: string) {
     const account = result.rows[0] as {
       token_id: string;
       app_user_id: string;
+      email: string;
       auth_user_id: string;
     };
+    await client.query(
+      "SELECT set_config('app.current_user', $1, TRUE)",
+      [account.email],
+    );
+
     const supabase = createSupabaseAdmin();
     const { error } = await supabase.auth.admin.updateUserById(
       account.auth_user_id,
