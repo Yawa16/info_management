@@ -1,0 +1,292 @@
+-- S2-DEV-01 Customer database review log, 2026-11-17.
+-- REVIEW ONLY: all statements are commented out to prevent accidental replay.
+-- The Customer compatibility migration was applied manually, not through a
+-- migration runner. It was later recorded in public.schema_migrations.
+-- Do not rerun either recorded Customer migration on the target database.
+-- The project was named Hope ERP Development, but its branch was labeled
+-- "main Production" in Supabase. The user confirmed DB Admin approval and
+-- a restorable backup before the migration was applied.
+--
+-- Results at the time: 82 original Active customers remained; a separate
+-- development fixture C-004 was inserted as Inactive, giving 83 customers.
+-- Customer RLS was enabled without direct-client policies, as approved.
+-- Existing stamp text was preserved. Legacy stamps may use the older format.
+--
+-- 1. Read-only inspection of Customer trigger function definitions.
+-- SELECT p.proname, pg_get_functiondef(p.oid) AS definition
+-- FROM pg_trigger t
+-- JOIN pg_proc p ON p.oid=t.tgfoid
+-- WHERE t.tgrelid='public.customer'::regclass AND NOT t.tgisinternal
+-- GROUP BY p.oid, p.proname ORDER BY p.proname;
+--
+-- 2. Read-only inspection of public functions mentioning legacy columns.
+-- SELECT p.proname, pg_get_function_identity_arguments(p.oid) AS args
+-- FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace
+-- WHERE n.nspname='public' AND p.prokind='f'
+--   AND (p.prosrc ILIKE '%custno%' OR p.prosrc ILIKE '%custname%'
+--        OR p.prosrc ILIKE '%payterm%')
+-- ORDER BY 1;
+--
+-- 3. Read-only inspection of Customer trigger definitions.
+-- SELECT t.tgname, pg_get_triggerdef(t.oid) AS definition
+-- FROM pg_trigger t
+-- WHERE t.tgrelid='public.customer'::regclass AND NOT t.tgisinternal
+-- ORDER BY t.tgname;
+--
+-- 4. Rollback-only rehearsal. This used the same migration statements as
+-- section 5, followed by the assertions below and ROLLBACK instead of
+-- NOTIFY and COMMIT. It was executed before the migration was applied.
+-- It checked the original count, status synchronization, stamp actions, an
+-- audit record key, the Sales foreign key, and the Customer RLS flag.
+--
+-- BEGIN;
+-- [Section 5 statements from LOCK TABLE through ENABLE ROW LEVEL SECURITY]
+-- DO $$
+-- DECLARE old_count bigint; no_sales_customer text; sample_key text := 'C-004'; rec record;
+-- BEGIN
+--   SELECT count(*) INTO old_count FROM public.customer;
+--   IF old_count <> 82 THEN RAISE EXCEPTION 'Unexpected customer count: %', old_count; END IF;
+--   IF EXISTS (SELECT 1 FROM public.customer WHERE cust_no=sample_key) THEN
+--     RAISE EXCEPTION 'C-004 already exists';
+--   END IF;
+--   INSERT INTO public.customer (cust_no,cust_name,address,pay_terms,status)
+--   VALUES (sample_key,'Task 1 test customer','Development test','COD','Active');
+--   UPDATE public.customer SET status='Inactive' WHERE cust_no=sample_key;
+--   SELECT status,is_deleted,stamp INTO rec FROM public.customer WHERE cust_no=sample_key;
+--   IF rec.status <> 'Inactive' OR NOT rec.is_deleted OR rec.stamp NOT LIKE 'DELETED %' THEN
+--     RAISE EXCEPTION 'Soft delete or stamp test failed';
+--   END IF;
+--   UPDATE public.customer SET is_deleted=false WHERE cust_no=sample_key;
+--   SELECT status,is_deleted,stamp INTO rec FROM public.customer WHERE cust_no=sample_key;
+--   IF rec.status <> 'Active' OR rec.is_deleted OR rec.stamp NOT LIKE 'RESTORED %' THEN
+--     RAISE EXCEPTION 'Restore or stamp test failed';
+--   END IF;
+--   IF NOT EXISTS (SELECT 1 FROM public.audit_log WHERE table_name='customer'
+--     AND action='DELETED' AND record_key LIKE '%C-004%') THEN
+--     RAISE EXCEPTION 'Audit key or delete log test failed';
+--   END IF;
+--   IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conrelid='public.sales'::regclass
+--     AND confrelid='public.customer'::regclass AND contype='f'
+--     AND pg_get_constraintdef(oid) LIKE '%cust_no%') THEN
+--     RAISE EXCEPTION 'Sales customer foreign key test failed';
+--   END IF;
+--   IF NOT (SELECT relrowsecurity FROM pg_class WHERE oid='public.customer'::regclass) THEN
+--     RAISE EXCEPTION 'RLS test failed';
+--   END IF;
+-- END $$;
+-- ROLLBACK;
+--
+-- 5. APPLIED MIGRATION. This is equivalent to the saved runner migration
+-- ../../db/migrations/20261117233000_customer_status_compatibility.sql,
+-- except the runner supplies the outer BEGIN and COMMIT.
+-- BEGIN;
+-- LOCK TABLE public.customer IN ACCESS EXCLUSIVE MODE;
+-- DO $$
+-- BEGIN
+--   IF EXISTS (SELECT 1 FROM public.customer WHERE is_deleted) THEN
+--     RAISE EXCEPTION 'Migration requires a reviewed backfill for inactive customers.';
+--   END IF;
+--   IF EXISTS (SELECT 1 FROM pg_policies
+--     WHERE schemaname = 'public' AND tablename = 'customer') THEN
+--     RAISE EXCEPTION 'Customer policies already exist; review direct access before migration.';
+--   END IF;
+-- END;
+-- $$;
+-- ALTER TABLE public.customer RENAME COLUMN custno TO cust_no;
+-- ALTER TABLE public.customer RENAME COLUMN custname TO cust_name;
+-- ALTER TABLE public.customer RENAME COLUMN payterm TO pay_terms;
+-- ALTER TABLE public.customer
+--   ADD COLUMN status text NOT NULL DEFAULT 'Active',
+--   ADD CONSTRAINT customer_status_check CHECK (status IN ('Active', 'Inactive')),
+--   ADD CONSTRAINT customer_status_matches_deleted CHECK ((status = 'Inactive') = is_deleted);
+-- ALTER TABLE public.customer ALTER COLUMN status DROP DEFAULT;
+-- CREATE FUNCTION public.customer_sync_status()
+-- RETURNS trigger LANGUAGE plpgsql SET search_path = pg_catalog, public AS $$
+-- BEGIN
+--   IF TG_OP = 'INSERT' THEN
+--     IF NEW.status IS NULL THEN
+--       NEW.status := CASE WHEN NEW.is_deleted THEN 'Inactive' ELSE 'Active' END;
+--     ELSE
+--       IF NEW.status NOT IN ('Active', 'Inactive') THEN
+--         RAISE EXCEPTION 'Invalid customer status.';
+--       END IF;
+--       NEW.is_deleted := NEW.status = 'Inactive';
+--     END IF;
+--   ELSIF NEW.status IS DISTINCT FROM OLD.status THEN
+--     IF NEW.status IS NULL OR NEW.status NOT IN ('Active', 'Inactive') THEN
+--       RAISE EXCEPTION 'Invalid customer status.';
+--     END IF;
+--     IF NEW.is_deleted IS DISTINCT FROM OLD.is_deleted
+--        AND NEW.is_deleted IS DISTINCT FROM (NEW.status = 'Inactive') THEN
+--       RAISE EXCEPTION 'Conflicting customer status and is_deleted values.';
+--     END IF;
+--     NEW.is_deleted := NEW.status = 'Inactive';
+--   ELSIF NEW.is_deleted IS DISTINCT FROM OLD.is_deleted THEN
+--     NEW.status := CASE WHEN NEW.is_deleted THEN 'Inactive' ELSE 'Active' END;
+--   END IF;
+--   RETURN NEW;
+-- END;
+-- $$;
+-- CREATE TRIGGER aa_customer_sync_status
+-- BEFORE INSERT OR UPDATE ON public.customer
+-- FOR EACH ROW EXECUTE FUNCTION public.customer_sync_status();
+-- CREATE FUNCTION public.customer_check_active_sales()
+-- RETURNS trigger LANGUAGE plpgsql SET search_path = pg_catalog, public AS $$
+-- DECLARE active_sales bigint;
+-- BEGIN
+--   IF NEW.is_deleted AND NOT OLD.is_deleted THEN
+--     SELECT count(*) INTO active_sales
+--     FROM public.sales WHERE custno = OLD.cust_no AND NOT is_deleted;
+--     IF active_sales > 0 THEN
+--       RAISE EXCEPTION 'Cannot delete customer row: % active related record(s) still exist.', active_sales;
+--     END IF;
+--   END IF;
+--   RETURN NEW;
+-- END;
+-- $$;
+-- DROP TRIGGER customer_bu_check ON public.customer;
+-- CREATE TRIGGER customer_bu_check BEFORE UPDATE ON public.customer
+-- FOR EACH ROW EXECUTE FUNCTION public.customer_check_active_sales();
+-- DROP TRIGGER zz_audit_legacy_log_customer ON public.customer;
+-- CREATE TRIGGER zz_audit_legacy_log_customer
+-- AFTER INSERT OR UPDATE OR DELETE ON public.customer
+-- FOR EACH ROW EXECUTE FUNCTION public.audit_record_change('cust_no');
+-- ALTER TABLE public.customer ENABLE ROW LEVEL SECURITY;
+-- NOTIFY pgrst, 'reload schema';
+-- COMMIT;
+--
+-- 6. The C-004 fixture was inserted separately via the Supabase API, not SQL.
+-- Its equivalent SQL is shown for review only; DO NOT run it again:
+-- INSERT INTO public.customer (cust_no, cust_name, address, pay_terms, status)
+-- VALUES ('C-004', 'Task 1 test customer', 'Development test', 'COD', 'Inactive');
+--
+-- 7. Post-migration rollback-only test: active Sales guard and direct RLS.
+-- BEGIN;
+-- DO $$
+-- DECLARE target text; blocked boolean := false;
+-- BEGIN
+--   SELECT c.cust_no INTO target FROM public.customer c
+--   JOIN public.sales s ON s.custno = c.cust_no
+--   WHERE c.status='Active' AND NOT s.is_deleted LIMIT 1;
+--   IF target IS NULL THEN RAISE EXCEPTION 'No customer with active sales to test'; END IF;
+--   BEGIN
+--     UPDATE public.customer SET status='Inactive' WHERE cust_no=target;
+--   EXCEPTION WHEN raise_exception THEN
+--     IF SQLERRM NOT LIKE 'Cannot delete customer row:%' THEN RAISE; END IF;
+--     blocked := true;
+--   END;
+--   IF NOT blocked THEN RAISE EXCEPTION 'Sales guard failed'; END IF;
+-- END $$;
+-- SET LOCAL ROLE anon;
+-- DO $$ BEGIN
+--   IF (SELECT count(*) FROM public.customer) <> 0 THEN
+--     RAISE EXCEPTION 'Anonymous customer access not blocked';
+--   END IF;
+-- END $$;
+-- RESET ROLE;
+-- SET LOCAL ROLE authenticated;
+-- DO $$ BEGIN
+--   IF (SELECT count(*) FROM public.customer) <> 0 THEN
+--     RAISE EXCEPTION 'Authenticated direct access not blocked';
+--   END IF;
+-- END $$;
+-- RESET ROLE;
+-- ROLLBACK;
+--
+-- Additional Supabase API checks, not SQL Editor statements: verified the
+-- 82/1 counts, C-004 status and stamp, anonymous visibility, four search
+-- fields, and the regular-User query's Active filter and projected columns.
+-- A regular User browser session subsequently confirmed the inactive C-004
+-- row is absent and Status and Stamp are hidden even with status=All.
+-- An isolated local server simulated removal of the signed-in User's Customer
+-- rights without changing the database: the Customer page redirected to No
+-- access. The page guard was checked with the normal Edge middleware; the
+-- middleware's page redirect and API 403 were also checked using its Node.js
+-- runtime in the isolated copy. A live no-Customer-rights account was not used.
+--
+-- Stamp review, 2026-11-17: of 83 Customer rows, 82 older stamps begin with
+-- ADD and have a leading zero in the 12-hour time; one stamp uses CREATED
+-- and the requested time format. None are missing. No stamp values were
+-- changed by this review. A normal UPDATE invokes stamp and audit triggers,
+-- so any historical-format normalization requires DB Admin review.
+--
+-- 8. Migration history and stamp inspection, 2026-11-18.
+-- SELECT n.nspname AS schema_name, c.relname AS table_name,
+--   array_agg(a.attname || ':' || pg_catalog.format_type(a.atttypid,a.atttypmod) ORDER BY a.attnum) AS columns
+-- FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace
+-- JOIN pg_attribute a ON a.attrelid=c.oid AND a.attnum>0 AND NOT a.attisdropped
+-- WHERE c.relname='schema_migrations' AND c.relkind IN ('r','p')
+-- GROUP BY n.nspname,c.relname ORDER BY n.nspname;
+-- SELECT 'migration_history' AS section, COALESCE(jsonb_agg(to_jsonb(m) ORDER BY filename), '[]'::jsonb) AS details
+-- FROM public.schema_migrations m UNION ALL
+-- SELECT 'customer_stamp_counts', jsonb_build_object('total',count(*),
+--   'legacy_add',count(*) FILTER (WHERE stamp LIKE 'ADD %'),
+--   'created',count(*) FILTER (WHERE stamp LIKE 'CREATED %'),
+--   'missing',count(*) FILTER (WHERE stamp IS NULL OR stamp=''))
+-- FROM public.customer UNION ALL
+-- SELECT 'customer_triggers', COALESCE(jsonb_agg(jsonb_build_object(
+--   'name',t.tgname,'enabled',t.tgenabled,'function',p.proname) ORDER BY t.tgname),'[]'::jsonb)
+-- FROM pg_trigger t JOIN pg_proc p ON p.oid=t.tgfoid
+-- WHERE t.tgrelid='public.customer'::regclass AND NOT t.tgisinternal;
+-- SELECT p.proname, pg_get_functiondef(p.oid) AS definition
+-- FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace
+-- WHERE n.nspname='public' AND p.proname IN
+-- ('trg_set_stamp','audit_set_stamp','audit_record_change') ORDER BY p.proname;
+--
+-- Six pre-existing history rows were missing from this branch. Their exact
+-- SQL was recovered from origin/DB-ADMIN/Task-6-transactional-audit-user.
+-- Files 003-006 match their recorded checksums only with CRLF line endings;
+-- .gitattributes preserves those bytes. The old history rows were not changed.
+--
+-- 9. Two rollback-only stamp rehearsals succeeded. The first used the
+-- normalization migration below with its original post-check comparing the
+-- result to the same regexp_replace expression; it additionally asserted 82
+-- backup rows and ended with ROLLBACK. The second used the independent
+-- actor/time and audit-row checks shown in section 10, additionally asserted
+-- 82 backup rows, and ended with ROLLBACK. No rehearsal changes persisted.
+-- Both rehearsals ran the same statements as section 10, beginning with
+-- LOCK TABLE and the stamp-validation DO block, through the two ALTER TABLE
+-- ENABLE TRIGGER statements. They did not execute the history inserts or the
+-- compatibility-check DO block. Each used the following transaction wrapper
+-- and assertions:
+-- BEGIN;
+-- [stamp-validation DO, CREATE TEMP TABLE, DISABLE triggers, UPDATE, ENABLE triggers]
+-- DO $$ BEGIN IF EXISTS (SELECT 1 FROM customer_legacy_stamp_backup b LEFT JOIN public.customer c USING (cust_no) WHERE c.cust_no IS NULL OR c.stamp IS DISTINCT FROM regexp_replace(b.original_stamp,'^ADD (.* [0-9]{4}-[0-9]{2}-[0-9]{2}) 0?([1-9]|1[0-2]):([0-5][0-9] (AM|PM))$',E'CREATED \\1 \\2:\\3')) OR EXISTS (SELECT 1 FROM public.customer WHERE stamp LIKE 'ADD %') THEN RAISE EXCEPTION 'Legacy Customer stamp normalization failed.'; END IF; IF EXISTS (SELECT 1 FROM customer_legacy_stamp_backup b JOIN public.customer c USING (cust_no) WHERE NOT EXISTS (SELECT 1 FROM public.audit_log a WHERE a.table_name='customer' AND a.action='EDITED' AND a.occurred_at=transaction_timestamp() AND a.old_values->>'cust_no'=b.cust_no AND a.old_values->>'stamp'=b.original_stamp AND a.new_values->>'stamp'=c.stamp)) THEN RAISE EXCEPTION 'Missing audit record for Customer stamp normalization.'; END IF; IF (SELECT count(*) FROM customer_legacy_stamp_backup)<>82 THEN RAISE EXCEPTION 'Unexpected legacy row count.'; END IF; END $$;
+-- ROLLBACK;
+-- The second rehearsal substituted the final DO block in section 10 and
+-- inserted the 82-row assertion before its END.
+--
+-- 10. APPLIED transaction, 2026-11-18. The first attempt failed SQL parsing
+-- due to an extra quote after COMMIT; no statements ran. The corrected SQL
+-- below committed. The stamp migration's statements are equivalent to
+-- ../../db/migrations/20261118002000_normalize_customer_legacy_stamps.sql.
+-- BEGIN;
+-- SELECT pg_advisory_xact_lock(684219);
+-- LOCK TABLE public.customer IN ACCESS EXCLUSIVE MODE;
+-- DO $$ BEGIN
+--  IF EXISTS (SELECT 1 FROM public.schema_migrations WHERE filename IN ('20261117233000_customer_status_compatibility.sql','20261118002000_normalize_customer_legacy_stamps.sql')) THEN RAISE EXCEPTION 'Customer migration already recorded; investigate before proceeding.'; END IF;
+--  IF (SELECT count(*) FROM information_schema.columns WHERE table_schema='public' AND table_name='customer' AND column_name IN ('cust_no','cust_name','address','pay_terms','status','stamp','is_deleted'))<>7 OR EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='customer' AND column_name IN ('custno','custname','payterm')) THEN RAISE EXCEPTION 'Customer schema does not match applied migration.'; END IF;
+--  IF NOT (SELECT relrowsecurity FROM pg_class WHERE oid='public.customer'::regclass) OR EXISTS (SELECT 1 FROM pg_policies WHERE schemaname='public' AND tablename='customer') THEN RAISE EXCEPTION 'Unexpected Customer RLS configuration.'; END IF;
+--  IF (SELECT count(*) FROM pg_constraint WHERE conrelid='public.customer'::regclass AND conname IN ('customer_status_check','customer_status_matches_deleted') AND convalidated)<>2 THEN RAISE EXCEPTION 'Customer constraints missing.'; END IF;
+--  IF (SELECT count(*) FROM pg_trigger t JOIN pg_proc p ON p.oid=t.tgfoid WHERE t.tgrelid='public.customer'::regclass AND NOT t.tgisinternal AND t.tgenabled='O' AND (t.tgname,p.proname) IN (('aa_customer_sync_status','customer_sync_status'),('customer_bu_check','customer_check_active_sales'),('zz_audit_legacy_log_customer','audit_record_change')))<>3 THEN RAISE EXCEPTION 'Customer compatibility triggers missing.'; END IF;
+--  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conrelid='public.sales'::regclass AND confrelid='public.customer'::regclass AND contype='f' AND pg_get_constraintdef(oid) LIKE '%cust_no%') THEN RAISE EXCEPTION 'Sales customer foreign key missing.'; END IF;
+-- END $$;
+-- INSERT INTO public.schema_migrations(filename,checksum) VALUES ('20261117233000_customer_status_compatibility.sql','b3bcca911bafc09d791f10d257e33198c23a43ead287f2c5d3324e71a7b77829');
+-- DO $$ DECLARE expected_triggers integer; BEGIN IF EXISTS (SELECT 1 FROM public.customer WHERE stamp LIKE 'ADD %' AND stamp !~ '^ADD (.* [0-9]{4}-[0-9]{2}-[0-9]{2}) 0?([1-9]|1[0-2]):([0-5][0-9] (AM|PM))$') THEN RAISE EXCEPTION 'Unrecognized legacy Customer stamp; manual review required.'; END IF; SELECT count(*) INTO expected_triggers FROM pg_trigger t JOIN pg_proc p ON p.oid=t.tgfoid WHERE t.tgrelid='public.customer'::regclass AND NOT t.tgisinternal AND t.tgenabled='O' AND (t.tgname,p.proname) IN (('customer_biu_stamp','trg_set_stamp'),('zz_audit_legacy_stamp_customer','audit_set_stamp'),('zz_audit_legacy_log_customer','audit_record_change')); IF expected_triggers<>3 THEN RAISE EXCEPTION 'Expected Customer stamp and audit triggers are not enabled.'; END IF; END $$;
+-- CREATE TEMP TABLE customer_legacy_stamp_backup ON COMMIT DROP AS SELECT cust_no, stamp AS original_stamp FROM public.customer WHERE stamp LIKE 'ADD %';
+-- DO $$ BEGIN IF (SELECT count(*) FROM customer_legacy_stamp_backup)<>82 THEN RAISE EXCEPTION 'Unexpected legacy row count.'; END IF; END $$;
+-- ALTER TABLE public.customer DISABLE TRIGGER customer_biu_stamp;
+-- ALTER TABLE public.customer DISABLE TRIGGER zz_audit_legacy_stamp_customer;
+-- UPDATE public.customer SET stamp=regexp_replace(stamp,'^ADD (.* [0-9]{4}-[0-9]{2}-[0-9]{2}) 0?([1-9]|1[0-2]):([0-5][0-9] (AM|PM))$',E'CREATED \\1 \\2:\\3') WHERE stamp LIKE 'ADD %';
+-- ALTER TABLE public.customer ENABLE TRIGGER customer_biu_stamp;
+-- ALTER TABLE public.customer ENABLE TRIGGER zz_audit_legacy_stamp_customer;
+-- DO $$ BEGIN IF EXISTS (SELECT 1 FROM customer_legacy_stamp_backup b LEFT JOIN public.customer c USING (cust_no) WHERE c.cust_no IS NULL OR c.stamp IS DISTINCT FROM regexp_replace('CREATED ' || substring(b.original_stamp FROM 5),' 0([1-9]):([0-5][0-9] (AM|PM))$',E' \\1:\\2')) OR EXISTS (SELECT 1 FROM public.customer WHERE stamp LIKE 'ADD %') THEN RAISE EXCEPTION 'Legacy Customer stamp normalization failed.'; END IF; IF EXISTS (SELECT 1 FROM customer_legacy_stamp_backup b JOIN public.customer c USING (cust_no) WHERE NOT EXISTS (SELECT 1 FROM public.audit_log a WHERE a.table_name='customer' AND a.action='EDITED' AND a.occurred_at=transaction_timestamp() AND a.old_values->>'cust_no'=b.cust_no AND a.old_values->>'stamp'=b.original_stamp AND a.new_values->>'stamp'=c.stamp AND a.old_values-'stamp'=a.new_values-'stamp')) THEN RAISE EXCEPTION 'Missing audit record for Customer stamp normalization.'; END IF; END $$;
+-- INSERT INTO public.schema_migrations(filename,checksum) VALUES ('20261118002000_normalize_customer_legacy_stamps.sql','d12fba442e1ef0e76b226992a64b2186e9c357a4efb2512eaa1ad9ccc284631d');
+-- COMMIT;
+--
+-- 11. Post-commit verification: 83 customers (82 active, 1 inactive), no
+-- ADD stamps, 82 audit rows with only the stamp changed, all Customer
+-- triggers enabled, and Customer RLS enabled. Both Customer checksums match.
+-- SELECT 'customer_counts' AS section, jsonb_build_object('total',count(*),'active',count(*) FILTER (WHERE status='Active'),'inactive',count(*) FILTER (WHERE status='Inactive'),'legacy_add',count(*) FILTER (WHERE stamp LIKE 'ADD %'),'created',count(*) FILTER (WHERE stamp LIKE 'CREATED %')) AS details FROM public.customer UNION ALL SELECT 'customer_migrations',jsonb_agg(to_jsonb(m) ORDER BY filename) FROM public.schema_migrations m WHERE filename IN ('20261117233000_customer_status_compatibility.sql','20261118002000_normalize_customer_legacy_stamps.sql') UNION ALL SELECT 'normalization_audits',jsonb_build_object('count',count(*),'only_stamp_changed',count(*) FILTER (WHERE old_values-'stamp'=new_values-'stamp')) FROM public.audit_log WHERE table_name='customer' AND action='EDITED' AND occurred_at=(SELECT applied_at FROM public.schema_migrations WHERE filename='20261118002000_normalize_customer_legacy_stamps.sql') AND old_values->>'stamp' LIKE 'ADD %' UNION ALL SELECT 'customer_triggers',jsonb_agg(jsonb_build_object('name',tgname,'enabled',tgenabled) ORDER BY tgname) FROM pg_trigger WHERE tgrelid='public.customer'::regclass AND NOT tgisinternal UNION ALL SELECT 'customer_rls',jsonb_build_object('enabled',relrowsecurity) FROM pg_class WHERE oid='public.customer'::regclass;
+-- SELECT filename,checksum FROM public.schema_migrations ORDER BY filename;
+-- All eight recorded checksums match the local migration files.

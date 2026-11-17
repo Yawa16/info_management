@@ -21,7 +21,10 @@ The source `HopeDB_audit.sql` uses PostgreSQL-specific syntax, so the project da
         └── seed.js
 ```
 
-The runner creates only `public.schema_migrations` for bookkeeping. **There are no HOPE application-table migrations or seeds yet**, by request. A temporary empty migration was used to smoke-test the runner and removed afterward.
+The runner records migrations in `public.schema_migrations`. The DB Admin's
+previously applied migrations and the Customer migrations are included in
+`db/migrations`. Four historical files use CRLF line endings to match their
+recorded checksums; `.gitattributes` preserves those endings across checkouts.
 
 ## Team database approach
 
@@ -47,7 +50,12 @@ In the project dashboard:
 2. In **Connect**, copy the PostgreSQL connection URI and note its host, port, and database name.
 3. Keep the existing project database owner password private. The DB admin should distribute a dedicated migration connection privately to approved maintainers rather than sharing the project owner's credentials.
 
-There are no application tables in this task, so no runtime application database login or table grants are needed yet. When tables are introduced, the team will add least-privilege app access in a reviewed migration; do not use the migration credential from application code. For a local-only alternative, an administrator creates a `hope_erp_dev` database owned by a dedicated migration role and creates a separate `hope_app` login with only `CONNECT` and schema `USAGE`; grant table/sequence access later, only as needed. Never use a PostgreSQL superuser as the application login.
+Application access must use the reviewed grants and policies for the target
+database; do not use the migration credential from application code. For a
+local-only alternative, an administrator creates a `hope_erp_dev` database
+owned by a dedicated migration role and creates a separate `hope_app` login
+with only `CONNECT` and schema `USAGE`; grant table/sequence access only as
+needed. Never use a PostgreSQL superuser as the application login.
 
 Expected result: the team admin can connect to the non-production PostgreSQL database using the private migration URL. No local PostgreSQL server installation is needed for the recommended hosted workflow. Optional local PostgreSQL server packages are available from the official [PostgreSQL downloads](https://www.postgresql.org/download/); use PostgreSQL 15 or newer if choosing the local alternative.
 
@@ -144,7 +152,7 @@ This avoids changing the machine's execution policy. The same applies to the npm
 
 ### 6. Check and apply migrations
 
-Run:
+After the DB Admin confirms the target and reviews pending migrations, run:
 
 ```text
 npm run db:status
@@ -152,21 +160,12 @@ npm run db:migrate
 npm run db:status
 ```
 
-Expected first status output resembles:
-
-```text
-Database: postgres (your-db-host)
-Migrations:
-  No migration files found.
-```
-
-Expected migrate output:
-
-```text
-No migration files found. schema_migrations is ready.
-```
-
-Expected final status output again says no migration files found. The runner creates `public.schema_migrations` if missing. It applies future numbered SQL files in filename order, each in a transaction, and records the filename and SHA-256 checksum in the same transaction. It fails if an applied migration's file is changed or missing.
+The first status lists applied and pending files. After migration, status
+should show the reviewed files as applied. The runner creates
+`public.schema_migrations` if missing. It applies numbered SQL files in
+filename order, each in a transaction, and records the filename and SHA-256
+checksum in the same transaction. It fails if an applied migration's file is
+changed or missing.
 
 ### 7. Run seeds
 
@@ -193,7 +192,8 @@ FROM public.schema_migrations
 ORDER BY filename;
 ```
 
-Expected: `current_database()` returns `postgres` (or the configured project database name). The second query returns **zero rows** because no application migrations exist yet; the tracking table itself exists.
+Expected: `current_database()` returns `postgres` (or the configured project
+database name). The second query lists the recorded migration history.
 
 ## Commands
 
