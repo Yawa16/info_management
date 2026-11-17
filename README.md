@@ -36,6 +36,34 @@ development project after confirmation from the DB Admin.
 
 Use `npm run typecheck` and `npm run build` to verify the project.
 
+## Customer list
+
+The `/customers` page requires the DB Admin's `public.customer` schema with
+`cust_no`, `cust_name`, `address`, `pay_terms`, `status`, and `stamp` columns.
+`status` must contain `Active` or `Inactive`. Check the target project with
+the DB Admin before applying or changing database migrations. Search and status
+filters run in the database; tab counts reflect the current search. The list
+is paginated at 50 rows.
+
+For the legacy Customer schema, `db/migrations/20261117233000_customer_status_compatibility.sql`
+renames the Customer columns and maintains both `status` and the existing
+`is_deleted` flag for legacy triggers. It enables RLS with no direct-client
+policies; the page accesses the table through its authorized server. The
+manually applied migration is recorded in `public.schema_migrations` on the
+shared project. Its `applied_at` is the reconciliation time, not the original
+application time. Do not run it there a second time.
+`db/migrations/20261118002000_normalize_customer_legacy_stamps.sql` converted
+legacy `ADD` stamps while preserving the original actor and time, recording
+each formatting change in the audit log; it is also recorded as applied.
+The inactive C-004 test customer was added separately and is not part of the
+migration.
+
+Run the focused query tests with Node.js 24:
+
+```powershell
+node --test tests\customer-list.test.mjs
+```
+
 ## Supabase scaffold
 
 The reusable Supabase clients are in `lib/supabase/client.ts` for browser

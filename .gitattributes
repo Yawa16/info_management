@@ -2,3 +2,8 @@
 *.json text eol=lf
 *.md text eol=lf
 *.sql text eol=lf
+# These already-applied migrations were recorded with CRLF checksums.
+db/migrations/003_create_user_management_schema.sql text eol=crlf
+db/migrations/004_create_password_reset_token.sql text eol=crlf
+db/migrations/005_create_audit_log.sql text eol=crlf
+db/migrations/006_audit_legacy_soft_delete_tables.sql text eol=crlf
