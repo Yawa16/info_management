@@ -31,7 +31,9 @@ development project after confirmation from the DB Admin.
    npm run dev
    ```
 
-   Visit `http://localhost:3000` for the landing page and
+   The development server is pinned to port `3000`; if that port is occupied,
+   the command exits instead of silently switching ports. Visit
+   `http://localhost:3000` for the landing page and
    `http://localhost:3000/api/health` to check Supabase connectivity.
 
 Use `npm run typecheck` and `npm run build` to verify the project.
@@ -128,7 +130,7 @@ defines `public.profiles` with the following schema:
 | `last_name` | `text`, required, 1–80 trimmed characters |
 | `email` | `text`, required and unique |
 | `role` | `text`, one of `superadmin`, `admin`, or `user`; defaults to `user` |
-| `approval_status` | `text`, `pending` or `approved`; defaults to `pending` |
+| `approval_status` | `text`; new accounts are `pending`, and approved accounts are `active` (legacy `approved` rows remain accepted) |
 | `created_at` | `timestamptz`, defaults to the current time |
 
 The migration enables RLS, permits authenticated users to read only their own
@@ -148,12 +150,22 @@ and target project. The project shown in the earlier screenshots is marked
 Production and already contains an `app_user` table, so do not apply this
 migration there or create duplicate user data without explicit approval.
 
-New registrations are not signed into the application. Authentication and
-email-confirmation links return through `/auth/callback`. In the development
-Supabase project's Authentication → URL Configuration, set the Site URL to
-the local origin and allow the callback URLs, for example
-`http://localhost:3000/auth/callback` and
-`http://localhost:3000/auth/callback?flow=registration` and
+Registration asks only for first name, last name, and email. The server creates
+a cryptographically random initial Supabase Auth password, which is never
+shown or stored by the application, and creates a pending regular User profile
+with `must_change_password = true`. If email confirmation is enabled, the user
+must follow the confirmation link first. The authenticated user then remains on
+`/approval-pending`, which checks approval status and opens `/set-password`
+after a Superadmin approves the account. After setting a password, the user is
+signed out and must sign in with their email and new password.
+
+Authentication and email-confirmation links return through `/auth/callback`.
+In the development Supabase project's Authentication → URL Configuration, set
+the Site URL to the local origin and allow the callback URLs, for example
+`http://localhost:3000/auth/callback`,
+`http://localhost:3000/auth/callback?flow=email-registration`,
+`http://localhost:3000/auth/callback?flow=managed-registration`,
+`http://localhost:3000/auth/callback?flow=registration`, and
 `http://localhost:3000/auth/callback?flow=recovery&next=/reset-password/update`.
 Password reset links return to `/reset-password/update`; after a successful
 password change, the user is signed out and must sign in again. Expired or
@@ -176,14 +188,16 @@ provider callback URL into the Google OAuth client's authorized redirect URIs,
 and allow the development app's `/auth/callback` URL in Supabase's redirect
 URL settings. First-time Google sign-ups create regular User profiles with
 pending approval; they do not grant access until an Admin or Superadmin
-approves the account.
+approves the account. Approved accounts are directed to `/set-password` before
+they can enter the ERP.
 
 The login flow checks the profile on the server and rejects users whose
-approval status is pending. Approved Admins and Superadmins can open
-`/users` to approve pending regular User accounts. The server verifies the
-approver's authenticated profile and only updates a target row whose role is
-`user` and status is `pending`; Admins cannot view or modify Superadmin
-accounts. Protected pages must be placed under
+approval status is pending or rejected. Only Superadmins can approve or
+reject pending regular User accounts in `/users`; approval changes the status
+to `active` and requires first-time password setup. The server verifies the
+caller's authenticated profile and only
+updates a target row whose role is `user` and status is `pending`; Admins
+cannot view or modify Superadmin accounts. Protected pages must be placed under
 `app/(protected)/` so its server layout checks the current Supabase user and
 approval status on every request. Server actions and route handlers that
 access protected data must also check approval status before doing work; the
@@ -192,7 +206,8 @@ layout is not a substitute for authorization in data operations.
 The registration action always sets `role = 'user'` and
 `approval_status = 'pending'` on the server and never accepts those values
 from the browser. Confirm with the DB Admin that the status used after
-approval is exactly `approved` before deploying this check.
+approval is exactly `active` before deploying this check. Existing `approved`
+profiles remain accepted for compatibility.
 
 ## Login and first-time password setup
 
@@ -204,14 +219,14 @@ profiles RLS enabled and adds role-scoped policies for User Management.
 
 Login uses Supabase Auth, which stores password hashes; the application never
 hashes or stores passwords itself. After authentication, the server checks the
-profile. Pending and blocked accounts are signed out and shown an appropriate
-message. Approved accounts with `must_change_password = true` are redirected
+profile. Pending, rejected, and blocked accounts are signed out and shown an appropriate
+message. Active accounts with `must_change_password = true` are redirected
 to `/set-password` while signed in. After the password is changed, the server
 clears that profile flag. Forgot Password remains a separate email-reset flow.
 Admin-created temporary accounts must have this flag set to `true` by the
 trusted server-side account creation flow. The `/users` page provides an
 Admin/Superadmin-only form to create regular User accounts with temporary
-passwords; it creates the Auth user and approved profile server-side and
+passwords; it creates the Auth user and active profile server-side and
 requires a password change at first sign-in.
 
 Middleware refreshes Supabase cookies so sessions survive navigation and
@@ -227,7 +242,7 @@ regular Users; Superadmin accounts are omitted. Superadmins can manage other
 accounts of every role. Neither role can manage its own account. The Rights
 control is intentionally disabled as a placeholder for a later task.
 
-The page supports creating a regular, approved User with a cryptographically
+The page supports creating a regular, active User with a cryptographically
 random temporary password, editing account name/email, and blocking or
 unblocking accounts. The generated password is shown after successful
 creation so it can be shared privately. New managed accounts set

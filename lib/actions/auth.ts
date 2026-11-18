@@ -1,5 +1,6 @@
 "use server";
 
+import { randomBytes } from "node:crypto";
 import { redirect } from "next/navigation";
 import { getProfileAccess } from "@/lib/auth/access";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
@@ -22,8 +23,6 @@ function validateRegistration(formData: FormData) {
   const firstName = getFormValue(formData, "firstName");
   const lastName = getFormValue(formData, "lastName");
   const email = getFormValue(formData, "email").toLowerCase();
-  const passwordValue = formData.get("password");
-  const password = typeof passwordValue === "string" ? passwordValue : "";
   const fieldErrors: NonNullable<RegisterState["fieldErrors"]> = {};
 
   if (!firstName || firstName.length > 80) {
@@ -41,16 +40,10 @@ function validateRegistration(formData: FormData) {
     fieldErrors.email = "Enter a valid email address.";
   }
 
-  if (password.length < 8 || password.length > 128) {
-    fieldErrors.password =
-      "Password must be between 8 and 128 characters.";
-  }
-
   return {
     firstName,
     lastName,
     email,
-    password,
     fieldErrors,
   };
 }
@@ -439,14 +432,28 @@ export async function setInitialPassword(
     };
   }
 
-  redirect("/dashboard");
+  const { error: signOutError } = await supabase.auth.signOut();
+  if (signOutError) {
+    console.error("Password was set, but the setup session could not end.", {
+      code: signOutError.code,
+      message: signOutError.message,
+      userId: user.id,
+    });
+    return {
+      status: "error",
+      message:
+        "Your password was saved, but we couldn’t end the setup session. Sign out, then sign in with your new password.",
+    };
+  }
+
+  redirect("/login?notice=password-updated");
 }
 
 export async function registerUser(
   _previousState: RegisterState,
   formData: FormData,
 ): Promise<RegisterState> {
-  const { firstName, lastName, email, password, fieldErrors } =
+  const { firstName, lastName, email, fieldErrors } =
     validateRegistration(formData);
 
   if (Object.keys(fieldErrors).length > 0) {
@@ -464,7 +471,10 @@ export async function registerUser(
   try {
     adminClient = createSupabaseAdminClient();
     supabase = await createSupabaseServerClient();
-    emailRedirectTo = new URL("/auth/callback", getSiteUrl()).toString();
+    emailRedirectTo = new URL(
+      "/auth/callback?flow=email-registration",
+      getSiteUrl(),
+    ).toString();
   } catch (error) {
     console.error("Registration is not configured.", error);
     return {
@@ -477,7 +487,7 @@ export async function registerUser(
   try {
     signUpResponse = await supabase.auth.signUp({
       email,
-      password,
+      password: `${randomBytes(32).toString("base64url")}!aA1`,
       options: {
         emailRedirectTo,
         data: {
@@ -531,6 +541,7 @@ export async function registerUser(
       email,
       role: "user",
       approval_status: "pending",
+      must_change_password: true,
     });
     profileError = result.error;
   } catch (error) {
@@ -573,19 +584,12 @@ export async function registerUser(
   }
 
   if (data.session) {
-    const { error: signOutError } = await supabase.auth.signOut();
-    if (signOutError) {
-      console.error("Unable to clear session for pending new account.", {
-        code: signOutError.code,
-        message: signOutError.message,
-        userId: data.user.id,
-      });
-    }
+    redirect("/approval-pending");
   }
 
   return {
     status: "success",
-    message: "Your account is waiting for approval",
+    message: "Your account is waiting for approval.",
   };
 }
 

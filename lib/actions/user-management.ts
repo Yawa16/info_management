@@ -144,6 +144,18 @@ function actionError(message: string): UserManagementActionState {
   return { status: "error", message };
 }
 
+function accountCreationErrorMessage(error: { code?: string; message: string }) {
+  switch (error.code) {
+    case "email_exists":
+    case "user_already_exists":
+      return "An account already uses this email. Use a different email address.";
+    case "email_address_invalid":
+      return "Supabase rejected this email address. Check it and try again.";
+    default:
+      return "We could not create that account. Check the email and try again, or contact support.";
+  }
+}
+
 export async function createManagedUser(
   _previousState: UserManagementActionState,
   formData: FormData,
@@ -151,17 +163,21 @@ export async function createManagedUser(
   const firstName = formString(formData, "firstName");
   const lastName = formString(formData, "lastName");
   const email = formString(formData, "email").toLowerCase();
+  const values = { firstName, lastName, email };
 
   if (!validateIdentity(firstName, lastName, email)) {
-    return actionError("Enter valid first name, last name, and email values.");
+    return {
+      ...actionError("Enter valid first name, last name, and email values."),
+      values,
+    };
   }
 
   const { context, error } = await getManagerContext();
   if (!context) {
-    return actionError(error);
+    return { ...actionError(error), values };
   }
 
-  const temporaryPassword = randomBytes(18).toString("base64url");
+  const temporaryPassword = `${randomBytes(18).toString("base64url")}Aa1!`;
   let createdUserId: string;
   try {
     const { data, error: createError } =
@@ -169,7 +185,10 @@ export async function createManagedUser(
         email,
         password: temporaryPassword,
         email_confirm: true,
-        user_metadata: { first_name: firstName, last_name: lastName },
+        user_metadata: {
+          first_name: firstName,
+          last_name: lastName,
+        },
       });
 
     if (createError || !data.user) {
@@ -178,7 +197,14 @@ export async function createManagedUser(
         message: createError?.message,
         createdBy: context.userId,
       });
-      return actionError("We could not create that account. Check the email and try again.");
+      return {
+        ...actionError(
+          createError
+            ? accountCreationErrorMessage(createError)
+            : "Supabase did not return a user. Please try again.",
+        ),
+        values,
+      };
     }
     createdUserId = data.user.id;
   } catch (createError) {
@@ -186,7 +212,10 @@ export async function createManagedUser(
       error: createError,
       createdBy: context.userId,
     });
-    return actionError("User creation is temporarily unavailable. Please try again.");
+    return {
+      ...actionError("User creation is temporarily unavailable. Please try again."),
+      values,
+    };
   }
 
   try {
@@ -198,7 +227,7 @@ export async function createManagedUser(
         last_name: lastName,
         email,
         role: "user",
-        approval_status: "approved",
+        approval_status: "active",
         must_change_password: true,
         is_blocked: false,
       });
@@ -219,7 +248,10 @@ export async function createManagedUser(
           userId: createdUserId,
         });
       }
-      return actionError("We could not finish creating the profile. Please try again.");
+      return {
+        ...actionError("We could not finish creating the profile. Please try again."),
+        values,
+      };
     }
   } catch (insertError) {
     console.error("Managed User profile insert request failed.", {
@@ -243,13 +275,17 @@ export async function createManagedUser(
         userId: createdUserId,
       });
     }
-    return actionError("We could not finish creating the profile. Please try again.");
+    return {
+      ...actionError("We could not finish creating the profile. Please try again."),
+      values,
+    };
   }
 
   revalidatePath("/users");
   return {
     status: "success",
-    message: "User created. Share this temporary password securely.",
+    message:
+      "User created. Share the temporary password securely; they must set a new password at first sign-in.",
     temporaryPassword,
   };
 }

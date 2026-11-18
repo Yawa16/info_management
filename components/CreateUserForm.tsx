@@ -1,10 +1,8 @@
 "use client";
 
 import { useActionState } from "react";
-import {
-  createUserWithTemporaryPassword,
-  initialCreateUserState,
-} from "@/lib/actions/users";
+import { createUserWithTemporaryPassword } from "@/lib/actions/users";
+import { initialCreateUserState } from "@/lib/actions/users-types";
 
 export default function CreateUserForm() {
   const [state, formAction, isPending] = useActionState(
@@ -92,8 +90,8 @@ export default function CreateUserForm() {
         )}
       </div>
       <p className="form-note">
-        The account is created as an approved User and must set a new password
-        at first sign-in. Share the temporary password securely.
+        The account is created as a pending User. A Superadmin must approve it
+        before the user can sign in and set a new password.
       </p>
       <button
         className="button button-dark auth-submit"

@@ -1,23 +1,34 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect, useRef } from "react";
 import { createManagedUser } from "@/lib/actions/user-management";
 import { initialUserManagementActionState } from "@/lib/actions/user-management-types";
 
 export default function CreateManagedUserForm() {
+  const detailsRef = useRef<HTMLDetailsElement>(null);
   const [state, formAction, isPending] = useActionState(
     createManagedUser,
     initialUserManagementActionState,
   );
 
+  useEffect(() => {
+    if (window.location.hash === "#add-user" && detailsRef.current) {
+      detailsRef.current.open = true;
+    }
+  }, []);
+
   return (
-    <details className="user-add-panel">
+    <details className="user-add-panel" id="add-user" ref={detailsRef}>
       <summary className="button button-dark">+ Add User</summary>
-      <form className="user-management-form" action={formAction}>
+      <form
+        key={`${state.status}-${JSON.stringify(state.values ?? null)}`}
+        className="user-management-form"
+        action={formAction}
+      >
         <h2>Add a User</h2>
         <p>
-          A unique temporary password will be generated. Share it privately;
-          the new User must choose a new password after signing in.
+          A unique temporary password will be generated. The account is active
+          immediately, and the user must choose a new password at first sign-in.
         </p>
         <div className="auth-name-row">
           <div className="auth-field">
@@ -27,6 +38,7 @@ export default function CreateManagedUserForm() {
               id="managed-first-name"
               maxLength={80}
               name="firstName"
+              defaultValue={state.values?.firstName ?? ""}
               required
             />
           </div>
@@ -37,6 +49,7 @@ export default function CreateManagedUserForm() {
               id="managed-last-name"
               maxLength={80}
               name="lastName"
+              defaultValue={state.values?.lastName ?? ""}
               required
             />
           </div>
@@ -48,6 +61,7 @@ export default function CreateManagedUserForm() {
             id="managed-email"
             maxLength={254}
             name="email"
+            defaultValue={state.values?.email ?? ""}
             required
             type="email"
           />

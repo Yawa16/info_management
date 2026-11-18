@@ -100,8 +100,9 @@ export default function AuthForm({
         <div className="register-success" role="status" aria-live="polite">
           <p>{registerState.message}</p>
           <span>
-            An Admin or Superadmin must approve your account before you can use
-            the system. If prompted, confirm your email before signing in.
+            Confirm your email if you received a verification link. After a
+            Superadmin approves your account, you’ll be taken to set your
+            password.
           </span>
         </div>
       ) : (
@@ -190,7 +191,7 @@ export default function AuthForm({
             )}
           </div>
 
-          {!isReset && (
+          {isLogin && (
             <div className="auth-field">
               <label className="auth-password-label" htmlFor="password">
                 <span>Password</span>
@@ -198,20 +199,11 @@ export default function AuthForm({
               </label>
               <span className="password-field">
                 <input
-                  autoComplete={isRegister ? "new-password" : "current-password"}
-                  aria-invalid={
-                    isRegister && Boolean(registerState.fieldErrors?.password)
-                  }
-                  aria-describedby={
-                    isRegister && registerState.fieldErrors?.password
-                      ? "password-error"
-                      : undefined
-                  }
+                  autoComplete="current-password"
                   id="password"
                   maxLength={128}
-                  minLength={8}
                   name="password"
-                  placeholder={isRegister ? "At least 8 characters" : "Password"}
+                  placeholder="Password"
                   required
                   type={showPassword ? "text" : "password"}
                 />
@@ -224,11 +216,6 @@ export default function AuthForm({
                   {showPassword ? "Hide" : "Show"}
                 </button>
               </span>
-              {isRegister && registerState.fieldErrors?.password && (
-                <span className="register-field-error" id="password-error">
-                  {registerState.fieldErrors.password}
-                </span>
-              )}
             </div>
           )}
 
@@ -243,8 +230,8 @@ export default function AuthForm({
 
           {isRegister && (
             <p className="form-note">
-              New accounts are created as a User. An Admin or Superadmin must
-              approve your account before you can use the system.
+              New accounts start as a User. A Superadmin must approve your
+              account before you set a password and sign in.
             </p>
           )}
 

@@ -2,7 +2,7 @@ export type RegisterState = {
   status: "idle" | "error" | "success";
   message: string;
   fieldErrors?: Partial<
-    Record<"firstName" | "lastName" | "email" | "password", string>
+    Record<"firstName" | "lastName" | "email", string>
   >;
 };
 

@@ -4,28 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
-export type ApprovalState = {
-  status: "idle" | "error" | "success";
-  message: string;
-};
-
-export const initialApprovalState: ApprovalState = {
-  status: "idle",
-  message: "",
-};
-
-export type CreateUserState = {
-  status: "idle" | "error" | "success";
-  message: string;
-  fieldErrors?: Partial<
-    Record<"firstName" | "lastName" | "email" | "temporaryPassword", string>
-  >;
-};
-
-export const initialCreateUserState: CreateUserState = {
-  status: "idle",
-  message: "",
-};
+import type { ApprovalState, CreateUserState } from "./users-types";
 
 function getFormValue(formData: FormData, name: string) {
   const value = formData.get(name);
@@ -126,7 +105,7 @@ export async function createUserWithTemporaryPassword(
 
   if (
     !actorResult.data ||
-    actorResult.data.approval_status !== "approved" ||
+    !["active", "approved"].includes(actorResult.data.approval_status) ||
     actorResult.data.is_blocked ||
     !["admin", "superadmin"].includes(actorResult.data.role)
   ) {
@@ -187,7 +166,7 @@ export async function createUserWithTemporaryPassword(
       last_name: lastName,
       email,
       role: "user",
-      approval_status: "approved",
+      approval_status: "pending",
       must_change_password: true,
       is_blocked: false,
     });
@@ -254,7 +233,7 @@ export async function createUserWithTemporaryPassword(
   return {
     status: "success",
     message:
-      "User created. Share the temporary password with them securely; they must set a new password at first sign-in.",
+      "User created and is waiting for Superadmin approval. They must set a new password after their first sign-in.",
   };
 }
 

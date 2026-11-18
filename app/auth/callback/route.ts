@@ -35,7 +35,11 @@ export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get("code");
   const googleFlow = requestUrl.searchParams.get("flow");
+  const isEmailRegistration = googleFlow === "email-registration";
+  const isManagedRegistration = googleFlow === "managed-registration";
   const isGoogleRegistration = googleFlow === "registration";
+  const isRegistrationFlow =
+    isEmailRegistration || isManagedRegistration || isGoogleRegistration;
   const isGoogleLogin = googleFlow === "login";
   let siteOrigin: string;
   try {
@@ -174,6 +178,7 @@ export async function GET(request: NextRequest) {
             email,
             role: "user",
             approval_status: "pending",
+            must_change_password: true,
           });
 
         if (insertError) {
@@ -192,6 +197,12 @@ export async function GET(request: NextRequest) {
 
     const access = await getProfileAccess(data.user.id);
     if (access.status !== "approved") {
+      if (access.status === "pending" && isRegistrationFlow) {
+        return NextResponse.redirect(
+          new URL("/approval-pending", siteOrigin),
+        );
+      }
+
       const { error: signOutError } = await supabase.auth.signOut();
       if (signOutError) {
         console.error("Unable to sign out account after email confirmation.", {
@@ -207,6 +218,8 @@ export async function GET(request: NextRequest) {
             ? "/login?notice=pending"
             : access.status === "blocked"
               ? "/login?notice=blocked"
+              : access.status === "rejected"
+                ? "/login?notice=rejected"
               : "/login?notice=unavailable",
           siteOrigin,
         ),

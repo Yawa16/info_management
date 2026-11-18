@@ -32,10 +32,10 @@ export default function BlockManagedUserForm({
       <button className="button button-small" disabled={isPending}>
         {isPending ? "Saving…" : isBlocked ? "Unblock" : "Block"}
       </button>
-      {state.message && (
+      {state.status === "error" && state.message && (
         <span
           className="user-action-message"
-          role={state.status === "error" ? "alert" : "status"}
+          role="alert"
           aria-live="polite"
         >
           {state.message}

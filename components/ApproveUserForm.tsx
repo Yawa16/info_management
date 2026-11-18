@@ -1,10 +1,8 @@
 "use client";
 
 import { useActionState, type FormEvent } from "react";
-import {
-  approvePendingUser,
-  initialApprovalState,
-} from "@/lib/actions/users";
+import { approvePendingUser } from "@/lib/actions/users";
+import { initialApprovalState } from "@/lib/actions/users-types";
 import {
   rejectPendingUser,
 } from "@/lib/actions/superadmin";
