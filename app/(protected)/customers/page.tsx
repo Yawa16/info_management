@@ -1,6 +1,7 @@
 import Link from "next/link";
 import CustomerForm from "@/components/CustomerForm";
 import CustomerSearch from "@/components/CustomerSearch";
+import CustomerStatusButton from "@/components/CustomerStatusButton";
 import { requireRight } from "@/lib/auth/permissions";
 import { canAccessModule, isManagerRole } from "@/lib/auth/rights-check";
 import { customerListOptions, loadCustomers, type CustomerStatusFilter } from "@/lib/customers/list";
@@ -90,8 +91,8 @@ export default async function CustomersPage({ searchParams }: { searchParams: Pr
                   {(canEdit || canDelete || isManager) && (
                     <td className="customer-actions">
                       {customer.status !== "Inactive" && canEdit && <CustomerForm customer={customer} />}
-                      {customer.status !== "Inactive" && canDelete && <button disabled title="Coming in a later task">Delete</button>}
-                      {customer.status === "Inactive" && isManager && <button disabled title="Coming in a later task">Restore</button>}
+                      {customer.status !== "Inactive" && canDelete && <CustomerStatusButton customerNumber={customer.cust_no} customerName={customer.cust_name} operation="delete" />}
+                      {customer.status === "Inactive" && isManager && <CustomerStatusButton customerNumber={customer.cust_no} customerName={customer.cust_name} operation="restore" />}
                     </td>
                   )}
                 </tr>

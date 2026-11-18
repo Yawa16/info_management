@@ -82,6 +82,23 @@ the caller's RLS policies. Its SQL execution log is in
 the migration; it rolls back its changes. Run focused application tests with
 `node --test tests\customer-actions.test.mjs tests\customer-form.test.mjs tests\customer-list.test.mjs`.
 
+### Customer delete and restore
+
+Delete is a confirmed soft delete. The server checks the Delete Customer right;
+only Admins and Superadmins may restore. Regular Users see active rows only,
+while managers can find shaded inactive rows using the status filters. Existing
+database rules prevent deleting customers with active sales and report this
+restriction to the user. Database triggers preserve the row, update its status
+and stamp, and record the authenticated actor in the audit log.
+
+The DB Admin must review and apply
+`db/migrations/20261118050000_customer_delete_restore.sql` to an approved
+database before using these actions. It was applied and recorded in migration
+history on the shared project. The SQL execution log is in
+`supabase/reviews/s2-dev-03-sql-execution-log.sql`. Run
+`supabase/tests/customer_delete_restore.sql` on an approved test database after
+applying the migration; the test rolls back all changes.
+
 ## Supabase scaffold
 
 The reusable Supabase clients are in `lib/supabase/client.ts` for browser

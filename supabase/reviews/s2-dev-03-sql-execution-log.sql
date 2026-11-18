@@ -1,0 +1,55 @@
+-- S2-DEV-03 SQL execution log, 2026-11-18.
+-- REVIEW ONLY: all statements are commented out; do not replay this file.
+-- Target: Hope ERP Development, branch "main Production".
+-- The user confirmed DB Admin approval and a recent backup for Task 3.
+--
+-- 1. Read-only preflight: function and history absent; three active managers,
+-- three active regular users, one Customer Delete right, and Customer RLS on.
+-- SELECT to_regprocedure('public.change_customer_status(uuid,text,text)') IS NOT NULL AS function_exists, EXISTS (SELECT 1 FROM public.schema_migrations WHERE filename='20261118050000_customer_delete_restore.sql') AS history_exists, (SELECT count(*) FROM public.profiles WHERE role IN ('admin','superadmin') AND NOT is_blocked AND approval_status IN ('active','approved')) AS managers, (SELECT count(*) FROM public.profiles WHERE role='user' AND NOT is_blocked AND approval_status IN ('active','approved')) AS regular_users, (SELECT count(*) FROM public.rights WHERE code='CUSTOMER_DELETE') AS delete_rights, (SELECT relrowsecurity FROM pg_class WHERE oid='public.customer'::regclass) AS rls_enabled;
+--
+-- 2. Rollback rehearsal succeeded. In a single transaction it executed the
+-- function definition and grants from
+-- ../../db/migrations/20261118050000_customer_delete_restore.sql, excluding
+-- NOTIFY, then the DO block from ../../supabase/tests/customer_delete_restore.sql.
+-- The executed SQL was reformatted; the manager selection accepted either
+-- Admin or Superadmin. The test file was later narrowed to select Admin.
+-- BEGIN;
+-- [Function definition and grants in the migration file]
+-- [Test DO block in the test file]
+-- ROLLBACK;
+-- No test customer, rights, function, or audit changes were persisted.
+--
+-- 3. APPLIED. The migration function and grants, semantically identical to
+-- the migration file apart from formatting, were applied in this transaction:
+-- BEGIN;
+-- SELECT pg_advisory_xact_lock(684219);
+-- [Function definition and grants in the migration file]
+-- NOTIFY pgrst, 'reload schema';
+-- INSERT INTO public.schema_migrations(filename,checksum) VALUES ('20261118050000_customer_delete_restore.sql','626dc7c3b4e248b46ce8720eb983353a5657721001228caaa21698d0d529fd25');
+-- COMMIT;
+--
+-- 4. Read-only verification returned the matching checksum and function;
+-- anon/authenticated execution false; service_role execution and RLS true.
+-- SELECT (SELECT checksum FROM public.schema_migrations WHERE filename='20261118050000_customer_delete_restore.sql') AS checksum, to_regprocedure('public.change_customer_status(uuid,text,text)') IS NOT NULL AS function_exists, has_function_privilege('anon','public.change_customer_status(uuid,text,text)','EXECUTE') AS anon_can_execute, has_function_privilege('authenticated','public.change_customer_status(uuid,text,text)','EXECUTE') AS authenticated_can_execute, has_function_privilege('service_role','public.change_customer_status(uuid,text,text)','EXECUTE') AS service_can_execute, (SELECT relrowsecurity FROM pg_class WHERE oid='public.customer'::regclass) AS rls_enabled;
+-- SELECT json_build_object('history_matches',(SELECT checksum='626dc7c3b4e248b46ce8720eb983353a5657721001228caaa21698d0d529fd25' FROM public.schema_migrations WHERE filename='20261118050000_customer_delete_restore.sql'),'function_exists',to_regprocedure('public.change_customer_status(uuid,text,text)') IS NOT NULL,'anon',has_function_privilege('anon','public.change_customer_status(uuid,text,text)','EXECUTE'),'authenticated',has_function_privilege('authenticated','public.change_customer_status(uuid,text,text)','EXECUTE'),'service_role',has_function_privilege('service_role','public.change_customer_status(uuid,text,text)','EXECUTE'),'rls',(SELECT relrowsecurity FROM pg_class WHERE oid='public.customer'::regclass)) AS verification;
+--
+-- 5. Live application verification: the existing C-005 test customer was
+-- deleted and restored through the Superadmin browser. It remains Active;
+-- its stamp and audit trail now include these DELETED and RESTORED events.
+-- A temporary authenticated regular User with CUSTOMER_ADD but not
+-- CUSTOMER_DELETE could not see inactive C-005 and was refused on direct
+-- delete and restore requests. The temporary Auth user was deleted afterward.
+-- Those operations used the application and Supabase API, not SQL Editor.
+--
+-- 6. Read-only verification after restore returned Active, is_deleted=false,
+-- a RESTORED stamp, and recent audit actions RESTORED and DELETED:
+-- SELECT json_build_object('status',c.status,'is_deleted',c.is_deleted,'stamp',c.stamp,'recent_actions',(SELECT json_agg(a.action ORDER BY a.occurred_at DESC) FROM (SELECT action,occurred_at FROM public.audit_log WHERE table_name='customer' AND record_key::jsonb->>'cust_no'='C-005' ORDER BY occurred_at DESC LIMIT 2) a)) AS verification FROM public.customer c WHERE c.cust_no='C-005';
+--
+-- 7. Rollback-only Admin-specific test succeeded after application:
+-- BEGIN; DO $$ DECLARE actor uuid; number text; current_stamp text; BEGIN SELECT id INTO actor FROM public.profiles WHERE role='admin' AND NOT is_blocked AND approval_status IN ('active','approved') LIMIT 1; IF actor IS NULL THEN RAISE EXCEPTION 'No active Admin available for test.'; END IF; number := public.save_customer_form(actor,NULL,'Admin restore test',NULL,'COD'); PERFORM public.change_customer_status(actor,number,'delete'); PERFORM public.change_customer_status(actor,number,'restore'); SELECT stamp INTO current_stamp FROM public.customer WHERE cust_no=number AND status='Active' AND NOT is_deleted; IF current_stamp IS NULL OR current_stamp NOT LIKE ('RESTORED ' || actor::text || ' %') THEN RAISE EXCEPTION 'Admin restore failed.'; END IF; END; $$; ROLLBACK;
+--
+-- 8. Live Admin verification: a temporary authenticated Admin account deleted
+-- C-005 through the live server action, saw it shaded in the Inactive filter
+-- with a Restore button and a DELETED stamp, restored it, and saw the
+-- RESTORED stamp. C-005 is Active again. The temporary Auth user was deleted.
+-- These operations used the app and Supabase API, not SQL Editor statements.
