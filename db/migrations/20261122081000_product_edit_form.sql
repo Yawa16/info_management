@@ -1,4 +1,5 @@
 -- Separate edit migration for Sprint 2 Task 5 edit PR.
+DROP VIEW public.product_active;
 ALTER TABLE public.product
   ALTER COLUMN description TYPE varchar(200),
   ALTER COLUMN unit TYPE varchar(20);
@@ -9,6 +10,13 @@ ALTER TABLE public.product
 ALTER TABLE public.product
   ADD CONSTRAINT product_description_required CHECK (description IS NULL OR btrim(description) <> ''),
   ADD CONSTRAINT product_unit_required CHECK (unit IS NULL OR btrim(unit) <> '');
+
+CREATE VIEW public.product_active WITH (security_invoker = true) AS
+  SELECT prod_code AS prodcode, description, unit, is_deleted, stamp
+  FROM public.product
+  WHERE NOT is_deleted;
+ALTER VIEW public.product_active OWNER TO postgres;
+GRANT ALL ON public.product_active TO anon, authenticated, service_role;
 
 CREATE FUNCTION public.edit_product_form(
   p_actor_id uuid,
