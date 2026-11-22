@@ -290,3 +290,11 @@
 -- SELECT 'customer_counts' AS section, jsonb_build_object('total',count(*),'active',count(*) FILTER (WHERE status='Active'),'inactive',count(*) FILTER (WHERE status='Inactive'),'legacy_add',count(*) FILTER (WHERE stamp LIKE 'ADD %'),'created',count(*) FILTER (WHERE stamp LIKE 'CREATED %')) AS details FROM public.customer UNION ALL SELECT 'customer_migrations',jsonb_agg(to_jsonb(m) ORDER BY filename) FROM public.schema_migrations m WHERE filename IN ('20261117233000_customer_status_compatibility.sql','20261118002000_normalize_customer_legacy_stamps.sql') UNION ALL SELECT 'normalization_audits',jsonb_build_object('count',count(*),'only_stamp_changed',count(*) FILTER (WHERE old_values-'stamp'=new_values-'stamp')) FROM public.audit_log WHERE table_name='customer' AND action='EDITED' AND occurred_at=(SELECT applied_at FROM public.schema_migrations WHERE filename='20261118002000_normalize_customer_legacy_stamps.sql') AND old_values->>'stamp' LIKE 'ADD %' UNION ALL SELECT 'customer_triggers',jsonb_agg(jsonb_build_object('name',tgname,'enabled',tgenabled) ORDER BY tgname) FROM pg_trigger WHERE tgrelid='public.customer'::regclass AND NOT tgisinternal UNION ALL SELECT 'customer_rls',jsonb_build_object('enabled',relrowsecurity) FROM pg_class WHERE oid='public.customer'::regclass;
 -- SELECT filename,checksum FROM public.schema_migrations ORDER BY filename;
 -- All eight recorded checksums match the local migration files.
+--
+-- 12. 2026-11-22 real live no-Customer-rights browser verification:
+-- A temporary authenticated User named Sprint2 NoCustomer was created and
+-- approved with role='user'. All rows were removed from public.user_rights
+-- for that user. The account signed in successfully and opened /customers;
+-- the server-side requireRight("customers") guard redirected the browser to
+-- /no-access and showed "You do not have permission to open that page."
+-- The temporary Auth account was deleted after the test.
