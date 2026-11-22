@@ -1,0 +1,63 @@
+# Sprint 2 Planning Notes and Sprint Board Update
+
+## Objective
+
+Organize Sprint 2 tasks, assign responsibilities, and update the GitHub Project board to ensure that all team members can monitor their progress and deliverables.
+
+## Sprint 2 Tasks
+
+### Development Tasks
+
+- S2-DEV-01: Customer List with Search and Filter
+- S2-DEV-02: Customer Create and Edit Form
+
+### UI/UX Tasks
+
+- S2-UIX-01: Customer Wireframes
+
+### Testing Tasks
+
+- S2-TST-01: Customer Module Test Cases
+
+### Scrum Master Tasks
+
+- S2-SM-01: Sprint 2 Planning Notes and Update Sprint Board
+
+## Sprint Board Organization
+
+Organize Sprint 2 issues according to their current progress:
+
+- Todo: Tasks that have not yet started.
+- In Progress: Tasks currently being worked on.
+- In Review: Tasks awaiting review, testing, or approval.
+- Done: Tasks that have met their acceptance criteria and Definition of Done.
+
+## Team Responsibilities
+
+- Scrum Master: Organize sprint activities, monitor progress, update the project board, and coordinate with team members.
+- Developers: Implement assigned features and submit pull requests for review.
+- UI/UX Designer: Prepare wireframes and design specifications.
+- Tester: Review developer implementations, execute test cases, and report bugs and testing results.
+
+## Sprint Planning Activities
+
+- Identify and organize Sprint 2 tasks.
+- Create individual GitHub Issues for assigned activities.
+- Define task descriptions and acceptance criteria.
+- Assign responsibilities to the appropriate team members.
+- Apply appropriate labels and priorities.
+- Organize issues in the GitHub Project board.
+- Monitor task progress and identify potential blockers.
+
+## Definition of Done
+
+- Assigned requirements are completed.
+- Acceptance criteria are satisfied.
+- Required testing and verification are performed.
+- Identified issues are addressed or documented.
+- Required reviews and approvals are obtained.
+- GitHub Issues and Project board statuses are updated.
+
+## Completion
+
+Sprint 2 planning and board organization have been completed. Tasks have been documented and organized in GitHub Issues and the Project board to support progress tracking, team coordination, and sprint monitoring.
