@@ -124,6 +124,19 @@ Run `supabase/tests/product_list.sql` on an approved test database after
 applying them; it rolls back its changes. Run the focused tests with
 `npm run test:products`.
 
+## Product create
+
+Users with `PRODUCT_ADD` can open the Add Product modal. Description and Unit
+are required, Unit accepts descriptive values such as `pcs`, `can`, `pair`, or
+`meter`, and no price field is included. The application calls the
+service-role-only `save_product_form` RPC, which generates `P-001`, `P-002`,
+and later codes; direct anonymous or authenticated RPC calls are denied.
+
+`db/migrations/20261122080000_product_create_form.sql` is prepared but must be
+reviewed and applied by the DB Admin to an approved database. It widens
+Description and Unit, removes the legacy unit whitelist, and adds the create
+RPC. Do not rerun migrations already recorded in `public.schema_migrations`.
+
 ## Supabase scaffold
 
 The reusable Supabase clients are in `lib/supabase/client.ts` for browser

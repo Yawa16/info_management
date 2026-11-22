@@ -12,6 +12,7 @@
     "start": "next start --port 3000",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
+    "test:product-create": "node --test tests/product-form.test.mjs tests/product-list.test.mjs",
     "test:products": "node --test tests/product-list.test.mjs tests/customer-list.test.mjs",
     "db:migrate": "node db/scripts/migrate.js migrate",
     "db:status": "node db/scripts/migrate.js status",
