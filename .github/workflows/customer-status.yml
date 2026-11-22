@@ -1,0 +1,26 @@
+name: Customer status checks
+
+on:
+  pull_request:
+    paths:
+      - "app/(protected)/customers/**"
+      - "components/CustomerStatusButton.tsx"
+      - "lib/actions/customers.ts"
+      - "lib/customers/**"
+      - "tests/customer-actions.test.mjs"
+      - "tests/customer-form.test.mjs"
+      - "tests/customer-list.test.mjs"
+      - "db/migrations/20261118050000_customer_delete_restore.sql"
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npm run typecheck
