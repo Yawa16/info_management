@@ -3,7 +3,15 @@
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
-export default function CustomerSearch({ search }: { search: string }) {
+export default function ListSearch({
+  search,
+  label,
+  placeholder,
+}: {
+  search: string;
+  label: string;
+  placeholder: string;
+}) {
   const [value, setValue] = useState(search);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const router = useRouter();
@@ -34,13 +42,13 @@ export default function CustomerSearch({ search }: { search: string }) {
 
   return (
     <label className="customer-search">
-      <span>Search customers</span>
+      <span>{label}</span>
       <input
         type="search"
         value={value}
         maxLength={100}
         onChange={(event) => onSearch(event.target.value)}
-        placeholder="Number, name, address or pay terms"
+        placeholder={placeholder}
       />
     </label>
   );

@@ -99,6 +99,29 @@ history on the shared project. The SQL execution log is in
 `supabase/tests/customer_delete_restore.sql` on an approved test database after
 applying the migration; the test rolls back all changes.
 
+## Product list
+
+The `/products` page follows the Customer list pattern: Prod Code, Description,
+Unit, and Current Price (shown as "—" until the price tasks). Admins and
+Superadmins also see Status, Stamp, Active / Inactive / All tabs with counts,
+and shaded inactive rows. Users see only Active products, with no Status or
+Stamp; this is enforced in the server query, not only in the UI. Search runs in
+the database as you type. The Prices button is a disabled placeholder.
+
+The legacy Product table uses `prodcode` and `is_deleted` and has RLS off.
+`db/migrations/20261118060000_product_status_compatibility.sql` renames the
+column to `prod_code`, adds `status` kept in sync with `is_deleted`, replaces
+the Product delete guard and audit trigger, enables RLS with no direct-client
+policies, and recreates `product_active` with `security_invoker` so it obeys
+RLS. `db/migrations/20261118061000_normalize_product_legacy_stamps.sql`
+rewrites legacy `ADD` stamps to `CREATED`, keeping the original actor and time
+and auditing each change. Both migrations have been reviewed and recorded on
+the shared project as `20261118060000_product_status_compatibility.sql` and
+`20261118061000_normalize_product_legacy_stamps.sql`; do not rerun them there.
+Run `supabase/tests/product_list.sql` on an approved test database after
+applying them; it rolls back its changes. Run the focused tests with
+`npm run test:products`.
+
 ## Supabase scaffold
 
 The reusable Supabase clients are in `lib/supabase/client.ts` for browser

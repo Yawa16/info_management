@@ -13,6 +13,7 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "node --test tests/customer-actions.test.mjs tests/customer-form.test.mjs tests/customer-list.test.mjs",
+    "test:products": "node --test tests/product-list.test.mjs tests/customer-list.test.mjs",
     "db:migrate": "node db/scripts/migrate.js migrate",
     "db:status": "node db/scripts/migrate.js status",
     "db:reset": "node db/scripts/migrate.js reset",
