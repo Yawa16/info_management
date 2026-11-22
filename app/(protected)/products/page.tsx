@@ -22,6 +22,7 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
   const { snapshot } = await requireRight("products");
   const isManager = isManagerRole(snapshot.role);
   const canAdd = canAccessModule(snapshot, "products", "add");
+  const canEdit = canAccessModule(snapshot, "products", "edit");
   const options = productListOptions(isManager, await searchParams);
   let result;
   try {
@@ -86,6 +87,7 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
                   )}
                   <td className="customer-actions">
                     <button disabled title="Prices come in a later task">Prices</button>
+                    {product.status !== "Inactive" && canEdit && <ProductForm product={product} />}
                   </td>
                 </tr>
               ))}

@@ -137,6 +137,14 @@ reviewed and applied by the DB Admin to an approved database. It widens
 Description and Unit, removes the legacy unit whitelist, and adds the create
 RPC. Do not rerun migrations already recorded in `public.schema_migrations`.
 
+## Product edit
+
+Users with `PRODUCT_EDIT` can open the Edit modal for Active products. The Prod
+Code remains read-only, and only Description and Unit are editable. The server
+re-checks `PRODUCT_EDIT` and calls the service-role-only `edit_product_form`
+RPC. Status remains unchanged and the existing stamp/audit triggers record an
+`EDITED` stamp.
+
 ## Supabase scaffold
 
 The reusable Supabase clients are in `lib/supabase/client.ts` for browser

@@ -29,3 +29,32 @@ export async function createProduct(formData: FormData): Promise<ProductSaveResu
   revalidatePath("/products");
   return { status: "success", productCode: data as string };
 }
+
+export async function editProduct(
+  productCode: string,
+  formData: FormData,
+): Promise<ProductSaveResult> {
+  const { user } = await requireApprovedUser();
+  if (typeof productCode !== "string" || !/^P-[0-9]{1,8}$/i.test(productCode)) {
+    return { status: "error", message: "Invalid product code." };
+  }
+  if (!(await hasRight(user.id, "products", "edit"))) {
+    return { status: "error", message: "You do not have permission to edit products." };
+  }
+
+  const validation = validateProductForm(formData);
+  if (validation.error !== undefined) return { status: "error", message: validation.error };
+
+  const { error } = await createSupabaseAdminClient().rpc("edit_product_form", {
+    p_actor_id: user.id,
+    p_prod_code: productCode.toUpperCase(),
+    p_description: validation.values.description,
+    p_unit: validation.values.unit,
+  });
+  if (error) {
+    console.error("Unable to edit product.", { code: error.code, message: error.message });
+    return { status: "error", message: "Could not edit this product. Please try again." };
+  }
+  revalidatePath("/products");
+  return { status: "success", productCode: productCode.toUpperCase() };
+}
