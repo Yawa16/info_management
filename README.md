@@ -132,10 +132,19 @@ are required, Unit accepts descriptive values such as `pcs`, `can`, `pair`, or
 service-role-only `save_product_form` RPC, which generates `P-001`, `P-002`,
 and later codes; direct anonymous or authenticated RPC calls are denied.
 
-`db/migrations/20261122080000_product_create_form.sql` is prepared but must be
-reviewed and applied by the DB Admin to an approved database. It widens
-Description and Unit, removes the legacy unit whitelist, and adds the create
-RPC. Do not rerun migrations already recorded in `public.schema_migrations`.
+`db/migrations/20261122080000_product_create_form.sql` was reviewed and applied
+by the DB Admin to the approved development project on 2026-11-23. It widens
+Description and Unit, removes the legacy unit whitelist, recreates
+`product_active` with `security_invoker` so it does not block the column
+changes, and adds the service-role-only create RPC. Do not rerun migrations
+already recorded in `public.schema_migrations`.
+
+Live verification: a User with `PRODUCT_ADD` created P-005 and P-006 through
+the browser form, and the next generated code is P-007. A User without
+`PRODUCT_ADD` saw no Add Product button, and a direct call to
+`save_product_form` was rejected. Temporary accounts were removed; P-005 and
+P-006 remain inactive as verification fixtures so their codes and audit
+history are preserved.
 
 ## Product edit
 

@@ -1,11 +1,22 @@
 -- Widen legacy Product text fields and allow the Sprint 2 unit vocabulary.
+DROP VIEW public.product_active;
 ALTER TABLE public.product
   ALTER COLUMN description TYPE varchar(200),
   ALTER COLUMN unit TYPE varchar(20);
-ALTER TABLE public.product DROP CONSTRAINT IF EXISTS unit_ck;
+ALTER TABLE public.product
+  DROP CONSTRAINT IF EXISTS unit_ck,
+  DROP CONSTRAINT IF EXISTS product_description_required,
+  DROP CONSTRAINT IF EXISTS product_unit_required;
 ALTER TABLE public.product
   ADD CONSTRAINT product_description_required CHECK (btrim(description) <> ''),
   ADD CONSTRAINT product_unit_required CHECK (btrim(unit) <> '');
+
+CREATE VIEW public.product_active WITH (security_invoker = true) AS
+  SELECT prod_code AS prodcode, description, unit, is_deleted, stamp
+  FROM public.product
+  WHERE NOT is_deleted;
+ALTER VIEW public.product_active OWNER TO postgres;
+GRANT ALL ON public.product_active TO anon, authenticated, service_role;
 
 -- Only the trusted server may invoke this function after checking PRODUCT_ADD.
 CREATE FUNCTION public.save_product_form(
