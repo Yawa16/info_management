@@ -3,12 +3,11 @@
 import { revalidatePath } from "next/cache";
 import { requireApprovedUser } from "@/lib/auth/access";
 import { hasRight } from "@/lib/auth/permissions";
-import { isManagerRole } from "@/lib/auth/rights-check";
 import { validateProductForm } from "@/lib/products/form";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 export type ProductSaveResult = { status: "success"; productCode: string } | { status: "error"; message: string };
-export type ProductStatusResult = { status: "success" } | { status: "error"; message: string };
+export type ProductDeleteResult = { status: "success" } | { status: "error"; message: string };
 
 export async function createProduct(formData: FormData): Promise<ProductSaveResult> {
   const { user } = await requireApprovedUser();
@@ -61,35 +60,25 @@ export async function editProduct(
   return { status: "success", productCode: productCode.toUpperCase() };
 }
 
-export async function changeProductStatus(
-  productCode: string,
-  operation: "delete" | "restore",
-): Promise<ProductStatusResult> {
-  const { user, role } = await requireApprovedUser();
+export async function deleteProduct(productCode: string): Promise<ProductDeleteResult> {
+  const { user } = await requireApprovedUser();
   if (typeof productCode !== "string" || !/^P-[0-9]{1,8}$/i.test(productCode)) {
     return { status: "error", message: "Invalid product code." };
   }
-  if (operation !== "delete" && operation !== "restore") {
-    return { status: "error", message: "Invalid product status action." };
-  }
-  if (operation === "restore" && !isManagerRole(role)) {
-    return { status: "error", message: "Only Admins or Superadmins can restore products." };
-  }
-  if (operation === "delete" && !(await hasRight(user.id, "products", "delete"))) {
+  if (!(await hasRight(user.id, "products", "delete"))) {
     return { status: "error", message: "You do not have permission to delete products." };
   }
 
-  const { error } = await createSupabaseAdminClient().rpc("change_product_status", {
+  const { error } = await createSupabaseAdminClient().rpc("soft_delete_product", {
     p_actor_id: user.id,
     p_prod_code: productCode.toUpperCase(),
-    p_operation: operation,
   });
   if (error) {
-    console.error("Unable to change product status.", { code: error.code, message: error.message });
+    console.error("Unable to delete product.", { code: error.code, message: error.message });
     if (error.message.startsWith("Cannot delete product row:")) {
       return { status: "error", message: "This product cannot be deleted while active sales are linked to it." };
     }
-    return { status: "error", message: "Could not update this product. Please try again." };
+    return { status: "error", message: "Could not delete this product. Please try again." };
   }
   revalidatePath("/products");
   return { status: "success" };

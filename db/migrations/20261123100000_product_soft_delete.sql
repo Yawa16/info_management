@@ -21,10 +21,9 @@ END;
 $$;
 
 -- Only the trusted server may invoke this function after checking action rights.
-CREATE FUNCTION public.change_product_status(
+CREATE FUNCTION public.soft_delete_product(
   p_actor_id uuid,
-  p_prod_code text,
-  p_operation text
+  p_prod_code text
 )
 RETURNS void
 LANGUAGE plpgsql
@@ -40,14 +39,10 @@ BEGIN
   IF actor_role IS NULL OR actor_role NOT IN ('user', 'admin', 'superadmin') THEN
     RAISE EXCEPTION 'Invalid product action actor.';
   END IF;
-  IF p_prod_code IS NULL OR p_prod_code !~ '^P-[0-9]{1,8}$'
-    OR p_operation IS NULL OR p_operation NOT IN ('delete', 'restore') THEN
-    RAISE EXCEPTION 'Invalid product status action.';
+  IF p_prod_code IS NULL OR p_prod_code !~ '^P-[0-9]{1,8}$' THEN
+    RAISE EXCEPTION 'Invalid product code.';
   END IF;
-  IF p_operation = 'restore' AND actor_role NOT IN ('admin', 'superadmin') THEN
-    RAISE EXCEPTION 'Only managers can restore products.';
-  END IF;
-  IF p_operation = 'delete' AND actor_role = 'user' AND NOT EXISTS (
+  IF actor_role = 'user' AND NOT EXISTS (
     SELECT 1 FROM public.user_rights ur
     JOIN public.rights r ON r.id = ur.right_id
     WHERE ur.user_id = p_actor_id AND r.code = 'PRODUCT_DELETE'
@@ -57,15 +52,15 @@ BEGIN
 
   PERFORM set_config('app.current_user', p_actor_id::text, true);
   UPDATE public.product
-  SET status = CASE WHEN p_operation = 'delete' THEN 'Inactive' ELSE 'Active' END
+  SET status = 'Inactive'
   WHERE prod_code = p_prod_code
-    AND status = CASE WHEN p_operation = 'delete' THEN 'Active' ELSE 'Inactive' END;
+    AND status = 'Active';
   IF NOT FOUND THEN
-    RAISE EXCEPTION 'Product not found or status already changed.';
+    RAISE EXCEPTION 'Product not found or already inactive.';
   END IF;
 END;
 $$;
 
-REVOKE ALL ON FUNCTION public.change_product_status(uuid, text, text) FROM PUBLIC, anon, authenticated;
-GRANT EXECUTE ON FUNCTION public.change_product_status(uuid, text, text) TO service_role;
+REVOKE ALL ON FUNCTION public.soft_delete_product(uuid, text) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.soft_delete_product(uuid, text) TO service_role;
 NOTIFY pgrst, 'reload schema';

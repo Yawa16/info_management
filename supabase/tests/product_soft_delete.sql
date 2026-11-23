@@ -1,4 +1,4 @@
--- Run only against an approved test database after applying the Task 6 migration.
+-- Run only against an approved test database after applying the soft-delete migration.
 -- Product, price-history, and rights changes are rolled back.
 BEGIN;
 
@@ -23,7 +23,7 @@ BEGIN
     RAISE EXCEPTION 'Test requires an active Admin, regular user, and Product Delete right.';
   END IF;
 
-  product_code := public.save_product_form(manager, NULL, 'Product delete restore test', 'pair');
+  product_code := public.save_product_form(manager, NULL, 'Product soft delete test', 'pair');
   INSERT INTO public.pricehist (prodcode, effdate, unitprice)
   VALUES (product_code, current_date, 12.34);
   DELETE FROM public.user_rights
@@ -31,7 +31,7 @@ BEGIN
 
   rejected := false;
   BEGIN
-    PERFORM public.change_product_status(regular_user, product_code, 'delete');
+    PERFORM public.soft_delete_product(regular_user, product_code);
   EXCEPTION WHEN raise_exception THEN
     IF SQLERRM <> 'Product delete permission required.' THEN RAISE; END IF;
     rejected := true;
@@ -45,7 +45,7 @@ BEGIN
 
   INSERT INTO public.user_rights (user_id, right_id, granted_by)
   VALUES (regular_user, delete_right, manager);
-  PERFORM public.change_product_status(regular_user, product_code, 'delete');
+  PERFORM public.soft_delete_product(regular_user, product_code);
   SELECT stamp INTO current_stamp FROM public.product
   WHERE prod_code = product_code AND status = 'Inactive' AND is_deleted;
   IF current_stamp IS NULL OR current_stamp NOT LIKE ('DELETED ' || regular_user::text || ' %') THEN
@@ -57,31 +57,10 @@ BEGIN
     RAISE EXCEPTION 'Price history was changed or removed by deletion.';
   END IF;
 
-  rejected := false;
-  BEGIN
-    PERFORM public.change_product_status(regular_user, product_code, 'restore');
-  EXCEPTION WHEN raise_exception THEN
-    IF SQLERRM <> 'Only managers can restore products.' THEN RAISE; END IF;
-    rejected := true;
-  END;
-  IF NOT rejected THEN RAISE EXCEPTION 'Regular user restore was accepted.'; END IF;
-
-  PERFORM public.change_product_status(manager, product_code, 'restore');
-  SELECT stamp INTO current_stamp FROM public.product
-  WHERE prod_code = product_code AND status = 'Active' AND NOT is_deleted;
-  IF current_stamp IS NULL OR current_stamp NOT LIKE ('RESTORED ' || manager::text || ' %') THEN
-    RAISE EXCEPTION 'Restored product or stamp was incorrect.';
-  END IF;
-  SELECT unitprice INTO current_price FROM public.pricehist
-  WHERE prodcode = product_code AND effdate = current_date AND NOT is_deleted;
-  IF current_price IS DISTINCT FROM 12.34 THEN
-    RAISE EXCEPTION 'Price history was changed or removed by restore.';
-  END IF;
-
-  IF has_function_privilege('anon', 'public.change_product_status(uuid,text,text)', 'EXECUTE')
-    OR has_function_privilege('authenticated', 'public.change_product_status(uuid,text,text)', 'EXECUTE')
-    OR NOT has_function_privilege('service_role', 'public.change_product_status(uuid,text,text)', 'EXECUTE') THEN
-    RAISE EXCEPTION 'Unexpected product status function privileges.';
+  IF has_function_privilege('anon', 'public.soft_delete_product(uuid,text)', 'EXECUTE')
+    OR has_function_privilege('authenticated', 'public.soft_delete_product(uuid,text)', 'EXECUTE')
+    OR NOT has_function_privilege('service_role', 'public.soft_delete_product(uuid,text)', 'EXECUTE') THEN
+    RAISE EXCEPTION 'Unexpected soft-delete function privileges.';
   END IF;
   IF NOT (SELECT relrowsecurity FROM pg_class WHERE oid = 'public.product'::regclass) THEN
     RAISE EXCEPTION 'Product RLS is disabled.';

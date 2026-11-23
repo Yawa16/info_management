@@ -2,16 +2,14 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { changeProductStatus } from "@/lib/actions/products";
+import { deleteProduct } from "@/lib/actions/products";
 
-export default function ProductStatusButton({
+export default function ProductDeleteButton({
   productCode,
   description,
-  operation,
 }: {
   productCode: string;
   description: string | null;
-  operation: "delete" | "restore";
 }) {
   const router = useRouter();
   const [error, setError] = useState("");
@@ -19,9 +17,8 @@ export default function ProductStatusButton({
 
   function submit() {
     if (
-      operation === "delete" &&
       !window.confirm(
-        `Delete ${description || productCode} (${productCode})? Its price history will be kept. An Admin or Superadmin can restore it later.`,
+        `Delete ${description || productCode} (${productCode})? This marks it inactive and keeps its price history.`,
       )
     ) {
       return;
@@ -29,15 +26,15 @@ export default function ProductStatusButton({
     setError("");
     startTransition(async () => {
       try {
-        const result = await changeProductStatus(productCode, operation);
+        const result = await deleteProduct(productCode);
         if (result.status === "error") {
           setError(result.message);
           return;
         }
         router.refresh();
       } catch (requestError) {
-        console.error("Product status request failed.", requestError);
-        setError("Could not update this product. Please try again.");
+        console.error("Product deletion request failed.", requestError);
+        setError("Could not delete this product. Please try again.");
       }
     });
   }
@@ -45,7 +42,7 @@ export default function ProductStatusButton({
   return (
     <>
       <button className="customer-status-button" disabled={pending} onClick={submit} type="button">
-        {pending ? "Saving…" : operation === "delete" ? "Delete" : "Restore"}
+        {pending ? "Deleting…" : "Delete"}
       </button>
       {error && <span className="customer-error customer-action-error" role="alert">{error}</span>}
     </>
