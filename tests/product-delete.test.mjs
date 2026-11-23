@@ -15,6 +15,9 @@ function actionHarness({ allowed = true, rpcError = null } = {}) {
         return allowed;
       },
     },
+    "@/lib/auth/rights-check": {
+      isManagerRole: (role) => role === "admin" || role === "superadmin",
+    },
     "@/lib/products/form": { validateProductForm: () => ({ values: { description: "Test", unit: "pc" } }) },
     "@/lib/supabase/admin": {
       createSupabaseAdminClient: () => ({

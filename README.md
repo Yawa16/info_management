@@ -162,8 +162,8 @@ the right before calling the service-role-only `soft_delete_product` RPC.
 Product rows and price history are retained; active sales details still prevent
 deletion. Admins and Superadmins can view shaded inactive rows; Users only
 receive Active products from the server query. The existing audit trigger writes
-the `DELETED` stamp. Restore is intentionally excluded from this PR and will be
-implemented separately.
+the `DELETED` stamp. Product restore is implemented separately; see Product
+restore below.
 
 `db/migrations/20261123100000_product_soft_delete.sql` was applied to the
 approved Hope ERP Development project on 2026-11-23 after DB Admin approval and
@@ -176,6 +176,24 @@ The rollback-only `supabase/tests/product_soft_delete.sql` passed on that
 project, verifying the permission refusal, `DELETED` stamp, unchanged price
 history, and RLS/function privileges. Its fixture changes were rolled back.
 Run focused application tests with `npm run test:product-delete`.
+
+## Product restore
+
+Admins and Superadmins can restore inactive products from the shaded rows in
+the Product list. The server action and service-role-only `restore_product`
+RPC both enforce manager-only access. Restoring changes the status back to
+Active, preserves existing price history, and lets the audit trigger write the
+`RESTORED` stamp. Regular Users continue to receive only Active products.
+
+`db/migrations/20261123110000_product_restore.sql` adds the protected restore
+RPC without changing the existing soft-delete migration. Have the DB Admin
+review and approve this migration before applying it to the development
+project; do not edit or rerun already recorded migrations. Run
+`supabase/tests/product_restore.sql` on an approved test database after
+applying the migration; it verifies User refusal, manager restore, the stamp,
+price-history retention, repeated-restore refusal, function privileges, and
+Product RLS, then rolls back its fixture changes. Run
+`npm run test:product-restore` for the focused server-action tests.
 
 ## Supabase scaffold
 
