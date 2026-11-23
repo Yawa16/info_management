@@ -49,16 +49,24 @@ BEGIN
   END;
   IF NOT rejected THEN RAISE EXCEPTION 'Invalid status was accepted.'; END IF;
 
-  -- The soft-delete guard must still see related price history.
+  -- Soft deletion must preserve related price history and allow restoration.
   INSERT INTO public.pricehist (prodcode, effdate, unitprice) VALUES ('T-001', current_date, 1);
-  rejected := false;
-  BEGIN
-    UPDATE public.product SET status = 'Inactive' WHERE prod_code = 'T-001';
-  EXCEPTION WHEN raise_exception THEN
-    IF SQLERRM NOT LIKE 'Cannot delete product row:%' THEN RAISE; END IF;
-    rejected := true;
-  END;
-  IF NOT rejected THEN RAISE EXCEPTION 'Product with active prices was soft-deleted.'; END IF;
+  UPDATE public.product SET status = 'Inactive' WHERE prod_code = 'T-001';
+  IF NOT EXISTS (
+    SELECT 1 FROM public.product WHERE prod_code = 'T-001' AND status = 'Inactive' AND is_deleted
+  ) OR NOT EXISTS (
+    SELECT 1 FROM public.pricehist WHERE prodcode = 'T-001' AND effdate = current_date
+      AND unitprice = 1 AND NOT is_deleted
+  ) THEN
+    RAISE EXCEPTION 'Soft deletion did not preserve the product and its price history.';
+  END IF;
+  UPDATE public.product SET status = 'Active' WHERE prod_code = 'T-001';
+  IF NOT EXISTS (
+    SELECT 1 FROM public.pricehist WHERE prodcode = 'T-001' AND effdate = current_date
+      AND unitprice = 1 AND NOT is_deleted
+  ) THEN
+    RAISE EXCEPTION 'Restore did not preserve the product price history.';
+  END IF;
 END;
 $$;
 

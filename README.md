@@ -121,7 +121,8 @@ and auditing each change. Both migrations have been reviewed and recorded on
 the shared project as `20261118060000_product_status_compatibility.sql` and
 `20261118061000_normalize_product_legacy_stamps.sql`; do not rerun them there.
 Run `supabase/tests/product_list.sql` on an approved test database after
-applying them; it rolls back its changes. Run the focused tests with
+applying the Product status compatibility, stamp normalization, and
+delete/restore migrations; it rolls back its changes. Run the focused tests with
 `npm run test:products`.
 
 ## Product create
@@ -153,6 +154,24 @@ Code remains read-only, and only Description and Unit are editable. The server
 re-checks `PRODUCT_EDIT` and calls the service-role-only `edit_product_form`
 RPC. Status remains unchanged and the existing stamp/audit triggers record an
 `EDITED` stamp.
+
+## Product delete and restore
+
+Users with `PRODUCT_DELETE` can soft-delete Active products. The server checks
+the right before calling the service-role-only `change_product_status` RPC.
+Product rows and price history are retained; active sales details still prevent
+deletion. Admins and Superadmins can view shaded inactive rows and restore them;
+Users only receive Active products from the server query. Status changes use
+the existing audit trigger to write `DELETED` and `RESTORED` stamps.
+
+Apply `db/migrations/20261123100000_product_delete_restore.sql` only after DB
+Admin review and approval. It removes price history from the existing child
+guard while preserving the active-sales safeguard, then adds the protected
+status RPC without changing Product RLS. Run
+`supabase/tests/product_delete_restore.sql` on an approved test database; it
+rolls back its changes and verifies authorization, stamps, RLS, and retained
+price history. Run focused application tests with
+`npm run test:product-status`.
 
 ## Supabase scaffold
 

@@ -5,6 +5,7 @@ import { canAccessModule, isManagerRole } from "@/lib/auth/rights-check";
 import { loadProducts, productListOptions, type ProductStatusFilter } from "@/lib/products/list";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import ProductForm from "@/components/ProductForm";
+import ProductStatusButton from "@/components/ProductStatusButton";
 import "../customers/customers.css";
 
 type SearchParams = { q?: string | string[]; status?: string | string[]; page?: string | string[] };
@@ -23,6 +24,7 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
   const isManager = isManagerRole(snapshot.role);
   const canAdd = canAccessModule(snapshot, "products", "add");
   const canEdit = canAccessModule(snapshot, "products", "edit");
+  const canDelete = canAccessModule(snapshot, "products", "delete");
   const options = productListOptions(isManager, await searchParams);
   let result;
   try {
@@ -88,6 +90,20 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
                   <td className="customer-actions">
                     <button disabled title="Prices come in a later task">Prices</button>
                     {product.status !== "Inactive" && canEdit && <ProductForm product={product} />}
+                    {product.status !== "Inactive" && canDelete && (
+                      <ProductStatusButton
+                        operation="delete"
+                        productCode={product.prod_code}
+                        description={product.description}
+                      />
+                    )}
+                    {product.status === "Inactive" && isManager && (
+                      <ProductStatusButton
+                        operation="restore"
+                        productCode={product.prod_code}
+                        description={product.description}
+                      />
+                    )}
                   </td>
                 </tr>
               ))}
