@@ -20,7 +20,8 @@
     "db:issue-setup-links": "node db/scripts/issue-setup-links.js",
     "db:check-sql-secrets": "node db/scripts/check-sql-secrets.js",
     "db:verify-audit": "node db/scripts/verify-audit-user.js",
-    "db:verify-task5": "node db/scripts/verify-task5.js"
+    "db:verify-task5": "node db/scripts/verify-task5.js",
+    "db:verify-sprint2": "node db/scripts/verify-customer-product-access.js"
   },
   "dependencies": {
     "@supabase/ssr": "^0.6.1",

@@ -29,9 +29,20 @@ and permissions; `004_create_password_reset_token.sql` adds single-use,
 expiring password setup/reset tokens; `005_create_audit_log.sql` adds
 transaction-local application-user audit logging; and
 `006_audit_legacy_soft_delete_tables.sql` adds equivalent logging for existing
-`is_deleted`/stamp tables.
+`is_deleted`/stamp tables. `007_customer_product_access.sql` adds
+server-enforced Customer/Product/PRICEHIST access rules, User-safe read views,
+derived current prices, and physical-delete guards. It supports canonical
+column names and the existing legacy Product/PRICEHIST names without renaming
+columns used by their foreign keys or audit triggers.
 `db/seeds/001_seed_hope_sample_data.sql` provides the same sample records for
 the repeatable seed command; it uses `ON CONFLICT DO NOTHING`.
+`008_customer_product_active_views.sql` adds the S2-DBA-01 compatibility views
+`v_customer_active`, `v_customer_admin`, `v_product_active`, and
+`v_product_admin`, plus Customer and Product status-count views. The views use
+`security_invoker` so table RLS remains authoritative. Current Product prices
+are still derived from the latest active `PRICEHIST` effective date at query
+time; no price column is stored. The migration also adds partial active-status
+indexes and the active Price History lookup index.
 
 ## Team database approach
 
@@ -57,13 +68,14 @@ In the project dashboard:
 2. In **Connect**, copy the PostgreSQL connection URI and note its host, port, and database name.
 3. Keep the existing project database owner password private. The DB admin should distribute a dedicated migration connection privately to approved maintainers rather than sharing the project owner's credentials.
 
-The HOPE tables have row-level security enabled without permissive policies.
-Add reviewed least-privilege policies before exposing them through Supabase
-Auth; never use the migration credential from application code. For a
-local-only alternative, an administrator creates a `hope_erp_dev` database
-owned by a dedicated migration role and creates a separate `hope_app` login
-with only `CONNECT` and schema `USAGE`; grant table/sequence access later,
-only as needed. Never use a PostgreSQL superuser as the application login.
+The HOPE tables have row-level security enabled. Migration 007 adds reviewed
+policies for Customer, Product, and PRICEHIST; other modules still need their
+own least-privilege policies before exposing them through an application.
+Never use the migration credential from application code. For a local-only
+alternative, an administrator creates a `hope_erp_dev` database owned by a
+dedicated migration role and creates a separate `hope_app` login with only
+`CONNECT` and schema `USAGE`; reviewed migrations grant required access only.
+Never use a PostgreSQL superuser as the application login.
 
 Expected result: the team admin can connect to the non-production PostgreSQL database using the private migration URL. No local PostgreSQL server installation is needed for the recommended hosted workflow. Optional local PostgreSQL server packages are available from the official [PostgreSQL downloads](https://www.postgresql.org/download/); use PostgreSQL 15 or newer if choosing the local alternative.
 
@@ -179,6 +191,7 @@ Migrations:
   [pending] 004_create_password_reset_token.sql
   [pending] 005_create_audit_log.sql
   [pending] 006_audit_legacy_soft_delete_tables.sql
+  [pending] 007_customer_product_access.sql
 ```
 
 Expected migrate output:
@@ -196,9 +209,11 @@ Applying: 005_create_audit_log.sql
 Applied: 005_create_audit_log.sql
 Applying: 006_audit_legacy_soft_delete_tables.sql
 Applied: 006_audit_legacy_soft_delete_tables.sql
+Applying: 007_customer_product_access.sql
+Applied: 007_customer_product_access.sql
 ```
 
-Expected final status shows all six files as applied. The runner creates
+Expected final status shows all seven files as applied. The runner creates
 `public.schema_migrations` if missing. It applies numbered SQL files in
 filename order, each in a transaction, and records the filename and SHA-256
 checksum in the same transaction. It fails if an applied migration's file is

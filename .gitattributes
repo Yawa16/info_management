@@ -2,3 +2,5 @@
 *.json text eol=lf
 *.md text eol=lf
 *.sql text eol=lf
+db/migrations/005_create_audit_log.sql text eol=crlf
+db/migrations/006_audit_legacy_soft_delete_tables.sql text eol=crlf
