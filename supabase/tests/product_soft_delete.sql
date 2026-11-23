@@ -23,7 +23,7 @@ BEGIN
     RAISE EXCEPTION 'Test requires an active Admin, regular user, and Product Delete right.';
   END IF;
 
-  product_code := public.save_product_form(manager, NULL, 'Product soft delete test', 'pair');
+  product_code := public.save_product_form(manager, 'Product soft delete test', 'pair');
   INSERT INTO public.pricehist (prodcode, effdate, unitprice)
   VALUES (product_code, current_date, 12.34);
   DELETE FROM public.user_rights

@@ -165,13 +165,17 @@ receive Active products from the server query. The existing audit trigger writes
 the `DELETED` stamp. Restore is intentionally excluded from this PR and will be
 implemented separately.
 
-Apply `db/migrations/20261123100000_product_soft_delete.sql` only after DB
-Admin review and approval. It removes price history from the existing child
-guard while preserving the active-sales safeguard, then adds the protected
-status RPC without changing Product RLS. Run
-`supabase/tests/product_soft_delete.sql` on an approved test database; it rolls
-back its changes and verifies authorization, stamps, RLS, and retained price
-history. Run focused application tests with `npm run test:product-delete`.
+`db/migrations/20261123100000_product_soft_delete.sql` was applied to the
+approved Hope ERP Development project on 2026-11-23 after DB Admin approval and
+backup confirmation; its checksum is recorded in `public.schema_migrations`.
+Do not rerun it there. It removes price history from the existing child guard
+while preserving the active-sales safeguard, then adds the protected
+soft-delete RPC without changing Product RLS.
+
+The rollback-only `supabase/tests/product_soft_delete.sql` passed on that
+project, verifying the permission refusal, `DELETED` stamp, unchanged price
+history, and RLS/function privileges. Its fixture changes were rolled back.
+Run focused application tests with `npm run test:product-delete`.
 
 ## Supabase scaffold
 
