@@ -186,14 +186,18 @@ Active, preserves existing price history, and lets the audit trigger write the
 `RESTORED` stamp. Regular Users continue to receive only Active products.
 
 `db/migrations/20261123110000_product_restore.sql` adds the protected restore
-RPC without changing the existing soft-delete migration. Have the DB Admin
-review and approve this migration before applying it to the development
-project; do not edit or rerun already recorded migrations. Run
-`supabase/tests/product_restore.sql` on an approved test database after
-applying the migration; it verifies User refusal, manager restore, the stamp,
-price-history retention, repeated-restore refusal, function privileges, and
-Product RLS, then rolls back its fixture changes. Run
-`npm run test:product-restore` for the focused server-action tests.
+RPC without changing the existing soft-delete migration. The DB Admin
+approved and applied it to Hope ERP Development on 2026-11-23 after backup
+confirmation. Its SHA-256 checksum in `public.schema_migrations` is
+`4d90bd4a1ad5949c0be26463964fb8c6d0b6b1af5be1897783543499a5bc4787`; do not
+edit or rerun this migration there.
+
+The live rollback-only `supabase/tests/product_restore.sql` passed on the
+approved development project. It verified User refusal, manager restore, the
+`RESTORED` stamp, retained price history, repeated-restore refusal, function
+privileges, and Product RLS. Its fixture changes were rolled back; a follow-up
+query confirmed no test products remain. Run `npm run test:product-restore`
+for the focused server-action tests.
 
 ## Supabase scaffold
 
