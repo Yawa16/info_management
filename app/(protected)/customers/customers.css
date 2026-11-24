@@ -13,6 +13,18 @@
 .customer-status-inactive { color: #9c3d36; background: #fae7e5; }
 .customer-actions { white-space: nowrap; }
 .customer-actions button, .customer-placeholder { margin-right: 6px; padding: 7px 10px; border: 1px solid var(--line); border-radius: 5px; color: #737b76; background: #f2f2ef; cursor: not-allowed; }
+.customer-actions button.customer-edit, .customer-add { padding: 8px 12px; border: 1px solid #397e68; border-radius: 5px; color: #fff; background: #397e68; cursor: pointer; }
+.customer-dialog { width: min(480px, calc(100vw - 32px)); max-height: calc(100vh - 48px); margin: auto; padding: 0; border: 1px solid var(--line); border-radius: 8px; background: white; color: var(--ink); }
+.customer-dialog::backdrop { background: rgba(32, 44, 41, .45); }
+.customer-form { display: grid; gap: 14px; padding: 22px; overflow-y: auto; }
+.customer-form label { display: grid; gap: 6px; font-size: 13px; font-weight: 600; }
+.customer-form input, .customer-form select { width: 100%; padding: 10px; border: 1px solid #dfe3dd; border-radius: 5px; background: white; color: inherit; }
+.customer-form input[readonly] { background: #f2f2ef; }
+.customer-dialog-header, .customer-dialog-footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.customer-dialog-header h2 { margin: 0; font-size: 20px; }
+.customer-dialog-header button { border: 0; background: transparent; font-size: 26px; cursor: pointer; }
+.customer-dialog-footer { justify-content: flex-end; }
+.customer-dialog-footer button:disabled { opacity: .6; cursor: not-allowed; }
 .customer-empty, .customer-error { font-size: 13px; color: #a05247; }
 .customer-pagination { display: flex; align-items: center; flex-wrap: wrap; gap: 14px; margin-top: 20px; color: #697571; font-size: 12px; }
 .customer-pagination a { color: #245b4b; }

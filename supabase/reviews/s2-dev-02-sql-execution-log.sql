@@ -1,0 +1,114 @@
+-- S2-DEV-02 SQL execution log, 2026-11-18.
+-- REVIEW ONLY: all statements are commented out; do not replay this file.
+-- Target: Hope ERP Development, branch "main Production".
+--
+-- 1. Rollback-only rehearsal. The following transaction failed on the edit
+-- because the existing pay_terms column is varchar(3). PostgreSQL aborted
+-- the transaction; no customer or function changes were committed.
+-- BEGIN;
+-- CREATE FUNCTION public.save_customer_form(p_actor_id uuid, p_cust_no text, p_name text, p_address text, p_pay_terms text)
+-- RETURNS text LANGUAGE plpgsql SECURITY DEFINER SET search_path = pg_catalog, public AS $$
+-- DECLARE next_number bigint; customer_number text;
+-- BEGIN
+--   IF p_actor_id IS NULL OR NOT EXISTS (SELECT 1 FROM public.profiles WHERE id = p_actor_id AND NOT is_blocked AND approval_status IN ('active', 'approved')) THEN RAISE EXCEPTION 'Invalid customer action actor.'; END IF;
+--   IF p_name IS NULL OR length(btrim(p_name)) NOT BETWEEN 1 AND 100 OR (p_address IS NOT NULL AND length(btrim(p_address)) > 200) OR (p_pay_terms IS NOT NULL AND p_pay_terms NOT IN ('Net 15', 'Net 30', 'Net 45', 'COD', 'Prepaid')) THEN RAISE EXCEPTION 'Invalid customer fields.'; END IF;
+--   PERFORM set_config('app.current_user', p_actor_id::text, true);
+--   IF p_cust_no IS NULL THEN
+--     PERFORM pg_advisory_xact_lock(684220);
+--     SELECT coalesce(max(substring(cust_no FROM 3)::bigint), 0) + 1 INTO next_number FROM public.customer WHERE cust_no ~ '^C-[0-9]{1,8}$';
+--     IF next_number > 99999999 THEN RAISE EXCEPTION 'Customer number capacity exhausted.'; END IF;
+--     customer_number := 'C-' || lpad(next_number::text, greatest(3, length(next_number::text)), '0');
+--     INSERT INTO public.customer (cust_no, cust_name, address, pay_terms, status) VALUES (customer_number, btrim(p_name), nullif(btrim(p_address), ''), p_pay_terms, 'Active');
+--   ELSE
+--     IF length(btrim(p_cust_no)) = 0 OR length(p_cust_no) > 10 THEN RAISE EXCEPTION 'Invalid customer number.'; END IF;
+--     UPDATE public.customer SET cust_name = btrim(p_name), address = nullif(btrim(p_address), ''), pay_terms = p_pay_terms WHERE cust_no = p_cust_no AND status = 'Active';
+--     IF NOT FOUND THEN RAISE EXCEPTION 'Customer not found or inactive.'; END IF;
+--     customer_number := p_cust_no;
+--   END IF;
+--   RETURN customer_number;
+-- END; $$;
+-- REVOKE ALL ON FUNCTION public.save_customer_form(uuid, text, text, text, text) FROM PUBLIC, anon, authenticated;
+-- GRANT EXECUTE ON FUNCTION public.save_customer_form(uuid, text, text, text, text) TO service_role;
+-- DO $$
+-- DECLARE actor uuid; next_number bigint; expected_number text; created_number text; legacy_number text; current_stamp text; blocked boolean;
+-- BEGIN
+--   SELECT id INTO actor FROM public.profiles WHERE NOT is_blocked AND approval_status IN ('active', 'approved') LIMIT 1;
+--   IF actor IS NULL THEN RAISE EXCEPTION 'No active account available for test.'; END IF;
+--   SELECT coalesce(max(substring(cust_no FROM 3)::bigint), 0) + 1 INTO next_number FROM public.customer WHERE cust_no ~ '^C-[0-9]{1,8}$';
+--   expected_number := 'C-' || lpad(next_number::text, greatest(3, length(next_number::text)), '0');
+--   created_number := public.save_customer_form(actor, NULL, 'Customer form test', NULL, 'COD');
+--   IF created_number <> expected_number THEN RAISE EXCEPTION 'Customer number was not sequential.'; END IF;
+--   SELECT stamp INTO current_stamp FROM public.customer WHERE cust_no = created_number AND status = 'Active';
+--   IF current_stamp IS NULL OR current_stamp NOT LIKE ('CREATED ' || actor::text || ' %') THEN RAISE EXCEPTION 'Created status or stamp was incorrect.'; END IF;
+--   PERFORM public.save_customer_form(actor, created_number, 'Customer form edited', 'Test address', 'Net 30');
+--   SELECT stamp INTO current_stamp FROM public.customer WHERE cust_no = created_number AND cust_name = 'Customer form edited';
+--   IF current_stamp IS NULL OR current_stamp NOT LIKE ('EDITED ' || actor::text || ' %') THEN RAISE EXCEPTION 'Edited stamp was incorrect.'; END IF;
+--   SELECT cust_no INTO legacy_number FROM public.customer WHERE status = 'Active' AND cust_no !~ '^C-[0-9]{1,8}$' LIMIT 1;
+--   IF legacy_number IS NULL THEN RAISE EXCEPTION 'No active legacy Customer available for test.'; END IF;
+--   PERFORM public.save_customer_form(actor, legacy_number, 'Legacy customer test', NULL, 'Prepaid');
+--   blocked := false;
+--   BEGIN PERFORM public.save_customer_form(actor, NULL, '', NULL, 'COD'); EXCEPTION WHEN raise_exception THEN blocked := true; END;
+--   IF NOT blocked THEN RAISE EXCEPTION 'Empty customer name was accepted.'; END IF;
+--   IF has_function_privilege('anon', 'public.save_customer_form(uuid,text,text,text,text)', 'EXECUTE') OR has_function_privilege('authenticated', 'public.save_customer_form(uuid,text,text,text,text)', 'EXECUTE') OR NOT has_function_privilege('service_role', 'public.save_customer_form(uuid,text,text,text,text)', 'EXECUTE') THEN RAISE EXCEPTION 'Unexpected customer form function privileges.'; END IF;
+-- END; $$;
+-- ROLLBACK;
+--
+-- 2. Read-only schema inspection.
+-- SELECT (SELECT json_agg(json_build_object('column',column_name,'type',data_type,'max',character_maximum_length) ORDER BY ordinal_position) FROM information_schema.columns WHERE table_schema='public' AND table_name='customer') AS columns, (SELECT json_agg(json_build_object('name',conname,'definition',pg_get_constraintdef(oid))) FROM pg_constraint WHERE conrelid='public.customer'::regclass) AS constraints, (SELECT relrowsecurity FROM pg_class WHERE oid='public.customer'::regclass) AS rls_enabled, (SELECT count(*) FROM public.customer) AS customer_count, to_regprocedure('public.save_customer_form(uuid,text,text,text,text)') IS NOT NULL AS function_exists;
+--
+-- 3. Read-only foreign key and view dependency inspection.
+-- SELECT (SELECT json_agg(json_build_object('name',conname,'table',conrelid::regclass::text,'definition',pg_get_constraintdef(oid))) FROM pg_constraint WHERE confrelid='public.customer'::regclass AND contype='f') AS foreign_keys, (SELECT json_agg(json_build_object('name',c.relname,'kind',c.relkind,'column',a.attname)) FROM pg_depend d JOIN pg_rewrite r ON r.oid=d.objid JOIN pg_class c ON c.oid=r.ev_class JOIN pg_attribute a ON a.attrelid=d.refobjid AND a.attnum=d.refobjsubid WHERE d.refobjid='public.customer'::regclass AND d.refobjsubid > 0) AS view_dependencies, (SELECT count(*) FROM public.customer) AS customer_count, to_regprocedure('public.save_customer_form(uuid,text,text,text,text)') IS NOT NULL AS function_exists;
+--
+-- 4. Read-only view and Sales column inspection.
+-- SELECT pg_get_viewdef('public.customer_active'::regclass, true) AS view_definition, (SELECT json_build_object('owner',pg_get_userbyid(relowner),'acl',relacl,'options',reloptions) FROM pg_class WHERE oid='public.customer_active'::regclass) AS view_metadata, (SELECT json_agg(json_build_object('object',pg_describe_object(classid,objid,objsubid),'dependency',deptype)) FROM pg_depend WHERE refobjid='public.customer_active'::regclass AND deptype NOT IN ('i','a')) AS dependents, (SELECT character_maximum_length FROM information_schema.columns WHERE table_schema='public' AND table_name='sales' AND column_name='custno') AS sales_customer_number_max;
+--
+-- 5. Read-only Sales foreign-key column and view dependency inspection.
+-- SELECT (SELECT character_maximum_length FROM information_schema.columns WHERE table_schema='public' AND table_name='sales' AND column_name='custno') AS sales_customer_number_max, to_regprocedure('public.save_customer_form(uuid,text,text,text,text)') IS NOT NULL AS function_exists, (SELECT json_agg(json_build_object('view',c.relname,'column',a.attname)) FROM pg_depend d JOIN pg_rewrite r ON r.oid=d.objid JOIN pg_class c ON c.oid=r.ev_class JOIN pg_attribute a ON a.attrelid=d.refobjid AND a.attnum=d.refobjsubid WHERE d.refobjid='public.sales'::regclass AND a.attname='custno') AS sales_view_dependencies;
+--
+-- 6. Read-only Sales view inspection.
+-- SELECT pg_get_viewdef('public.sales_active'::regclass, true) AS view_definition, (SELECT json_build_object('owner',pg_get_userbyid(relowner),'acl',relacl,'options',reloptions) FROM pg_class WHERE oid='public.sales_active'::regclass) AS view_metadata, (SELECT json_agg(pg_describe_object(classid,objid,objsubid)) FROM pg_depend WHERE refobjid='public.sales_active'::regclass AND deptype NOT IN ('i','a')) AS dependents;
+--
+-- 7. Rollback rehearsal succeeded. It used the final migration without
+-- WITH (security_invoker = true) on customer_active or the final NOTIFY,
+-- followed within the same transaction by the test file's first DO block
+-- and ROLLBACK. The anonymous-role block was added later.
+--
+-- 8. This security assertion failed, confirming that the legacy definer view
+-- allowed anonymous Customer reads. The transaction was aborted.
+-- BEGIN; SET LOCAL ROLE anon; DO $$ BEGIN IF EXISTS (SELECT 1 FROM public.customer_active) THEN RAISE EXCEPTION 'Anonymous role can read customers through customer_active.'; END IF; END $$; ROLLBACK;
+--
+-- 9. Second rollback rehearsal succeeded. It used the final migration
+-- statements except NOTIFY, followed within the same transaction by the
+-- assertions in ../../supabase/tests/customer_form.sql, and ROLLBACK.
+-- No test Customer or audit changes were persisted.
+--
+-- 10. Read-only history inspection:
+-- SELECT filename, checksum FROM public.schema_migrations ORDER BY filename;
+--
+-- 11. APPLIED. The migration was manually applied, with the same SQL as
+-- ../../db/migrations/20261118040000_customer_create_edit.sql, inside the
+-- following transaction. The checksum is the migration runner's SHA-256.
+-- BEGIN;
+-- SELECT pg_advisory_xact_lock(684219);
+-- [Migration statements in the linked file]
+-- INSERT INTO public.schema_migrations(filename, checksum) VALUES ('20261118040000_customer_create_edit.sql', '3f7a532b0e50304886947b3b218b502e501245a8f35e6110d9bcf9491444f9dc');
+-- COMMIT;
+--
+-- 12. Read-only verification:
+-- SELECT (SELECT checksum FROM public.schema_migrations WHERE filename='20261118040000_customer_create_edit.sql') AS checksum, to_regprocedure('public.save_customer_form(uuid,text,text,text,text)') IS NOT NULL AS function_exists, has_function_privilege('anon','public.save_customer_form(uuid,text,text,text,text)','EXECUTE') AS anon_can_execute, has_function_privilege('authenticated','public.save_customer_form(uuid,text,text,text,text)','EXECUTE') AS authenticated_can_execute, has_function_privilege('service_role','public.save_customer_form(uuid,text,text,text,text)','EXECUTE') AS service_can_execute, (SELECT relrowsecurity FROM pg_class WHERE oid='public.customer'::regclass) AS rls_enabled, (SELECT reloptions FROM pg_class WHERE oid='public.customer_active'::regclass) AS view_options, (SELECT count(*) FROM public.customer) AS customer_count;
+--
+-- 13. After application, the rollback test in
+-- ../../supabase/tests/customer_form.sql passed again, with this additional
+-- assertion inside its first DO block:
+-- IF (SELECT checksum FROM public.schema_migrations WHERE filename='20261118040000_customer_create_edit.sql') IS DISTINCT FROM '3f7a532b0e50304886947b3b218b502e501245a8f35e6110d9bcf9491444f9dc' OR NOT (SELECT reloptions @> ARRAY['security_invoker=true'] FROM pg_class WHERE oid='public.customer_active'::regclass) THEN RAISE EXCEPTION 'Migration verification failed.'; END IF;
+--
+-- 14. Live application verification on 2026-11-18: the browser created C-005
+-- as "S2-DEV-02 Test Customer" with Net 30, then edited it to
+-- "S2-DEV-02 Test Edited" with Prepaid. The active test customer remains in
+-- the shared database, with CREATED and EDITED audit entries.
+-- A temporary authenticated User with CUSTOMER_DELETE but without
+-- CUSTOMER_ADD or CUSTOMER_EDIT sent both requests directly to the live
+-- server action. Both were refused; the test customer was unchanged and
+-- no "Authorization probe" customer was created. The temporary Auth user
+-- was deleted after the test. These operations used the app and Supabase API,
+-- not additional SQL Editor statements.

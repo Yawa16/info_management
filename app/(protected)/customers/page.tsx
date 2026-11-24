@@ -1,4 +1,5 @@
 import Link from "next/link";
+import CustomerForm from "@/components/CustomerForm";
 import CustomerSearch from "@/components/CustomerSearch";
 import { requireRight } from "@/lib/auth/permissions";
 import { canAccessModule, isManagerRole } from "@/lib/auth/rights-check";
@@ -47,7 +48,7 @@ export default async function CustomersPage({ searchParams }: { searchParams: Pr
           <h1>Customer Management</h1>
           <p>Find and manage customers.</p>
         </div>
-        {canAdd && <button className="customer-placeholder" disabled title="Coming in a later task">+ Add Customer</button>}
+        {canAdd && <CustomerForm />}
       </header>
       <section className="customer-panel" aria-label="Customer list">
         <CustomerSearch search={options.search} />
@@ -88,7 +89,7 @@ export default async function CustomersPage({ searchParams }: { searchParams: Pr
                   )}
                   {(canEdit || canDelete || isManager) && (
                     <td className="customer-actions">
-                      {customer.status !== "Inactive" && canEdit && <button disabled title="Coming in a later task">Edit</button>}
+                      {customer.status !== "Inactive" && canEdit && <CustomerForm customer={customer} />}
                       {customer.status !== "Inactive" && canDelete && <button disabled title="Coming in a later task">Delete</button>}
                       {customer.status === "Inactive" && isManager && <button disabled title="Coming in a later task">Restore</button>}
                     </td>
