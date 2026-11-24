@@ -1,9 +1,10 @@
 import Link from "next/link";
 import ListSearch from "@/components/ListSearch";
 import { requireRight } from "@/lib/auth/permissions";
-import { isManagerRole } from "@/lib/auth/rights-check";
+import { canAccessModule, isManagerRole } from "@/lib/auth/rights-check";
 import { loadProducts, productListOptions, type ProductStatusFilter } from "@/lib/products/list";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import ProductForm from "@/components/ProductForm";
 import "../customers/customers.css";
 
 type SearchParams = { q?: string | string[]; status?: string | string[]; page?: string | string[] };
@@ -20,6 +21,7 @@ function productUrl(search: string, status: ProductStatusFilter, page?: number) 
 export default async function ProductsPage({ searchParams }: { searchParams: Promise<SearchParams> }) {
   const { snapshot } = await requireRight("products");
   const isManager = isManagerRole(snapshot.role);
+  const canAdd = canAccessModule(snapshot, "products", "add");
   const options = productListOptions(isManager, await searchParams);
   let result;
   try {
@@ -43,6 +45,7 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
           <h1>Product Management</h1>
           <p>Find and manage products.</p>
         </div>
+        {canAdd && <ProductForm />}
       </header>
       <section className="customer-panel" aria-label="Product list">
         <ListSearch search={options.search} label="Search products" placeholder="Code, description or unit" />
