@@ -1,6 +1,6 @@
 import Link from "next/link";
 import CustomerForm from "@/components/CustomerForm";
-import CustomerSearch from "@/components/CustomerSearch";
+import ListSearch from "@/components/ListSearch";
 import CustomerStatusButton from "@/components/CustomerStatusButton";
 import { requireRight } from "@/lib/auth/permissions";
 import { canAccessModule, isManagerRole } from "@/lib/auth/rights-check";
@@ -52,7 +52,7 @@ export default async function CustomersPage({ searchParams }: { searchParams: Pr
         {canAdd && <CustomerForm />}
       </header>
       <section className="customer-panel" aria-label="Customer list">
-        <CustomerSearch search={options.search} />
+        <ListSearch search={options.search} label="Search customers" placeholder="Number, name, address or pay terms" />
         {result.counts && (
           <nav className="customer-tabs" aria-label="Filter customers by status">
             {(["Active", "Inactive", "All"] as const).map((status) => (
