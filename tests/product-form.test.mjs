@@ -147,3 +147,11 @@ test("authorized edit passes locked code and fields to edit_product_form", async
   assert.equal(calls[0].args.p_unit, "pair");
   assert.deepEqual(calls.at(-1), { revalidate: "/products" });
 });
+
+test("product form exposes accessible success feedback after create or edit", () => {
+  const source = fs.readFileSync(new URL("../components/ProductForm.tsx", import.meta.url), "utf8");
+  assert.match(source, /role="status"/);
+  assert.match(source, /aria-live="polite"/);
+  assert.match(source, /updated successfully/);
+  assert.match(source, /created successfully/);
+});

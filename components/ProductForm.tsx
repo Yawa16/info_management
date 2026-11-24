@@ -10,15 +10,18 @@ export default function ProductForm({ product }: { product?: Product }) {
   const dialog = useRef<HTMLDialogElement>(null);
   const titleId = useId();
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [pending, startTransition] = useTransition();
 
   function open() {
     setError("");
+    setSuccess("");
     dialog.current?.showModal();
   }
 
   function submit(formData: FormData) {
     setError("");
+    setSuccess("");
     startTransition(async () => {
       try {
         const result = product
@@ -29,6 +32,7 @@ export default function ProductForm({ product }: { product?: Product }) {
           return;
         }
         dialog.current?.close();
+        setSuccess(product ? `Product ${product.prod_code} updated successfully.` : `Product ${result.productCode} created successfully.`);
         router.refresh();
       } catch (saveError) {
         console.error("Product save request failed.", saveError);
@@ -74,6 +78,11 @@ export default function ProductForm({ product }: { product?: Product }) {
           </footer>
         </form>
       </dialog>
+      {success && (
+        <p className="customer-success" role="status" aria-live="polite">
+          {success}
+        </p>
+      )}
     </>
   );
 }
