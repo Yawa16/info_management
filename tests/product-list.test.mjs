@@ -10,6 +10,12 @@ function mockClient(requests) {
       fetch: async (url, init) => {
         const request = new URL(url);
         requests.push({ request, method: init.method });
+        if (request.pathname.endsWith("/pricehist")) {
+          return new Response(JSON.stringify([
+            { prodcode: "P-001", effdate: "2026-11-20", unitprice: 48.5 },
+            { prodcode: "P-001", effdate: "2026-11-10", unitprice: 45 },
+          ]), { status: 200, headers: { "content-type": "application/json" } });
+        }
         const status = request.searchParams.get("status");
         const count = status === "eq.Inactive" ? 1 : status === "eq.Active" ? 4 : 5;
         const headers = { "content-range": `0-${count - 1}/${count}`, "content-type": "application/json" };
@@ -53,4 +59,36 @@ test("non-managers cannot choose a status and search syntax is escaped", async (
   const filter = requests[0].request.searchParams.get("or");
   assert.ok(filter.includes('a\\",status.eq.Inactive\\%\\_\\\\'));
   assert.equal(requests[0].request.searchParams.get("status"), "eq.Active");
+});
+
+test("the latest effective active price is attached to each product", async () => {
+  const requests = [];
+  const client = createClient("https://example.supabase.co", "test-key", {
+    auth: { persistSession: false },
+    global: {
+      fetch: async (url, init) => {
+        const request = new URL(url);
+        requests.push({ request, method: init.method });
+        if (request.pathname.endsWith("/product")) {
+          return new Response(JSON.stringify([
+            { prod_code: "P-001", description: "Gloves", unit: "pair", status: "Active", stamp: "CREATED test" },
+          ]), { status: 200, headers: { "content-range": "0-0/1", "content-type": "application/json" } });
+        }
+        if (request.pathname.endsWith("/pricehist")) {
+          return new Response(JSON.stringify([
+            { prodcode: "P-001", effdate: "2026-11-20", unitprice: 48.5 },
+            { prodcode: "P-001", effdate: "2026-11-10", unitprice: 45 },
+          ]), { status: 200, headers: { "content-type": "application/json" } });
+        }
+        return new Response(null, { status: 200, headers: { "content-range": "0-0/1" } });
+      },
+    },
+  });
+
+  const result = await loadProducts(client, true, productListOptions(true, {}));
+
+  assert.equal(result.products[0].current_price, 48.5);
+  const priceRequest = requests.find(({ request }) => request.pathname.endsWith("/pricehist")).request;
+  assert.equal(priceRequest.searchParams.get("is_deleted"), "eq.false");
+  assert.equal(priceRequest.searchParams.get("effdate"), `lte.${new Date().toISOString().slice(0, 10)}`);
 });

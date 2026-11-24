@@ -74,7 +74,8 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
               {result.products.map((product) => (
                 <tr key={product.prod_code} className={product.status === "Inactive" ? "customer-inactive" : undefined}>
                   <td>{product.prod_code}</td><td>{product.description ?? "—"}</td>
-                  <td>{product.unit ?? "—"}</td><td>—</td>
+                  <td>{product.unit ?? "—"}</td>
+                  <td>{product.current_price == null ? "—" : product.current_price.toLocaleString("en-PH", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                   {isManager && (
                     <>
                       <td><span className={`user-status-badge ${product.status === "Active" ? "status-active" : "customer-status-inactive"}`}>{product.status}</span></td>
