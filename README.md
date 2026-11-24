@@ -146,6 +146,14 @@ the browser form, and the next generated code is P-007. A User without
 P-006 remain inactive as verification fixtures so their codes and audit
 history are preserved.
 
+## Product edit
+
+Users with `PRODUCT_EDIT` can open the Edit modal for Active products. The Prod
+Code remains read-only, and only Description and Unit are editable. The server
+re-checks `PRODUCT_EDIT` and calls the service-role-only `edit_product_form`
+RPC. Status remains unchanged and the existing stamp/audit triggers record an
+`EDITED` stamp.
+
 ## Supabase scaffold
 
 The reusable Supabase clients are in `lib/supabase/client.ts` for browser

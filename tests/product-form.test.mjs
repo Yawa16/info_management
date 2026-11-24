@@ -85,3 +85,73 @@ test("authorized create passes fields to save_product_form and refreshes", async
   assert.equal(calls[0].args.p_unit, "pair");
   assert.deepEqual(calls.at(-1), { revalidate: "/products" });
 });
+
+test("server refuses edit without PRODUCT_EDIT", async () => {
+  const calls = [];
+  const deps = {
+    "next/cache": { revalidatePath: (path) => calls.push({ revalidate: path }) },
+    "@/lib/auth/access": { requireApprovedUser: async () => ({ user: { id: "actor-id" } }) },
+    "@/lib/auth/permissions": { hasRight: async () => false },
+    "@/lib/products/form": { validateProductForm },
+    "@/lib/supabase/admin": { createSupabaseAdminClient: () => ({ rpc: async () => ({ error: null }) }) },
+  };
+  const source = fs.readFileSync(new URL("../lib/actions/products.ts", import.meta.url), "utf8");
+  const js = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS } }).outputText;
+  const exports = {};
+  vm.runInNewContext(js, {
+    exports,
+    require: (name) => {
+      if (!(name in deps)) throw new Error(`Unexpected dependency: ${name}`);
+      return deps[name];
+    },
+    console,
+  });
+  const result = await exports.editProduct("P-001", form("Gloves", "pair"));
+  assert.equal(result.status, "error");
+  assert.match(result.message, /permission/);
+  assert.equal(calls.length, 0);
+});
+
+test("authorized edit passes locked code and fields to edit_product_form", async () => {
+  const calls = [];
+  const deps = {
+    "next/cache": { revalidatePath: (path) => calls.push({ revalidate: path }) },
+    "@/lib/auth/access": { requireApprovedUser: async () => ({ user: { id: "actor-id" } }) },
+    "@/lib/auth/permissions": { hasRight: async () => true },
+    "@/lib/products/form": { validateProductForm },
+    "@/lib/supabase/admin": { createSupabaseAdminClient: () => ({
+      rpc: async (name, args) => {
+        calls.push({ name, args });
+        return { error: null };
+      },
+    }) },
+  };
+  const source = fs.readFileSync(new URL("../lib/actions/products.ts", import.meta.url), "utf8");
+  const js = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS } }).outputText;
+  const exports = {};
+  vm.runInNewContext(js, {
+    exports,
+    require: (name) => {
+      if (!(name in deps)) throw new Error(`Unexpected dependency: ${name}`);
+      return deps[name];
+    },
+    console,
+  });
+  const result = await exports.editProduct("P-001", form("  Cotton gloves  ", "  pair  "));
+  assert.equal(result.status, "success");
+  assert.equal(result.productCode, "P-001");
+  assert.equal(calls[0].name, "edit_product_form");
+  assert.equal(calls[0].args.p_actor_id, "actor-id");
+  assert.equal(calls[0].args.p_prod_code, "P-001");
+  assert.equal(calls[0].args.p_description, "Cotton gloves");
+  assert.equal(calls[0].args.p_unit, "pair");
+  assert.deepEqual(calls.at(-1), { revalidate: "/products" });
+});
+
+test("product form exposes accessible success feedback after create or edit", () => {
+  const source = fs.readFileSync(new URL("../components/ProductForm.tsx", import.meta.url), "utf8");
+  assert.match(source, /role="status"/);
+  assert.match(source, /aria-live="polite"/);
+  assert.match(source, /updated successfully/);
+  assert.match(source, /created successfully/);
+});

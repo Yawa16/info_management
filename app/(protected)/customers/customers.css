@@ -29,6 +29,7 @@
 .customer-dialog-footer { justify-content: flex-end; }
 .customer-dialog-footer button:disabled { opacity: .6; cursor: not-allowed; }
 .customer-empty, .customer-error { font-size: 13px; color: #a05247; }
+.customer-success { margin: 12px 0 0; padding: 10px 12px; border: 1px solid #b9d7c9; border-radius: 5px; color: #245b4b; background: #edf7f2; font-size: 13px; }
 .customer-pagination { display: flex; align-items: center; flex-wrap: wrap; gap: 14px; margin-top: 20px; color: #697571; font-size: 12px; }
 .customer-pagination a { color: #245b4b; }
 @media (max-width: 600px) {
