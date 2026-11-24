@@ -14,6 +14,7 @@
     "typecheck": "tsc --noEmit",
     "test:product-create": "node --test tests/product-form.test.mjs tests/product-list.test.mjs",
     "test:product-delete": "node --test tests/product-delete.test.mjs",
+    "test:product-restore": "node --test tests/product-restore.test.mjs",
     "test:products": "node --test tests/product-list.test.mjs tests/customer-list.test.mjs",
     "db:migrate": "node db/scripts/migrate.js migrate",
     "db:status": "node db/scripts/migrate.js status",

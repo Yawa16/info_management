@@ -6,6 +6,7 @@ import { loadProducts, productListOptions, type ProductStatusFilter } from "@/li
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import ProductForm from "@/components/ProductForm";
 import ProductDeleteButton from "@/components/ProductDeleteButton";
+import ProductRestoreButton from "@/components/ProductRestoreButton";
 import "../customers/customers.css";
 
 type SearchParams = { q?: string | string[]; status?: string | string[]; page?: string | string[] };
@@ -95,6 +96,9 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
                         productCode={product.prod_code}
                         description={product.description}
                       />
+                    )}
+                    {product.status === "Inactive" && isManager && (
+                      <ProductRestoreButton productCode={product.prod_code} />
                     )}
                   </td>
                 </tr>

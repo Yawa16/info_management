@@ -3,11 +3,13 @@
 import { revalidatePath } from "next/cache";
 import { requireApprovedUser } from "@/lib/auth/access";
 import { hasRight } from "@/lib/auth/permissions";
+import { isManagerRole } from "@/lib/auth/rights-check";
 import { validateProductForm } from "@/lib/products/form";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 export type ProductSaveResult = { status: "success"; productCode: string } | { status: "error"; message: string };
 export type ProductDeleteResult = { status: "success" } | { status: "error"; message: string };
+export type ProductRestoreResult = ProductDeleteResult;
 
 export async function createProduct(formData: FormData): Promise<ProductSaveResult> {
   const { user } = await requireApprovedUser();
@@ -79,6 +81,30 @@ export async function deleteProduct(productCode: string): Promise<ProductDeleteR
       return { status: "error", message: "This product cannot be deleted while active sales are linked to it." };
     }
     return { status: "error", message: "Could not delete this product. Please try again." };
+  }
+  revalidatePath("/products");
+  return { status: "success" };
+}
+
+export async function restoreProduct(productCode: string): Promise<ProductRestoreResult> {
+  const { user, role } = await requireApprovedUser();
+  if (typeof productCode !== "string" || !/^P-[0-9]{1,8}$/i.test(productCode)) {
+    return { status: "error", message: "Invalid product code." };
+  }
+  if (!isManagerRole(role)) {
+    return { status: "error", message: "Only an Admin or Superadmin can restore products." };
+  }
+
+  const { error } = await createSupabaseAdminClient().rpc("restore_product", {
+    p_actor_id: user.id,
+    p_prod_code: productCode.toUpperCase(),
+  });
+  if (error) {
+    console.error("Unable to restore product.", { code: error.code, message: error.message });
+    if (error.message.startsWith("Product not found or already active.")) {
+      return { status: "error", message: "This product is no longer inactive. Please refresh and try again." };
+    }
+    return { status: "error", message: "Could not restore this product. Please try again." };
   }
   revalidatePath("/products");
   return { status: "success" };

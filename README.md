@@ -162,8 +162,8 @@ the right before calling the service-role-only `soft_delete_product` RPC.
 Product rows and price history are retained; active sales details still prevent
 deletion. Admins and Superadmins can view shaded inactive rows; Users only
 receive Active products from the server query. The existing audit trigger writes
-the `DELETED` stamp. Restore is intentionally excluded from this PR and will be
-implemented separately.
+the `DELETED` stamp. Product restore is implemented separately; see Product
+restore below.
 
 `db/migrations/20261123100000_product_soft_delete.sql` was applied to the
 approved Hope ERP Development project on 2026-11-23 after DB Admin approval and
@@ -176,6 +176,28 @@ The rollback-only `supabase/tests/product_soft_delete.sql` passed on that
 project, verifying the permission refusal, `DELETED` stamp, unchanged price
 history, and RLS/function privileges. Its fixture changes were rolled back.
 Run focused application tests with `npm run test:product-delete`.
+
+## Product restore
+
+Admins and Superadmins can restore inactive products from the shaded rows in
+the Product list. The server action and service-role-only `restore_product`
+RPC both enforce manager-only access. Restoring changes the status back to
+Active, preserves existing price history, and lets the audit trigger write the
+`RESTORED` stamp. Regular Users continue to receive only Active products.
+
+`db/migrations/20261123110000_product_restore.sql` adds the protected restore
+RPC without changing the existing soft-delete migration. The DB Admin
+approved and applied it to Hope ERP Development on 2026-11-23 after backup
+confirmation. Its SHA-256 checksum in `public.schema_migrations` is
+`4d90bd4a1ad5949c0be26463964fb8c6d0b6b1af5be1897783543499a5bc4787`; do not
+edit or rerun this migration there.
+
+The live rollback-only `supabase/tests/product_restore.sql` passed on the
+approved development project. It verified User refusal, manager restore, the
+`RESTORED` stamp, retained price history, repeated-restore refusal, function
+privileges, and Product RLS. Its fixture changes were rolled back; a follow-up
+query confirmed no test products remain. Run `npm run test:product-restore`
+for the focused server-action tests.
 
 ## Supabase scaffold
 
