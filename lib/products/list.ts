@@ -6,6 +6,7 @@ export type Product = {
   prod_code: string;
   description: string | null;
   unit: string | null;
+  current_price: number | null;
   status?: "Active" | "Inactive";
   stamp?: string;
 };
@@ -78,8 +79,37 @@ export async function loadProducts(
     throw new Error("Unable to load products.");
   }
 
+  const productCodes = rows.data.map((product) => product.prod_code);
+  const prices = productCodes.length
+    ? await client
+        .from("pricehist")
+        .select("prodcode,effdate,unitprice")
+        .in("prodcode", productCodes)
+        .eq("is_deleted", false)
+        .lte("effdate", new Date().toISOString().slice(0, 10))
+        .order("effdate", { ascending: false })
+        .overrideTypes<Array<{ prodcode: string; effdate: string; unitprice: number }>>()
+    : null;
+  if (prices?.error) {
+    console.error("Unable to load Product Management prices.", {
+      code: prices.error.code,
+      message: prices.error.message,
+    });
+    throw new Error("Unable to load products.");
+  }
+
+  const currentPrices = new Map<string, number>();
+  for (const price of prices?.data ?? []) {
+    if (!currentPrices.has(price.prodcode)) {
+      currentPrices.set(price.prodcode, Number(price.unitprice));
+    }
+  }
+
   return {
-    products: rows.data,
+    products: rows.data.map((product) => ({
+      ...product,
+      current_price: currentPrices.get(product.prod_code) ?? null,
+    })),
     total: rows.count,
     pageSize: PAGE_SIZE,
     counts: isManager
