@@ -31,6 +31,7 @@ test("server refuses create without PRODUCT_ADD", async () => {
     "next/cache": { revalidatePath: (path) => calls.push({ revalidate: path }) },
     "@/lib/auth/access": { requireApprovedUser: async () => ({ user: { id: "actor-id" } }) },
     "@/lib/auth/permissions": { hasRight: async () => false },
+    "@/lib/auth/rights-check": { isManagerRole: (role) => role === "admin" || role === "superadmin" },
     "@/lib/products/form": { validateProductForm },
     "@/lib/supabase/admin": { createSupabaseAdminClient: () => ({ rpc: async () => ({ error: null, data: "P-001" }) }) },
   };
@@ -57,6 +58,7 @@ test("authorized create passes fields to save_product_form and refreshes", async
     "next/cache": { revalidatePath: (path) => calls.push({ revalidate: path }) },
     "@/lib/auth/access": { requireApprovedUser: async () => ({ user: { id: "actor-id" } }) },
     "@/lib/auth/permissions": { hasRight: async () => true },
+    "@/lib/auth/rights-check": { isManagerRole: (role) => role === "admin" || role === "superadmin" },
     "@/lib/products/form": { validateProductForm },
     "@/lib/supabase/admin": { createSupabaseAdminClient: () => ({
       rpc: async (name, args) => {
@@ -92,6 +94,7 @@ test("server refuses edit without PRODUCT_EDIT", async () => {
     "next/cache": { revalidatePath: (path) => calls.push({ revalidate: path }) },
     "@/lib/auth/access": { requireApprovedUser: async () => ({ user: { id: "actor-id" } }) },
     "@/lib/auth/permissions": { hasRight: async () => false },
+    "@/lib/auth/rights-check": { isManagerRole: (role) => role === "admin" || role === "superadmin" },
     "@/lib/products/form": { validateProductForm },
     "@/lib/supabase/admin": { createSupabaseAdminClient: () => ({ rpc: async () => ({ error: null }) }) },
   };
@@ -118,6 +121,7 @@ test("authorized edit passes locked code and fields to edit_product_form", async
     "next/cache": { revalidatePath: (path) => calls.push({ revalidate: path }) },
     "@/lib/auth/access": { requireApprovedUser: async () => ({ user: { id: "actor-id" } }) },
     "@/lib/auth/permissions": { hasRight: async () => true },
+    "@/lib/auth/rights-check": { isManagerRole: (role) => role === "admin" || role === "superadmin" },
     "@/lib/products/form": { validateProductForm },
     "@/lib/supabase/admin": { createSupabaseAdminClient: () => ({
       rpc: async (name, args) => {

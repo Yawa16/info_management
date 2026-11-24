@@ -121,7 +121,8 @@ and auditing each change. Both migrations have been reviewed and recorded on
 the shared project as `20261118060000_product_status_compatibility.sql` and
 `20261118061000_normalize_product_legacy_stamps.sql`; do not rerun them there.
 Run `supabase/tests/product_list.sql` on an approved test database after
-applying them; it rolls back its changes. Run the focused tests with
+applying the Product status compatibility, stamp normalization, and soft-delete
+migrations; it rolls back its changes. Run the focused tests with
 `npm run test:products`.
 
 ## Product create
@@ -153,6 +154,28 @@ Code remains read-only, and only Description and Unit are editable. The server
 re-checks `PRODUCT_EDIT` and calls the service-role-only `edit_product_form`
 RPC. Status remains unchanged and the existing stamp/audit triggers record an
 `EDITED` stamp.
+
+## Product soft delete
+
+Users with `PRODUCT_DELETE` can soft-delete Active products. The server checks
+the right before calling the service-role-only `soft_delete_product` RPC.
+Product rows and price history are retained; active sales details still prevent
+deletion. Admins and Superadmins can view shaded inactive rows; Users only
+receive Active products from the server query. The existing audit trigger writes
+the `DELETED` stamp. Restore is intentionally excluded from this PR and will be
+implemented separately.
+
+`db/migrations/20261123100000_product_soft_delete.sql` was applied to the
+approved Hope ERP Development project on 2026-11-23 after DB Admin approval and
+backup confirmation; its checksum is recorded in `public.schema_migrations`.
+Do not rerun it there. It removes price history from the existing child guard
+while preserving the active-sales safeguard, then adds the protected
+soft-delete RPC without changing Product RLS.
+
+The rollback-only `supabase/tests/product_soft_delete.sql` passed on that
+project, verifying the permission refusal, `DELETED` stamp, unchanged price
+history, and RLS/function privileges. Its fixture changes were rolled back.
+Run focused application tests with `npm run test:product-delete`.
 
 ## Supabase scaffold
 
